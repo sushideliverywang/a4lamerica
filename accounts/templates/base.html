@@ -1,0 +1,77 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}A4L America{% endblock %}</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#185A56',
+                        secondary: '#FD742D',
+                        background: {
+                            light: '#FDF8F4',
+                            dark: '#133C38'
+                        },
+                        text: {
+                            primary: '#2C3E50',
+                            secondary: '#6B7A90'
+                        },
+                        border: '#D9D9D9',
+                        success: '#28A745',
+                        warning: '#FFC107',
+                        error: '#DC3545'
+                    }
+                }
+            }
+        }
+    </script>
+
+    {% block extra_css %}{% endblock %}
+
+    <style>
+        .bg-stars {
+            background-image: url("{% static 'accounts/images/starry-sky.jpg' %}");
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+        }
+
+        .content-overlay {
+            background-color: rgba(255, 255, 255, 0.75);
+        }
+    </style>
+</head>
+
+<body class="bg-stars min-h-screen flex flex-col">
+    <!-- Navigation -->
+    <nav class="bg-primary shadow">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-between items-center h-16">
+                <a class="text-xl font-bold text-white hover:text-secondary transition-colors" href="/">A4L America LLC</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-grow">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white mt-8 py-4 border-t">
+        <div class="container mx-auto px-4 text-center">
+            <p class="text-gray-600">&copy; {% now "Y" %} A4L America LLC. All rights reserved.</p>
+        </div>
+    </footer>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+
+{% block title %}A4LAMERICA.COM - Coming Soon{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 mt-8">
+    <div class="max-w-md mx-auto">
+        <div class="content-overlay rounded-lg shadow-xl p-8 border border-gray-100">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-center text-primary mb-3">Welcome to </h2>
+                <h2 class="text-3xl font-bold text-center text-primary mb-3">Appliances 4 Less</h2>
+                <h2 class="text-3xl font-bold text-center text-primary mb-3">Doraville Store</h2>
+                <div class="w-80 h-1 bg-secondary mx-auto mb-4"></div>
+                <p class="text-center text-text-secondary mb-4">
+                    Our website is under construction. Please leave your contact information, 
+                    and we'll notify you when we launch!
+                </p>
+                <div class="text-center text-text-secondary space-y-2">
+                    <p class="font-semibold text-lg">
+                        Address:
+                    </p>
+                    <p class="mb-4 text-sm">
+                        <a href="https://maps.app.goo.gl/LyhDX9m5ro98vXAf6"
+                           target="_blank"
+                           class="underline hover:text-secondary transition-colors duration-300">
+                            6930 Buford Hwy Suite B, Doraville, GA 30340
+                        </a>
+                    </p>
+                    <p class="font-semibold text-lg">
+                        Business Hours:
+                    </p>
+                    <div class="space-y-1">
+                        <div class="grid grid-cols-[120px,1fr]">
+                            <span>Mon - Tue:</span>
+                            <span>10:00 AM - 7:00 PM</span>
+                        </div>
+                        <div class="grid grid-cols-[120px,1fr]">
+                            <span>Wed - Thu:</span>
+                            <span>10:00 AM - 6:00 PM</span>
+                        </div>
+                        <div class="grid grid-cols-[120px,1fr]">
+                            <span>Fri - Sat:</span>
+                            <span>10:00 AM - 7:00 PM</span>
+                        </div>
+                        <div class="grid grid-cols-[120px,1fr]">
+                            <span>Sun:</span>
+                            <span>Closed</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="group">
+                        <label for="{{ form.first_name.id_for_label }}" 
+                               class="block text-sm font-medium text-primary mb-1">
+                            First Name
+                        </label>
+                        {{ form.first_name }}
+                        {% if form.first_name.errors %}
+                            <div class="text-error text-sm mt-1">
+                                {{ form.first_name.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="group">
+                        <label for="{{ form.last_name.id_for_label }}" 
+                               class="block text-sm font-medium text-primary mb-1">
+                            Last Name
+                        </label>
+                        {{ form.last_name }}
+                        {% if form.last_name.errors %}
+                            <div class="text-error text-sm mt-1">
+                                {{ form.last_name.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="group">
+                    <label for="{{ form.email.id_for_label }}" 
+                           class="block text-sm font-medium text-primary mb-1">
+                        Email Address
+                    </label>
+                    {{ form.email }}
+                    {% if form.email.errors %}
+                        <div class="text-error text-sm mt-1">
+                            {{ form.email.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="group">
+                    <label for="{{ form.phone.id_for_label }}" 
+                           class="block text-sm font-medium text-primary mb-1">
+                        Phone Number
+                    </label>
+                    {{ form.phone }}
+                    {% if form.phone.errors %}
+                        <div class="text-error text-sm mt-1">
+                            {{ form.phone.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="text-center mb-4">
+                    <p class="text-secondary font-semibold mb-1">🎉 Special Offer!</p>
+                    <p class="text-sm text-text-secondary">
+                        Subscribe now and receive a $50 discount on your first purchase!
+                    </p>
+                </div>
+                <button type="submit" 
+                        class="w-full bg-secondary text-white py-3 px-4 rounded-md 
+                               hover:bg-opacity-90 transition-all duration-300 
+                               transform hover:scale-[1.02] font-medium text-lg shadow-md">
+                    Subscribe Now
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% if messages %}
+<div id="notification" 
+     class="fixed top-4 right-4 bg-green-100 border border-green-400 text-green-700 px-6 py-4 rounded-lg shadow-lg max-w-md">
+    {% for message in messages %}
+        <div class="flex items-center justify-between">
+            <div class="flex items-center">
+                <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" 
+                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" 
+                          clip-rule="evenodd"/>
+                </svg>
+                <p>{{ message }}</p>
+            </div>
+            <button onclick="closeNotification()" class="ml-4 text-green-700 hover:text-green-900">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+    {% endfor %}
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // 清空表单的函数
+    function clearForm() {
+        if (window.performance && window.performance.navigation.type === window.performance.navigation.TYPE_RELOAD) {
+            document.querySelector('form').reset();
+        }
+    }
+
+    // 页面加载时执行
+    document.addEventListener('DOMContentLoaded', function() {
+        clearForm();
+        
+        // 电话号码输入处理
+        const phoneInput = document.getElementById('{{ form.phone.id_for_label }}');
+        phoneInput.addEventListener('input', function(e) {
+            let digits = this.value.replace(/\D/g, '');
+            if (digits.length > 10) {
+                digits = digits.slice(0, 10);
+            }
+            this.value = digits;
+        });
+    });
+</script>
+{% endblock %} 
