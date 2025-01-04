@@ -62,7 +62,7 @@ python manage.py runserver
 
 ## Project Structure
 
-'''
+```bash
 a4lamerica/
 ├── accounts/ # Main app directory
 │ ├── static/ # Static files (images, css)
@@ -79,7 +79,7 @@ a4lamerica/
 ├── .gitignore # Git ignore file
 ├── manage.py # Django management script
 └── requirements.txt # Project dependencies
-'''
+```
 
 ## License
 
