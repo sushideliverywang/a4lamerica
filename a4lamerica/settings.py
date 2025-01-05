@@ -30,7 +30,7 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['192.168.1.77', 'a4lamerica.com', '127.0.0.1']
+ALLOWED_HOSTS = ['192.168.1.77', 'a4lamerica.com', '127.0.0.1', 'www.a4lamerica.com','104.15.178.252']
 
 
 # Application definition
@@ -151,5 +151,5 @@ DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL')
 
 CSRF_TRUSTED_ORIGINS = [
     'https://a4lamerica.com',
-    'http://192.168.1.77',  # 如果通过 IP 地址访问
+    'https://www.a4lamerica.com',
 ]
