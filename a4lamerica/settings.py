@@ -33,7 +33,7 @@ DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
 if DEBUG:
     ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 else:
-    ALLOWED_HOSTS = ['192.168.1.254', 'a4lamerica.com', 'www.a4lamerica.com', '104.15.178.252', '*']
+    ALLOWED_HOSTS = ['192.168.1.77', 'a4lamerica.com', 'www.a4lamerica.com', '104.15.178.252', '*']
 
 
 # Application definition
