@@ -4,7 +4,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}A4L America{% endblock %}</title>
+    
+    <!-- SEO Meta Tags -->
+    <title>{% block title %}Appliances 4 Less - $50 Discount Coupon | Doraville, GA{% endblock %}</title>
+    <meta name="description" content="Get a $50 discount coupon for your first purchase at Appliances 4 Less in Doraville. We offer quality appliances at affordable prices. Subscribe now!">
+    <meta name="keywords" content="appliances, discount, coupon, Doraville, Georgia, refrigerator, washer, dryer, stove, dishwasher, cooktop, freezer">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://a4lamerica.com/">
+    <meta property="og:title" content="Appliances 4 Less - Get Your $50 Discount Coupon">
+    <meta property="og:description" content="Subscribe now and receive a $50 discount on your first purchase at Appliances 4 Less in Doraville, GA.">
+    <meta property="og:image" content="{% static 'accounts/images/email/coupon.png' %}">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://a4lamerica.com/">
+    <meta property="twitter:title" content="Appliances 4 Less - Get Your $50 Discount Coupon">
+    <meta property="twitter:description" content="Subscribe now and receive a $50 discount on your first purchase at Appliances 4 Less in Doraville, GA.">
+    <meta property="twitter:image" content="{% static 'accounts/images/email/coupon.png' %}">
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://a4lamerica.com/">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{% static 'accounts/images/favicon.png' %}">
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -48,6 +72,8 @@
             background-color: rgba(255, 255, 255, 0.75);
         }
     </style>
+
+    <meta name="google-site-verification" content="nEebMkYEYLN5gCHR3udBtLNQ4dVDzoGYUv-IIb3zRQE" />
 </head>
 
 <body class="bg-stars min-h-screen flex flex-col">
