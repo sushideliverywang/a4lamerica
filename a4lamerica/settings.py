@@ -152,11 +152,6 @@ EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL')
 
 
-CSRF_TRUSTED_ORIGINS = [
-    'https://a4lamerica.com',
-    'https://www.a4lamerica.com',
-]
-
 # 根据环境变量设置安全选项
 if DEBUG:
     # 开发环境设置
@@ -171,7 +166,7 @@ if DEBUG:
     ]
 else:
     # 生产环境设置
-    SECURE_SSL_REDIRECT = True
+    SECURE_SSL_REDIRECT = False
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_BROWSER_XSS_FILTER = True
