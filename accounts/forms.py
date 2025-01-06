@@ -3,44 +3,55 @@ from .models import Subscriber
 import re
 
 class SubscriberForm(forms.ModelForm):
+    password = forms.CharField(
+        widget=forms.PasswordInput(attrs={
+            'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
+            'placeholder': 'Enter your password'
+        }),
+        min_length=8,
+        help_text="Password must be at least 8 characters long"
+    )
+    confirm_password = forms.CharField(
+        widget=forms.PasswordInput(attrs={
+            'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
+            'placeholder': 'Confirm your password'
+        })
+    )
+
     class Meta:
         model = Subscriber
-        fields = ['first_name', 'last_name', 'email', 'phone']
+        fields = ['first_name', 'last_name', 'email', 'phone', 'password', 'confirm_password']
         widgets = {
             'first_name': forms.TextInput(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-200 rounded-md focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-colors bg-white/50',
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
                 'placeholder': 'Enter your first name'
             }),
             'last_name': forms.TextInput(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-200 rounded-md focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-colors bg-white/50',
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
                 'placeholder': 'Enter your last name'
             }),
             'email': forms.EmailInput(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-200 rounded-md focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-colors bg-white/50',
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
                 'placeholder': 'Enter your email'
             }),
             'phone': forms.TextInput(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-200 rounded-md focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-colors bg-white/50',
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
                 'placeholder': 'Enter your phone number'
             })
         }
-        error_messages = {
-            'first_name': {
-                'required': 'First name is required',
-                'max_length': 'First name is too long'
-            },
-            'last_name': {
-                'required': 'Last name is required',
-                'max_length': 'Last name is too long'
-            },
-            'email': {
-                'required': 'Email address is required',
-                'invalid': 'Please enter a valid email address'
-            },
-            'phone': {
-                'required': 'Phone number is required'
-            }
-        }
+
+    def clean_password(self):
+        password = self.cleaned_data.get('password')
+        if len(password) < 8:
+            raise forms.ValidationError("Password must be at least 8 characters long")
+        return password
+
+    def clean_confirm_password(self):
+        password = self.cleaned_data.get('password')
+        confirm_password = self.cleaned_data.get('confirm_password')
+        if password and confirm_password and password != confirm_password:
+            raise forms.ValidationError("Passwords don't match")
+        return confirm_password
 
     def clean_phone(self):
         phone = self.cleaned_data.get('phone')

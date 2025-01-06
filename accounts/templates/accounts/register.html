@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}A4LAMERICA.COM - Coming Soon{% endblock %}
+{% block title %}Coupon Registration Appliances 4 Less{% endblock %}
 
 {% block content %}
 <div class="container mx-auto px-4 mt-8">
@@ -11,9 +11,8 @@
                 <h2 class="text-3xl font-bold text-center text-primary mb-3">Appliances 4 Less</h2>
                 <h2 class="text-3xl font-bold text-center text-primary mb-3">Doraville Store</h2>
                 <div class="w-80 h-1 bg-secondary mx-auto mb-4"></div>
-                <p class="text-center text-text-secondary mb-4">
-                    Our website is under construction. Please leave your contact information, 
-                    and we'll notify you when we launch!
+                <p class="text-center text-primary mb-4">
+                    Our website is under construction. Please subscribe for free and grab your <strong class="text-secondary">$50 Coupon Today!</strong>
                 </p>
                 <div class="text-center text-text-secondary space-y-2">
                     <p class="font-semibold text-lg">
@@ -50,7 +49,7 @@
                 </div>
             </div>
 
-            <form method="post" class="space-y-6">
+            <form method="post" class="space-y-6" id="registerForm">
                 {% csrf_token %}
                 <div class="grid grid-cols-2 gap-4">
                     <div class="group">
@@ -102,17 +101,56 @@
                         </div>
                     {% endif %}
                 </div>
+                <div class="group">
+                    <label for="{{ form.password.id_for_label }}" 
+                           class="block text-sm font-medium text-primary mb-1">
+                        Password
+                    </label>
+                    {{ form.password }}
+                    {% if form.password.errors %}
+                        <div class="text-error text-sm mt-1">
+                            {{ form.password.errors.0 }}
+                        </div>
+                    {% endif %}
+                    {% if form.password.help_text %}
+                        <p class="text-sm text-gray-500 mt-1">{{ form.password.help_text }}</p>
+                    {% endif %}
+                </div>
+                <div class="group">
+                    <label for="{{ form.confirm_password.id_for_label }}" 
+                           class="block text-sm font-medium text-primary mb-1">
+                        Confirm Password
+                    </label>
+                    {{ form.confirm_password }}
+                    {% if form.confirm_password.errors %}
+                        <div class="text-error text-sm mt-1">
+                            {{ form.confirm_password.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
                 <div class="text-center mb-4">
                     <p class="text-secondary font-semibold mb-1">🎉 Special Offer!</p>
                     <p class="text-sm text-text-secondary">
-                        Subscribe now and receive a $50 discount on your first purchase!
+                        Subscribe for free and receive <strong class="text-secondary">$50 Coupon</strong>
+                        <br>
+                        Available for 180 days from today. Merchant will reserve the rights to explain the coupon.
                     </p>
                 </div>
                 <button type="submit" 
+                        id="submitButton"
                         class="w-full bg-secondary text-white py-3 px-4 rounded-md 
                                hover:bg-opacity-90 transition-all duration-300 
-                               transform hover:scale-[1.02] font-medium text-lg shadow-md">
-                    Subscribe Now
+                               transform hover:scale-[1.02] font-medium text-lg shadow-md
+                               disabled:opacity-50 disabled:cursor-not-allowed">
+                    <span class="inline-flex items-center">
+                        <span id="buttonText">Subscribe for Free</span>
+                        <span id="loadingSpinner" class="hidden ml-3">
+                            <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                        </span>
+                    </span>
                 </button>
             </form>
         </div>
@@ -141,6 +179,18 @@
     {% endfor %}
 </div>
 {% endif %}
+
+<div id="loadingOverlay" class="fixed inset-0 bg-gray-500 bg-opacity-75 hidden flex items-center justify-center z-50">
+    <div class="bg-white p-6 rounded-lg shadow-xl">
+        <div class="flex items-center space-x-4">
+            <svg class="animate-spin h-8 w-8 text-secondary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <p class="text-lg text-gray-700">Submitting your information...</p>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
@@ -151,6 +201,20 @@
             document.querySelector('form').reset();
         }
     }
+
+    // 添加表单提交处理
+    document.getElementById('registerForm').addEventListener('submit', function(e) {
+        // 禁用提交按钮
+        const submitButton = document.getElementById('submitButton');
+        const buttonText = document.getElementById('buttonText');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        
+        submitButton.disabled = true;
+        buttonText.textContent = 'Submitting...';
+        loadingSpinner.classList.remove('hidden');
+        loadingOverlay.classList.remove('hidden');
+    });
 
     // 页面加载时执行
     document.addEventListener('DOMContentLoaded', function() {
