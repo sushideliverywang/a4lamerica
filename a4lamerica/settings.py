@@ -173,5 +173,7 @@ else:
     SECURE_CONTENT_TYPE_NOSNIFF = True
     CSRF_TRUSTED_ORIGINS = [
         'https://a4lamerica.com',
-        'https://www.a4lamerica.com'
+        'https://www.a4lamerica.com',
+        'http://a4lamerica.com',
+        'http://www.a4lamerica.com'
     ]
