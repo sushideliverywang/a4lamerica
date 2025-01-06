@@ -28,9 +28,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
 
-ALLOWED_HOSTS = ['192.168.1.77', 'a4lamerica.com', '127.0.0.1', 'www.a4lamerica.com','104.15.178.252']
+if DEBUG:
+    ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+else:
+    ALLOWED_HOSTS = ['192.168.1.77', 'a4lamerica.com', 'www.a4lamerica.com', '104.15.178.252']
 
 
 # Application definition
@@ -153,3 +156,9 @@ CSRF_TRUSTED_ORIGINS = [
     'https://a4lamerica.com',
     'https://www.a4lamerica.com',
 ]
+
+# 根据 DEBUG 设置 ALLOWED_HOSTS
+if DEBUG:
+    ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+else:
+    ALLOWED_HOSTS = ['192.168.1.77', 'a4lamerica.com', 'www.a4lamerica.com', '104.15.178.252']
