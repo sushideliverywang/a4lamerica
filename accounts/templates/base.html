@@ -71,9 +71,15 @@
         .content-overlay {
             background-color: rgba(255, 255, 255, 0.75);
         }
+
+        .grecaptcha-badge {
+            visibility: hidden;
+        }
     </style>
 
     <meta name="google-site-verification" content="nEebMkYEYLN5gCHR3udBtLNQ4dVDzoGYUv-IIb3zRQE" />
+
+    <script src="https://www.google.com/recaptcha/api.js?render={{ RECAPTCHA_SITE_KEY }}"></script>
 </head>
 
 <body class="bg-stars min-h-screen flex flex-col">
@@ -88,6 +94,21 @@
 
     <!-- Main Content -->
     <main class="flex-grow">
+        {% if messages %}
+            <div id="notification" class="fixed top-4 right-4 z-50 w-96 space-y-2">
+                {% for message in messages %}
+                    <div class="p-4 rounded-md shadow-lg transform transition-all duration-300 {% if message.tags == 'error' %}bg-red-100 text-red-700{% else %}bg-green-100 text-green-700{% endif %}">
+                        {{ message }}
+                        <button onclick="closeNotification(this.parentElement)" class="absolute top-2 right-2 text-gray-500 hover:text-gray-700">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
         {% block content %}{% endblock %}
     </main>
 
@@ -95,9 +116,66 @@
     <footer class="bg-white mt-8 py-4 border-t">
         <div class="container mx-auto px-4 text-center">
             <p class="text-gray-600">&copy; {% now "Y" %} A4L America LLC. All rights reserved.</p>
+            <p class="text-gray-400 text-sm mt-2">This site is protected by reCAPTCHA and the Google 
+                <a href="https://policies.google.com/privacy" class="underline">Privacy Policy</a> and 
+                <a href="https://policies.google.com/terms" class="underline">Terms of Service</a> apply.
+            </p>
         </div>
     </footer>
 
-    {% block extra_js %}{% endblock %}
+    <script>
+        function closeNotification(element) {
+            element.style.opacity = '0';
+            setTimeout(() => {
+                element.remove();
+            }, 300);
+        }
+
+        // 自动关闭通知
+        document.addEventListener('DOMContentLoaded', function() {
+            const notifications = document.querySelectorAll('#notification > div');
+            notifications.forEach(notification => {
+                setTimeout(() => {
+                    closeNotification(notification);
+                }, 5000);
+            });
+        });
+    </script>
+
+    {% block extra_js %}
+    <script>
+    function generateDeviceFingerprint() {
+        const fingerprint = {
+            userAgent: navigator.userAgent,
+            language: navigator.language,
+            platform: navigator.platform,
+            screenResolution: `${window.screen.width}x${window.screen.height}`,
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            colorDepth: window.screen.colorDepth,
+        };
+        
+        // 生成指纹字符串
+        const fingerprintStr = JSON.stringify(fingerprint);
+        // 使用简单的哈希函数
+        const hash = Array.from(fingerprintStr).reduce(
+            (hash, char) => ((hash << 5) - hash) + char.charCodeAt(0), 0
+        ).toString(36);
+        
+        return hash;
+    }
+
+    // 将指纹添加到所有表单提交
+    document.addEventListener('DOMContentLoaded', function() {
+        const forms = document.querySelectorAll('form');
+        forms.forEach(form => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'device_fingerprint';
+            input.value = generateDeviceFingerprint();
+            form.appendChild(input);
+        });
+    });
+    </script>
+    {% endblock %}
 </body>
 </html>

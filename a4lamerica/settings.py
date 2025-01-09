@@ -177,3 +177,84 @@ else:
         'http://a4lamerica.com',
         'http://www.a4lamerica.com'
     ]
+
+# Google reCAPTCHA 配置
+RECAPTCHA_SITE_KEY = os.getenv('RECAPTCHA_SITE_KEY')  # 从Google获取的站点密钥
+RECAPTCHA_SECRET_KEY = os.getenv('RECAPTCHA_SECRET_KEY')  # 从Google获取的密钥
+RECAPTCHA_SCORE_THRESHOLD = os.getenv('RECAPTCHA_SCORE_THRESHOLD')  # 设置分数阈值，低于此分数视为机器人
+
+# 日志配置
+if DEBUG:
+    # 开发环境日志配置
+    LOG_DIR = BASE_DIR / 'logs'
+    if not os.path.exists(LOG_DIR):
+        os.makedirs(LOG_DIR)
+else:
+    # 生产环境日志配置
+    LOG_DIR = Path('/var/log/a4lamerica')
+    # 注意：需要确保目录存在且有正确的权限
+    # 这个检查应该在部署脚本中完成，而不是在 settings.py 中
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '[{asctime}] {levelname} {module} {message}',
+            'style': '{',
+            'datefmt': '%Y-%m-%d %H:%M:%S'
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'DEBUG' if DEBUG else 'INFO',  # 生产环境使用 INFO 级别
+            'class': 'logging.FileHandler',
+            'filename': LOG_DIR / 'debug.log',
+            'formatter': 'verbose',
+            'encoding': 'utf-8',
+        },
+        'console': {
+            'level': 'DEBUG' if DEBUG else 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        '': {  # Root logger
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG' if DEBUG else 'INFO',
+        },
+        'accounts': {  # Your app logger
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG' if DEBUG else 'INFO',
+            'propagate': False,
+        },
+        'django': {  # Django's logger
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}
+
+# 网站URL配置
+if DEBUG:
+    SITE_URL = 'http://127.0.0.1:8000'  # 开发环境使用 HTTP
+    PROTOCOL = 'http'
+else:
+    SITE_URL = 'https://a4lamerica.com'  # 生产环境使用 HTTPS
+    PROTOCOL = 'https'
+
+# IP 和设备限制配置
+if DEBUG:
+    # 开发环境：宽松限制
+    IP_RATE_LIMIT_MAX = 200      
+    IP_RATE_LIMIT_TIMEOUT = 3000
+    DEVICE_RATE_LIMIT_MAX = 300  
+    DEVICE_RATE_LIMIT_TIMEOUT = 864000
+else:
+    # 生产环境：严格限制
+    IP_RATE_LIMIT_MAX = 5       # 5次尝试
+    IP_RATE_LIMIT_TIMEOUT = 300  # 5分钟
+    DEVICE_RATE_LIMIT_MAX = 10   # 10次尝试
+    DEVICE_RATE_LIMIT_TIMEOUT = 86400  # 24小时

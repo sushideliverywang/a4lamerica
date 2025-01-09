@@ -1,13 +1,13 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Registration Successful - Check Your Email for $50 Coupon | Appliances 4 Less{% endblock %}
+{% block title %}Registration Verified - Appliances 4 Less{% endblock %}
 
 {% block content %}
 <div class="min-h-screen bg-background py-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-md mx-auto bg-white p-8 rounded-lg shadow-md">
         <div class="text-center mb-8">
-            <h2 class="text-2xl font-bold text-text-primary">Thank You for Subscribing!</h2>
+            <h2 class="text-2xl font-bold text-text-primary">Registration Complete!</h2>
         </div>
 
         <div class="space-y-6 text-center">
@@ -16,13 +16,13 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                           d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
-                <p class="text-green-800 font-medium">Registration Successful!</p>
+                <p class="text-green-800 font-medium">Email Verification Successful!</p>
             </div>
 
             <div class="text-text-secondary space-y-4">
-                <p>We've sent a confirmation email to your inbox with your <strong class="text-secondary">$50 coupon.</strong></p>
-                <p class="font-medium">Simply show the email when you visit our store to claim your discount!</p>
-                <p class="font-medium">Please check your spam folder if you don't see it in your inbox.</p>
+                <p>Your email has been successfully verified.</p>
+                <p class="font-medium">You can use your email and password to log in once our website launches.</p>
+                <p class="font-medium">Meanwhile, visit our store to use your coupon!</p>
             </div>
 
             <div class="border-t pt-6">
@@ -51,8 +51,7 @@
                     </div>
                 </div>
             </div>
-
         </div>
     </div>
 </div>
-{% endblock %} 
+{% endblock %}
