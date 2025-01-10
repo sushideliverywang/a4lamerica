@@ -2,6 +2,9 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
 from .models import Subscriber, RegistrationToken
+import logging
+
+logger = logging.getLogger('accounts')
 
 class CustomUserAdmin(UserAdmin):
     list_display = (
@@ -47,8 +50,14 @@ class CustomUserAdmin(UserAdmin):
     get_token_used.boolean = True
     
     def get_token_valid(self, obj):
-        tokens = RegistrationToken.objects.filter(subscriber__user=obj)
-        return tokens.first().is_valid if tokens.exists() else False
+        try:
+            tokens = RegistrationToken.objects.filter(subscriber__user=obj)
+            if tokens.exists():
+                return tokens.first().is_valid()
+            return False
+        except Exception as e:
+            logger.error(f"Error getting token_valid for user {obj.username}: {str(e)}")
+            return False
     get_token_valid.short_description = 'Token Valid'
     get_token_valid.boolean = True
 
