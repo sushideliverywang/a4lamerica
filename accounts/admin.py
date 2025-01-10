@@ -29,6 +29,8 @@ class CustomUserAdmin(UserAdmin):
         'subscriber__phone',
         'subscriber__ip_address'
     )
+    ordering = ('-date_joined',)
+    sortable_by = ('username', 'email', 'date_joined', 'is_active')
     
     def get_phone(self, obj):
         return obj.subscriber.phone if hasattr(obj, 'subscriber') else '-'
