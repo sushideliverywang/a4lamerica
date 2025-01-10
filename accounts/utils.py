@@ -6,6 +6,9 @@ from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from .models import RegistrationToken
+import logging
+
+logger = logging.getLogger('accounts')
 
 def generate_verification_token(subscriber):
     """
@@ -29,8 +32,19 @@ def generate_verification_token(subscriber):
 
 def get_client_ip(request):
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    x_real_ip = request.META.get('HTTP_X_REAL_IP')
+    remote_addr = request.META.get('REMOTE_ADDR')
+    
+    # 添加调试日志
+    logger.debug("DEBUG: META headers:")
+    logger.debug(f"X-Forwarded-For: {x_forwarded_for}")
+    logger.debug(f"X-Real-IP: {x_real_ip}")
+    logger.debug(f"REMOTE_ADDR: {remote_addr}")
+    
     if x_forwarded_for:
         ip = x_forwarded_for.split(',')[0]
     else:
-        ip = request.META.get('HTTP_X_REAL_IP') or request.META.get('REMOTE_ADDR')
+        ip = x_real_ip or remote_addr
+    
+    logger.debug(f"Final IP: {ip}")
     return ip
