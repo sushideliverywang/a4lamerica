@@ -14,7 +14,7 @@ from django.core.cache import cache
 import dns.resolver
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
-from .utils import generate_verification_token
+from .utils import generate_verification_token, get_client_ip
 from django.contrib.auth.hashers import make_password
 from django.shortcuts import get_object_or_404
 from .models import RegistrationToken
@@ -111,6 +111,15 @@ def register(request):
         cache.set(device_key, device_attempts + 1, settings.DEVICE_RATE_LIMIT_TIMEOUT)
         
         form = SubscriberForm(request.POST)
+        
+        # 检查蜜罐字段
+        honeypot_fields = ['first_name', 'last_name', 'phone']
+        for field in honeypot_fields:
+            if request.POST.get(field):  # 如果蜜罐字段有值
+                logger.warning(f"Honeypot triggered: {field} field was filled. IP: {get_client_ip(request)}")
+                messages.error(request, "Registration failed. Please try again later.")
+                return redirect('register')
+        
         if form.is_valid():
             email = form.cleaned_data['email']
             

@@ -30,11 +30,95 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
 
+# 根据环境变量设置所有环境相关配置
 if DEBUG:
+    # 开发环境设置
     ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
-else:
-    ALLOWED_HOSTS = ['192.168.1.77', 'a4lamerica.com', 'www.a4lamerica.com', '104.15.178.252']
+    SECURE_SSL_REDIRECT = False
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
+    SECURE_BROWSER_XSS_FILTER = False
+    SECURE_CONTENT_TYPE_NOSNIFF = False
+    SECURE_PROXY_SSL_HEADER = None
+    USE_X_FORWARDED_HOST = False
+    CSRF_TRUSTED_ORIGINS = [
+        'http://localhost:8000',
+        'http://127.0.0.1:8000'
+    ]
+    SITE_URL = 'http://127.0.0.1:8000'
+    PROTOCOL = 'http'
+    
+    # 开发环境日志配置
+    LOG_DIR = BASE_DIR / 'logs'
+    if not os.path.exists(LOG_DIR):
+        os.makedirs(LOG_DIR)
+    
+    # 开发环境限制配置
+    IP_RATE_LIMIT_MAX = 200      
+    IP_RATE_LIMIT_TIMEOUT = 3000
+    DEVICE_RATE_LIMIT_MAX = 300  
+    DEVICE_RATE_LIMIT_TIMEOUT = 864000
 
+else:
+    # 生产环境设置
+    ALLOWED_HOSTS = ['a4lamerica.com', 'www.a4lamerica.com', '192.168.1.77']
+    SECURE_SSL_REDIRECT = False  # 由 Apache 处理
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    USE_X_FORWARDED_HOST = True
+    CSRF_TRUSTED_ORIGINS = [
+        'https://a4lamerica.com',
+        'https://www.a4lamerica.com',
+        'http://a4lamerica.com',
+        'http://www.a4lamerica.com'
+    ]
+    SITE_URL = 'https://a4lamerica.com'
+    PROTOCOL = 'https'
+    
+    # 生产环境日志配置
+    LOG_DIR = Path('/var/log/apache2')
+    
+    # 生产环境限制配置
+    IP_RATE_LIMIT_MAX = 5
+    IP_RATE_LIMIT_TIMEOUT = 300
+    DEVICE_RATE_LIMIT_MAX = 10
+    DEVICE_RATE_LIMIT_TIMEOUT = 86400
+
+# 基于环境配置的日志设置
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '[{asctime}] {levelname} {module} {message}',
+            'style': '{',
+            'datefmt': '%Y-%m-%d %H:%M:%S'
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'DEBUG' if DEBUG else 'ERROR',
+            'class': 'logging.FileHandler',
+            'filename': LOG_DIR / 'debug.log' if DEBUG else '/var/log/apache2/a4lamerica_error.log',
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+        'accounts': {
+            'handlers': ['file'],
+            'level': 'DEBUG' if DEBUG else 'ERROR',
+            'propagate': True,
+        },
+    },
+}
 
 # Application definition
 
@@ -151,98 +235,7 @@ EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL')
 
-
-# 根据环境变量设置安全选项
-if DEBUG:
-    # 开发环境设置
-    SECURE_SSL_REDIRECT = False
-    SESSION_COOKIE_SECURE = False
-    CSRF_COOKIE_SECURE = False
-    SECURE_BROWSER_XSS_FILTER = False
-    SECURE_CONTENT_TYPE_NOSNIFF = False
-    CSRF_TRUSTED_ORIGINS = [
-        'http://localhost:8000',
-        'http://127.0.0.1:8000'
-    ]
-else:
-    # 生产环境设置
-    SECURE_SSL_REDIRECT = False
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
-    SECURE_BROWSER_XSS_FILTER = True
-    SECURE_CONTENT_TYPE_NOSNIFF = True
-    CSRF_TRUSTED_ORIGINS = [
-        'https://a4lamerica.com',
-        'https://www.a4lamerica.com',
-        'http://a4lamerica.com',
-        'http://www.a4lamerica.com'
-    ]
-
 # Google reCAPTCHA 配置
 RECAPTCHA_SITE_KEY = os.getenv('RECAPTCHA_SITE_KEY')  # 从Google获取的站点密钥
 RECAPTCHA_SECRET_KEY = os.getenv('RECAPTCHA_SECRET_KEY')  # 从Google获取的密钥
 RECAPTCHA_SCORE_THRESHOLD = os.getenv('RECAPTCHA_SCORE_THRESHOLD')  # 设置分数阈值，低于此分数视为机器人
-
-# 日志配置
-if DEBUG:
-    # 开发环境日志配置
-    LOG_DIR = BASE_DIR / 'logs'
-    if not os.path.exists(LOG_DIR):
-        os.makedirs(LOG_DIR)
-else:
-    # 生产环境日志配置
-    LOG_DIR = Path('/var/log/apache2')
-
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format': '[{asctime}] {levelname} {module} {message}',
-            'style': '{',
-            'datefmt': '%Y-%m-%d %H:%M:%S'
-        },
-    },
-    'handlers': {
-        'file': {
-            'level': 'DEBUG' if DEBUG else 'ERROR',
-            'class': 'logging.FileHandler',
-            'filename': LOG_DIR / 'debug.log' if DEBUG else '/var/log/apache2/a4lamerica_error.log',
-            'formatter': 'verbose',
-        },
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['file'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
-        'accounts': {  # 您的应用名称
-            'handlers': ['file'],
-            'level': 'DEBUG' if DEBUG else 'ERROR',
-            'propagate': True,
-        },
-    },
-}
-
-# 网站URL配置
-if DEBUG:
-    SITE_URL = 'http://127.0.0.1:8000'  # 开发环境使用 HTTP
-    PROTOCOL = 'http'
-else:
-    SITE_URL = 'https://a4lamerica.com'  # 生产环境使用 HTTPS
-    PROTOCOL = 'https'
-
-# IP 和设备限制配置
-if DEBUG:
-    # 开发环境：宽松限制
-    IP_RATE_LIMIT_MAX = 200      
-    IP_RATE_LIMIT_TIMEOUT = 3000
-    DEVICE_RATE_LIMIT_MAX = 300  
-    DEVICE_RATE_LIMIT_TIMEOUT = 864000
-else:
-    # 生产环境：严格限制
-    IP_RATE_LIMIT_MAX = 5       # 5次尝试
-    IP_RATE_LIMIT_TIMEOUT = 300  # 5分钟
-    DEVICE_RATE_LIMIT_MAX = 10   # 10次尝试
-    DEVICE_RATE_LIMIT_TIMEOUT = 86400  # 24小时
