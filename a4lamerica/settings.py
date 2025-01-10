@@ -191,9 +191,7 @@ if DEBUG:
         os.makedirs(LOG_DIR)
 else:
     # 生产环境日志配置
-    LOG_DIR = Path('/var/log/a4lamerica')
-    # 注意：需要确保目录存在且有正确的权限
-    # 这个检查应该在部署脚本中完成，而不是在 settings.py 中
+    LOG_DIR = Path('/var/log/apache2')
 
 LOGGING = {
     'version': 1,
@@ -207,32 +205,22 @@ LOGGING = {
     },
     'handlers': {
         'file': {
-            'level': 'DEBUG' if DEBUG else 'INFO',  # 生产环境使用 INFO 级别
+            'level': 'DEBUG' if DEBUG else 'ERROR',
             'class': 'logging.FileHandler',
-            'filename': LOG_DIR / 'debug.log',
-            'formatter': 'verbose',
-            'encoding': 'utf-8',
-        },
-        'console': {
-            'level': 'DEBUG' if DEBUG else 'INFO',
-            'class': 'logging.StreamHandler',
+            'filename': LOG_DIR / 'debug.log' if DEBUG else '/var/log/apache2/a4lamerica_error.log',
             'formatter': 'verbose',
         },
     },
     'loggers': {
-        '': {  # Root logger
-            'handlers': ['console', 'file'],
-            'level': 'DEBUG' if DEBUG else 'INFO',
+        'django': {
+            'handlers': ['file'],
+            'level': 'ERROR',
+            'propagate': True,
         },
-        'accounts': {  # Your app logger
-            'handlers': ['console', 'file'],
-            'level': 'DEBUG' if DEBUG else 'INFO',
-            'propagate': False,
-        },
-        'django': {  # Django's logger
-            'handlers': ['console', 'file'],
-            'level': 'INFO',
-            'propagate': False,
+        'accounts': {  # 您的应用名称
+            'handlers': ['file'],
+            'level': 'DEBUG' if DEBUG else 'ERROR',
+            'propagate': True,
         },
     },
 }
