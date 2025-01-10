@@ -83,7 +83,7 @@ def verify_email_domain(email):
 def register(request):
     if request.method == 'POST':
         # 获取客户端IP
-        client_ip = request.META.get('REMOTE_ADDR')
+        client_ip = get_client_ip(request)
         
         # 检查提交频率
         submission_key = f'registration_attempt_{client_ip}'
