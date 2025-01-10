@@ -206,7 +206,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'America/New_York'
 
 USE_I18N = True
 
@@ -239,3 +239,8 @@ DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL')
 RECAPTCHA_SITE_KEY = os.getenv('RECAPTCHA_SITE_KEY')  # 从Google获取的站点密钥
 RECAPTCHA_SECRET_KEY = os.getenv('RECAPTCHA_SECRET_KEY')  # 从Google获取的密钥
 RECAPTCHA_SCORE_THRESHOLD = os.getenv('RECAPTCHA_SCORE_THRESHOLD')  # 设置分数阈值，低于此分数视为机器人
+
+# 设置日期时间格式为美国短格式
+DATE_FORMAT = 'm/d/Y'           # 例如: 01/15/2024
+TIME_FORMAT = 'g:i A'           # 例如: 3:45 PM
+DATETIME_FORMAT = 'm/d/Y g:i A' # 例如: 01/15/2024 3:45 PM
