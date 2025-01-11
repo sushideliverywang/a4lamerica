@@ -12,13 +12,14 @@ class CustomUserAdmin(UserAdmin):
         'first_name',
         'last_name',
         'email', 
-        'get_phone',
+        'get_phone',    
+        'get_phone_verified',
         'is_active', 
         'date_joined', 
         'get_ip_address',
-        'get_token',
         'get_token_used',
-        'get_token_valid'
+        'get_token_valid',
+    
     )
     list_filter = ('is_active', 'date_joined')
     search_fields = (
@@ -32,6 +33,11 @@ class CustomUserAdmin(UserAdmin):
     ordering = ('-date_joined',)
     sortable_by = ('username', 'email', 'date_joined', 'is_active')
     
+    def get_phone_verified(self, obj):
+        return obj.subscriber.phone_verified if hasattr(obj, 'subscriber') else False
+    get_phone_verified.short_description = 'Phone Verified'
+    get_phone_verified.boolean = True
+    
     def get_phone(self, obj):
         return obj.subscriber.phone if hasattr(obj, 'subscriber') else '-'
     get_phone.short_description = 'Phone'
@@ -40,11 +46,6 @@ class CustomUserAdmin(UserAdmin):
         return obj.subscriber.ip_address if hasattr(obj, 'subscriber') else '-'
     get_ip_address.short_description = 'IP Address'
     
-    def get_token(self, obj):
-        tokens = RegistrationToken.objects.filter(subscriber__user=obj)
-        return tokens.first().token if tokens.exists() else '-'
-    get_token.short_description = 'Token'
-    
     def get_token_used(self, obj):
         tokens = RegistrationToken.objects.filter(subscriber__user=obj)
         return tokens.first().is_used if tokens.exists() else False
@@ -52,14 +53,8 @@ class CustomUserAdmin(UserAdmin):
     get_token_used.boolean = True
     
     def get_token_valid(self, obj):
-        try:
-            tokens = RegistrationToken.objects.filter(subscriber__user=obj)
-            if tokens.exists():
-                return tokens.first().is_valid()
-            return False
-        except Exception as e:
-            logger.error(f"Error getting token_valid for user {obj.username}: {str(e)}")
-            return False
+        tokens = RegistrationToken.objects.filter(subscriber__user=obj)
+        return tokens.first().is_valid() if tokens.exists() else False
     get_token_valid.short_description = 'Token Valid'
     get_token_valid.boolean = True
 

@@ -5,18 +5,19 @@ from datetime import timedelta
 
 class Subscriber(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    email = models.EmailField(unique=True)
-    phone = models.CharField(max_length=10, null=True, blank=True)
-    phone_verified = models.BooleanField(default=False)
+    email = models.EmailField(max_length=255, unique=True, verbose_name='Email')
+    phone = models.CharField(max_length=10, null=True, blank=True, verbose_name='Phone Number')
+    phone_verified = models.BooleanField(default=False, verbose_name='Phone Number Verified')
     credit = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         default=0.00,
-        help_text="Available credit balance (includes coupons and refunds)"
+        help_text="Available credit balance (includes coupons and refunds)",
+        verbose_name='Credit Balance'
     )
-    ip_address = models.GenericIPAddressField(null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True, verbose_name='IP Address')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Created At')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='Updated At')
 
     def __str__(self):
         return self.email
@@ -27,6 +28,8 @@ class Subscriber(models.Model):
         return self.user.is_active
 
     class Meta:
+        verbose_name = 'Subscriber'
+        verbose_name_plural = 'Subscribers'
         ordering = ['-created_at']
 
 class RegistrationToken(models.Model):
