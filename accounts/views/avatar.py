@@ -6,9 +6,12 @@ from django.core.files.base import ContentFile
 from django.conf import settings
 from django.urls import reverse
 from ..models import RegistrationToken
+import logging
 
 # Avatar constants
 MAX_AVATAR_SIZE = 10 * 1024 * 1024  # 10MB in bytes
+
+logger = logging.getLogger(__name__)
 
 def crop_avatar(request, token):
     """处理头像上传并显示裁剪界面"""
@@ -26,12 +29,15 @@ def crop_avatar(request, token):
 
 def save_avatar(request, token):
     """保存裁剪后的头像"""
+    logger.info(f"Saving avatar for token: {token}")
     if request.method != 'POST':
+        logger.error("Invalid request method")
         return JsonResponse({'success': False, 'error': 'Invalid request method'})
     
     # 验证token
     registration_token = get_object_or_404(RegistrationToken, token=token)
     if not registration_token.is_valid():
+        logger.error(f"Invalid token: {token}")
         return JsonResponse({'success': False, 'error': 'Invalid token'})
     
     # 获取上传的文件
@@ -39,6 +45,7 @@ def save_avatar(request, token):
     temp_filename = request.POST.get('temp_filename')
     
     if not avatar_file:
+        logger.error("No file uploaded")
         return JsonResponse({'success': False, 'error': 'No file uploaded'})
     
     # 验证文件类型和大小
@@ -62,6 +69,7 @@ def save_avatar(request, token):
             for chunk in avatar_file.chunks():
                 destination.write(chunk)
         
+        logger.info(f"Avatar saved successfully: {temp_filename}")
         return JsonResponse({
             'success': True,
             'temp_filename': temp_filename,
@@ -69,4 +77,5 @@ def save_avatar(request, token):
         })
         
     except Exception as e:
+        logger.error(f"Error saving avatar: {str(e)}")
         return JsonResponse({'success': False, 'error': str(e)}) 
