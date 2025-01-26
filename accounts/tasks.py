@@ -12,7 +12,11 @@ def cleanup_expired_registrations():
     """清理过期的注册数据和临时文件"""
     try:
         # 获取所有token
-        tokens = RegistrationToken.objects.filter(is_used=False)
+        # 只获取未使用的token且用户未激活的记录
+        tokens = RegistrationToken.objects.filter(
+            is_used=False,
+            subscriber__user__is_active=False
+        )
         expired_tokens = [token for token in tokens if not token.is_valid()]
         
         for token in expired_tokens:
@@ -30,15 +34,19 @@ def cleanup_expired_registrations():
                 subscriber = token.subscriber
                 user = subscriber.user
                 
-                # 按顺序删除关联数据
-                token.delete()
-                logger.info(f"Deleted expired token: {token.token}")
-                
-                subscriber.delete()
-                logger.info(f"Deleted expired registration: {subscriber.email}")
-                
-                user.delete()
-                logger.info(f"Deleted user: {user.username}")
+                # 再次确认用户未激活
+                if not user.is_active:
+                    # 按顺序删除关联数据
+                    token.delete()
+                    logger.info(f"Deleted expired token: {token.token}")
+                    
+                    subscriber.delete()
+                    logger.info(f"Deleted expired registration: {subscriber.email}")
+                    
+                    user.delete()
+                    logger.info(f"Deleted user: {user.username}")
+                else:
+                    logger.warning(f"Skipped deletion for active user: {user.username}")
                 
             except Exception as e:
                 logger.error(f"Error cleaning up token {token.token}: {str(e)}")

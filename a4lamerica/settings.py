@@ -76,7 +76,18 @@ if DEBUG:
 
 else:
     # 生产环境设置
-    ALLOWED_HOSTS = ['a4lamerica.com', 'www.a4lamerica.com', '192.168.1.69']
+    ALLOWED_HOSTS = [
+        'a4lamerica.com',           # 主域名
+        'www.a4lamerica.com',       # www子域名
+        '192.168.1.69',             # 服务器IP
+        '192.168.1.70',             # 开发机器IP（用于局域网测试）
+    ]
+    
+    # Session settings（仅生产环境）
+    SESSION_COOKIE_AGE = 86400  # 24小时，以秒为单位
+    SESSION_SAVE_EVERY_REQUEST = True  # 每次请求都更新session
+    SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # 浏览器关闭时session不过期
+    SESSION_COOKIE_NAME = 'a4lamerica_sessionid'  # 自定义session cookie名称
     
     # 媒体文件配置
     MEDIA_URL = '/media/'
