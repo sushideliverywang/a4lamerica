@@ -10,7 +10,7 @@
                 <h2 class="text-3xl font-bold text-center text-primary mb-3">Welcome to </h2>
                 <h2 class="text-3xl font-bold text-center text-primary mb-3">Appliances 4 Less</h2>
                 <h2 class="text-3xl font-bold text-center text-primary mb-3">Doraville Store</h2>
-                <div class="w-80 h-1 bg-secondary mx-auto mb-4"></div>
+                <div class="w-60 h-1 bg-secondary mx-auto mb-4"></div>
                 <p class="text-center text-primary mb-4">
                     Our website is under construction. Please subscribe for free and grab your <strong class="text-secondary">$50 Coupon Today!</strong>
                 </p>
@@ -45,57 +45,18 @@
                 </div>
             </div>
 
-            <form method="post" class="space-y-6" id="registerForm">
+            <form method="post" id="registrationForm" class="space-y-4">
                 {% csrf_token %}
-                <div class="honeypot-field">
-                    <div class="group">
-                        <label for="{{ form.first_name.id_for_label }}" 
-                               class="block text-sm font-medium text-primary mb-1">
-                            First Name
-                        </label>
-                        {{ form.first_name }}
-                        {% if form.first_name.errors %}
-                            <div class="text-error text-sm mt-1">
-                                {{ form.first_name.errors.0 }}
-                            </div>
-                        {% endif %}
-                    </div>
-                    <div class="group">
-                        <label for="{{ form.last_name.id_for_label }}" 
-                               class="block text-sm font-medium text-primary mb-1">
-                            Last Name
-                        </label>
-                        {{ form.last_name }}
-                        {% if form.last_name.errors %}
-                            <div class="text-error text-sm mt-1">
-                                {{ form.last_name.errors.0 }}
-                            </div>
-                        {% endif %}
-                    </div>
-                </div>
-                <div class="group">
-                    <label for="{{ form.email.id_for_label }}" 
-                           class="block text-sm font-medium text-primary mb-1">
-                        Email Address
-                    </label>
-                    {{ form.email }}
-                    {% if form.email.errors %}
-                        <div class="text-error text-sm mt-1">
-                            {{ form.email.errors.0 }}
-                        </div>
-                    {% endif %}
-                </div>
-                <div class="honeypot-field">
-                    <label for="{{ form.phone.id_for_label }}" 
-                           class="block text-sm font-medium text-primary mb-1">
-                        Phone Number
-                    </label>
-                    {{ form.phone }}
-                    {% if form.phone.errors %}
-                        <div class="text-error text-sm mt-1">
-                            {{ form.phone.errors.0 }}
-                        </div>
-                    {% endif %}
+                
+                <!-- reCAPTCHA token -->
+                <input type="hidden" name="recaptcha_token" id="recaptcha_token">
+                <input type="hidden" name="device_fingerprint" id="device_fingerprint">
+                
+                <!-- Email input -->
+                <div>
+                    <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+                    <input type="email" name="email" id="email" required 
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-secondary focus:border-secondary">
                 </div>
                 <div class="text-center mb-4">
                     <p class="text-secondary font-semibold mb-1">🎉 Special Offer!</p>
@@ -105,7 +66,6 @@
                         Available for 180 days from today. Merchant will reserve the rights to explain the coupon.
                     </p>
                 </div>
-                <input type="hidden" name="recaptcha_token" id="recaptcha_token">
                 <button type="submit" 
                         id="submitButton"
                         class="w-full bg-secondary text-white py-3 px-4 rounded-md 
@@ -160,7 +120,7 @@
     }
 
     // 添加表单提交处理
-    document.getElementById('registerForm').addEventListener('submit', function(e) {
+    document.getElementById('registrationForm').addEventListener('submit', function(e) {
         e.preventDefault();
         
         // 显示加载状态

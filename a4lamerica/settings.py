@@ -20,7 +20,6 @@ load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
@@ -33,7 +32,18 @@ DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
 # 根据环境变量设置所有环境相关配置
 if DEBUG:
     # 开发环境设置
-    ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+    ALLOWED_HOSTS = [
+        'localhost',
+        '127.0.0.1',
+        '192.168.1.70',
+        '192.168.1.71',
+        '192.168.1.75',
+        '192.168.1.*',  # 允许所有192.168.1网段
+    ]
+    # 开发环境媒体文件配置
+    MEDIA_URL = '/media/'
+    MEDIA_ROOT = BASE_DIR / 'media'
+    
     SECURE_SSL_REDIRECT = False
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
@@ -43,9 +53,14 @@ if DEBUG:
     USE_X_FORWARDED_HOST = False
     CSRF_TRUSTED_ORIGINS = [
         'http://localhost:8000',
-        'http://127.0.0.1:8000'
+        'http://127.0.0.1:8000',
+        'http://192.168.1.70:8000',
+        'http://192.168.1.71:8000',
+        'http://192.168.1.75:8000',
+        'http://192.168.1.*:8000',
     ]
-    SITE_URL = 'http://127.0.0.1:8000'
+    # 根据请求动态设置SITE_URL
+    SITE_URL = 'http://192.168.1.70:8000'  # 使用开发机器的实际IP
     PROTOCOL = 'http'
     
     # 开发环境日志配置
@@ -62,6 +77,11 @@ if DEBUG:
 else:
     # 生产环境设置
     ALLOWED_HOSTS = ['a4lamerica.com', 'www.a4lamerica.com', '192.168.1.77']
+    
+    # 媒体文件配置
+    MEDIA_URL = '/media/'
+    MEDIA_ROOT = '/var/www/a4lamerica/media'  # Apache用户需要有这个目录的写权限
+    
     SECURE_SSL_REDIRECT = False  # 由 Apache 处理
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
@@ -86,6 +106,18 @@ else:
     IP_RATE_LIMIT_TIMEOUT = 300
     DEVICE_RATE_LIMIT_MAX = 10
     DEVICE_RATE_LIMIT_TIMEOUT = 86400
+
+    # 文件上传权限设置
+    FILE_UPLOAD_PERMISSIONS = 0o644
+    FILE_UPLOAD_DIRECTORY_PERMISSIONS = 0o755
+    
+    # 建议在生产环境使用 CDN 或专门的文件存储服务
+    # AWS S3 配置示例（如果使用 S3）
+    # AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
+    # AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
+    # AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
+    # AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
+    # MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/media/'
 
 # 基于环境配置的日志设置
 LOGGING = {
@@ -147,7 +179,9 @@ ROOT_URLCONF = 'a4lamerica.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'accounts/templates'],
+        'DIRS': [
+            BASE_DIR / 'templates',
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -216,9 +250,9 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 STATICFILES_DIRS = [
-    BASE_DIR / 'accounts/static',
+    BASE_DIR / 'static',
 ]
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
@@ -244,3 +278,7 @@ RECAPTCHA_SCORE_THRESHOLD = os.getenv('RECAPTCHA_SCORE_THRESHOLD')  # 设置分�
 DATE_FORMAT = 'm/d/Y'           # 例如: 01/15/2024
 TIME_FORMAT = 'g:i A'           # 例如: 3:45 PM
 DATETIME_FORMAT = 'm/d/Y g:i A' # 例如: 01/15/2024 3:45 PM
+
+CRONJOBS = [
+    ('0 1 * * *', 'accounts.tasks.cleanup_expired_registrations')  # 每天凌晨1点执行
+]
