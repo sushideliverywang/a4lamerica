@@ -76,7 +76,7 @@ if DEBUG:
 
 else:
     # 生产环境设置
-    ALLOWED_HOSTS = ['a4lamerica.com', 'www.a4lamerica.com', '192.168.1.77']
+    ALLOWED_HOSTS = ['a4lamerica.com', 'www.a4lamerica.com', '192.168.1.69']
     
     # 媒体文件配置
     MEDIA_URL = '/media/'
