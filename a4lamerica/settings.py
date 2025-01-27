@@ -137,7 +137,7 @@ else:
     
     # 媒体文件配置
     MEDIA_URL = '/media/'
-    MEDIA_ROOT = '/var/www/a4lamerica/media'  # Apache用户需要有这个目录的写权限
+    MEDIA_ROOT = '/var/www/a4lamerica/media'  # 使用项目目录的符号链接
     
     SECURE_SSL_REDIRECT = False  # 由 Apache 处理
     SESSION_COOKIE_SECURE = True
@@ -156,7 +156,9 @@ else:
     PROTOCOL = 'https'
     
     # 生产环境日志配置
-    LOG_DIR = Path('/var/log/apache2')
+    LOG_DIR = BASE_DIR / 'logs'  # 改用项目目录
+    if not os.path.exists(LOG_DIR):
+        os.makedirs(LOG_DIR)
     
     # 生产环境限制配置
     IP_RATE_LIMIT_MAX = 5
@@ -164,7 +166,7 @@ else:
     DEVICE_RATE_LIMIT_MAX = 10
     DEVICE_RATE_LIMIT_TIMEOUT = 86400
 
-    # 文件上传权限设置
+    # 文件上传权限设置（使用当前用户权限）
     FILE_UPLOAD_PERMISSIONS = 0o644
     FILE_UPLOAD_DIRECTORY_PERMISSIONS = 0o755
     
@@ -191,14 +193,14 @@ else:
             'file': {
                 'level': 'ERROR',
                 'class': 'logging.FileHandler',
-                'filename': '/var/log/apache2/a4lamerica_error.log',
+                'filename': str(LOG_DIR / 'debug.log'),  # 使用项目目录
                 'formatter': 'verbose',
                 'mode': 'a',
             },
             'cron': {
                 'level': 'INFO',
                 'class': 'logging.FileHandler',
-                'filename': '/var/log/apache2/cron.log',
+                'filename': str(LOG_DIR / 'cron.log'),  # 使用项目目录
                 'formatter': 'verbose',
                 'mode': 'a',
             }
@@ -363,3 +365,9 @@ else:
 # CRONTAB配置
 CRONTAB_LOCK_JOBS = True
 CRONTAB_COMMAND_PREFIX = 'DJANGO_SETTINGS_MODULE=a4lamerica.settings'
+
+if not DEBUG:
+    # 使用当前用户运行cron任务
+    CRONTAB_COMMAND_PREFIX = f'{CRONTAB_COMMAND_PREFIX}'
+    # 确保日志文件可写
+    CRONTAB_COMMAND_SUFFIX = f'2>> /var/log/apache2/cron.log'
