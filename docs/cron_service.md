@@ -11,22 +11,24 @@ pip install django-crontab
 
 ### 1.2 创建日志文件（重要）
 在部署时必须手动创建日志文件并设置正确的权限：
+# 注意：macOS系统下Apache用户是_www
 ```bash
-# 创建日志目录
+# 创建日志目录和文件
 sudo mkdir -p /var/log/apache2
-
-# 创建日志文件
 sudo touch /var/log/apache2/cron.log
 sudo touch /var/log/apache2/a4lamerica_error.log
 
-# 设置权限（确保Apache用户可以写入）
+# 设置权限
 sudo chmod 755 /var/log/apache2
 sudo chmod 644 /var/log/apache2/cron.log
 sudo chmod 644 /var/log/apache2/a4lamerica_error.log
 
-# 设置所有者为Apache用户
-sudo chown www-data:www-data /var/log/apache2/cron.log
-sudo chown www-data:www-data /var/log/apache2/a4lamerica_error.log
+# 设置所有者为Apache用户（macOS使用_www）
+sudo chown _www:_www /var/log/apache2/cron.log
+sudo chown _www:_www /var/log/apache2/a4lamerica_error.log
+
+# 添加当前用户到Apache组（macOS使用dseditgroup命令）
+sudo dseditgroup -o edit -a $USER -t user _www
 ```
 
 ### 1.3 Django配置
@@ -85,7 +87,6 @@ python manage.py crontab show
 # 移除任务
 python manage.py crontab remove
 ```
-
 ### 3.2 监控和调试
 ```bash
 # 实时查看日志
@@ -148,3 +149,4 @@ crontab -l
 1. 任务默认每天凌晨1点执行
 2. 修改任务配置后需要重新添加cron任务
 3. 确保系统时间正确设置
+

@@ -153,6 +153,7 @@ LOGGING = {
             'class': 'logging.FileHandler',
             'filename': LOG_DIR / 'cron.log' if DEBUG else '/var/log/apache2/cron.log',
             'formatter': 'verbose',
+            'mode': 'a',  # 添加mode参数
         }
     },
     'loggers': {
@@ -305,13 +306,11 @@ DATETIME_FORMAT = 'm/d/Y g:i A' # 例如: 01/15/2024 3:45 PM
 # 根据环境设置CRONJOBS
 if DEBUG:
     CRONJOBS = [
-        ('0 1 * * *', 'accounts.tasks.cleanup_expired_registrations',  # 每天凌晨1点执行
-         '>> ' + str(LOG_DIR / 'cron.log') + ' 2>&1')
+        ('0 1 * * *', 'accounts.tasks.cleanup_expired_registrations')  # 删除重定向部分
     ]
 else:
     CRONJOBS = [
-        ('0 1 * * *', 'accounts.tasks.cleanup_expired_registrations', 
-         '>> /var/log/apache2/cron.log 2>&1')  # 生产环境日志路径
+        ('0 1 * * *', 'accounts.tasks.cleanup_expired_registrations')  # 删除重定向部分
     ]
 
 # CRONTAB配置
