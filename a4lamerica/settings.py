@@ -35,9 +35,6 @@ if DEBUG:
     ALLOWED_HOSTS = [
         'localhost',
         '127.0.0.1',
-        '192.168.1.70',
-        '192.168.1.71',
-        '192.168.1.75',
         '192.168.1.*',  # 允许所有192.168.1网段
     ]
     # 开发环境媒体文件配置
@@ -77,11 +74,14 @@ if DEBUG:
 else:
     # 生产环境设置
     ALLOWED_HOSTS = [
-        'a4lamerica.com',           # 主域名
-        'www.a4lamerica.com',       # www子域名
-        '192.168.1.69',             # 服务器IP
-        '192.168.1.70',             # 开发机器IP（用于局域网测试）
+        'a4lamerica.com',
+        'www.a4lamerica.com',
+        '192.168.1.69',     # 服务器内网IP，即使配置了hosts也需要
     ]
+    
+    # 从环境变量获取额外的allowed hosts（用于外网IP）
+    if os.getenv('EXTRA_ALLOWED_HOSTS'):
+        ALLOWED_HOSTS.extend(os.getenv('EXTRA_ALLOWED_HOSTS').split(','))
     
     # Session settings（仅生产环境）
     SESSION_COOKIE_AGE = 86400  # 24小时，以秒为单位
@@ -148,18 +148,29 @@ LOGGING = {
             'filename': LOG_DIR / 'debug.log' if DEBUG else '/var/log/apache2/a4lamerica_error.log',
             'formatter': 'verbose',
         },
+        'cron': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': LOG_DIR / 'cron.log' if DEBUG else '/var/log/apache2/cron.log',
+            'formatter': 'verbose',
+        }
     },
     'loggers': {
-        'django': {
+        'django': {  # Django框架的日志
             'handlers': ['file'],
             'level': 'ERROR',
             'propagate': True,
         },
-        'accounts': {
+        'accounts': {  # accounts应用的普通日志
             'handlers': ['file'],
-            'level': 'DEBUG' if DEBUG else 'ERROR',
-            'propagate': True,
+            'level': 'DEBUG' if DEBUG else 'INFO',
+            'propagate': False,  # 防止日志重复
         },
+        'accounts.tasks': {  # accounts应用的cron任务日志
+            'handlers': ['cron'],
+            'level': 'INFO',
+            'propagate': False,  # 防止日志重复
+        }
     },
 }
 
@@ -173,6 +184,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'accounts',
+    'django_crontab',
 ]
 
 MIDDLEWARE = [
@@ -290,6 +302,18 @@ DATE_FORMAT = 'm/d/Y'           # 例如: 01/15/2024
 TIME_FORMAT = 'g:i A'           # 例如: 3:45 PM
 DATETIME_FORMAT = 'm/d/Y g:i A' # 例如: 01/15/2024 3:45 PM
 
-CRONJOBS = [
-    ('0 1 * * *', 'accounts.tasks.cleanup_expired_registrations')  # 每天凌晨1点执行
-]
+# 根据环境设置CRONJOBS
+if DEBUG:
+    CRONJOBS = [
+        ('0 1 * * *', 'accounts.tasks.cleanup_expired_registrations',  # 每天凌晨1点执行
+         '>> ' + str(LOG_DIR / 'cron.log') + ' 2>&1')
+    ]
+else:
+    CRONJOBS = [
+        ('0 1 * * *', 'accounts.tasks.cleanup_expired_registrations', 
+         '>> /var/log/apache2/cron.log 2>&1')  # 生产环境日志路径
+    ]
+
+# CRONTAB配置
+CRONTAB_LOCK_JOBS = True
+CRONTAB_COMMAND_PREFIX = 'DJANGO_SETTINGS_MODULE=a4lamerica.settings'

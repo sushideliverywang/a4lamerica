@@ -174,6 +174,12 @@ def register(request):
                 logger.error(f"Registration failed: {str(e)}")
                 messages.error(request, "Registration failed. Please try again.")
                 return redirect('accounts:register')
+        else:
+            # 将表单错误转换为messages
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, error)
+            return redirect('accounts:register')
     else:
         form = SubscriberForm()
     
@@ -194,89 +200,88 @@ def complete_registration(request, token):
         messages.error(request, "This verification link has expired or is invalid.")
         return redirect('accounts:register')
     
-    subscriber = registration_token.subscriber
+    subscriber = registration_token.subscriber  # 只获取一次subscriber实例
     
     # 获取临时头像路径
-    temp_avatar = request.GET.get('temp_avatar')
+    temp_avatar = request.GET.get('temp_avatar')  # 从URL参数获取临时文件名
     temp_avatar_url = None
     if temp_avatar:
         temp_path = os.path.join('temp', 'uploads', temp_avatar)
         if os.path.exists(os.path.join(settings.MEDIA_ROOT, temp_path)):
             temp_avatar_url = f"{settings.MEDIA_URL}{temp_path}"
     
+    # 准备基础上下文数据
+    context = {
+        'token_valid': True,
+        'email': subscriber.email,
+        'token': token,
+        'temp_avatar_url': temp_avatar_url,
+        'subscriber': subscriber
+    }
+    
     if request.method == 'POST':
         password1 = request.POST.get('password1')
         password2 = request.POST.get('password2')
+        first_name = request.POST.get('first_name', '').strip()
+        last_name = request.POST.get('last_name', '').strip()
+        phone_number = request.POST.get('phone_number', '').strip()
         
+        # 表单验证
         if password1 != password2:
             messages.error(request, "Passwords do not match.")
-            return render(request, 'accounts/complete_registration.html', {
-                'token_valid': True,
-                'email': subscriber.email,
-                'token': token,
-                'temp_avatar_url': temp_avatar_url,
-                'subscriber': subscriber
-            })
+            return render(request, 'accounts/complete_registration.html', context)
         
         if len(password1) < 8:
             messages.error(request, "Password must be at least 8 characters long.")
-            return render(request, 'accounts/complete_registration.html', {
-                'token_valid': True,
-                'email': subscriber.email,
-                'token': token,
-                'temp_avatar_url': temp_avatar_url,
-                'subscriber': subscriber
-            })
+            return render(request, 'accounts/complete_registration.html', context)
         
+        # 验证姓名
+        if not first_name or not last_name:
+            messages.error(request, "First name and last name are required.")
+            return render(request, 'accounts/complete_registration.html', context)
+
         try:
             with transaction.atomic():
-                subscriber = registration_token.subscriber
                 user = subscriber.user
+                
+                # 保存用户信息
                 user.set_password(password1)
                 user.is_active = True
+                user.first_name = first_name
+                user.last_name = last_name
                 user.save()
                 
+                # 更新订阅者信息
+                subscriber.phone_number = phone_number
+                
                 # 处理临时头像文件
-                temp_avatar = request.GET.get('temp_avatar')  # 从URL参数获取临时文件名
                 if temp_avatar:
                     temp_path = os.path.join(settings.MEDIA_ROOT, 'temp', 'uploads', temp_avatar)
                     if os.path.exists(temp_path):
-                        # 使用相同的文件名，只改变目录
                         final_filename = temp_avatar
                         final_path = os.path.join(settings.MEDIA_ROOT, 'avatars', final_filename)
                         
                         # 移动文件
                         os.makedirs(os.path.dirname(final_path), exist_ok=True)
                         os.rename(temp_path, final_path)
-                        
-                        # 更新subscriber的avatar字段
                         subscriber.avatar = f"avatars/{final_filename}"
-                        subscriber.save()
+                
+                subscriber.save()
                 
                 # 更新token状态
                 registration_token.is_used = True
                 registration_token.is_valid = False
                 registration_token.save()
                 
+                messages.success(request, "Registration completed successfully!")
                 return redirect('accounts:registration_verified')
+                
         except Exception as e:
             logger.error(f"Registration completion failed: {str(e)}")
             messages.error(request, "Registration failed. Please try again.")
-            return render(request, 'accounts/complete_registration.html', {
-                'token_valid': True,
-                'email': subscriber.email,
-                'token': token,
-                'temp_avatar_url': temp_avatar_url,
-                'subscriber': subscriber
-            })
+            return render(request, 'accounts/complete_registration.html', context)
     
-    return render(request, 'accounts/complete_registration.html', {
-        'token_valid': registration_token.is_valid(),
-        'email': subscriber.email,
-        'token': token,
-        'temp_avatar_url': temp_avatar_url,
-        'subscriber': subscriber
-    })
+    return render(request, 'accounts/complete_registration.html', context)
 
 def registration_verified(request):
     """显示注册验证成功页面"""

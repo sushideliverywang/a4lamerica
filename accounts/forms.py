@@ -1,23 +1,24 @@
 from django import forms
+from django.contrib.auth.models import User
 from .models import Subscriber
-import re
 
 class SubscriberForm(forms.ModelForm):
-    # 蜜罐字段设置为非必需
-    first_name = forms.CharField(required=False)
-    last_name = forms.CharField(required=False)
-    phone = forms.CharField(required=False)
-    
-    # 保留 email 字段验证
     def clean_email(self):
-        email = self.cleaned_data.get('email')
+        email = self.cleaned_data['email']
+        
+        # 检查User表中是否存在此email
+        if User.objects.filter(email=email).exists():
+            raise forms.ValidationError("This email address is already registered.")
+            
+        # 检查Subscriber表中是否存在此email
         if Subscriber.objects.filter(email=email).exists():
-            raise forms.ValidationError('This email is already registered')
+            raise forms.ValidationError("This email address is already registered.")
+            
         return email
 
     class Meta:
         model = Subscriber
-        fields = ['email', 'first_name', 'last_name', 'phone']
+        fields = ['email']
         widgets = {
             'email': forms.EmailInput(attrs={
                 'class': 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',

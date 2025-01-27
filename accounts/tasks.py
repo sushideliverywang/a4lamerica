@@ -6,7 +6,8 @@ from django.conf import settings
 from .models import RegistrationToken, Subscriber
 import hashlib
 
-logger = logging.getLogger(__name__)
+# 使用专门的cron任务logger
+logger = logging.getLogger('accounts.tasks')
 
 def cleanup_expired_registrations():
     """清理过期的注册数据和临时文件"""
