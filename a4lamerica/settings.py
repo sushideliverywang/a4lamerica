@@ -71,6 +71,52 @@ if DEBUG:
     DEVICE_RATE_LIMIT_MAX = 300  
     DEVICE_RATE_LIMIT_TIMEOUT = 864000
 
+    # 开发环境日志配置
+    LOGGING = {
+        'version': 1,
+        'disable_existing_loggers': False,
+        'formatters': {
+            'verbose': {
+                'format': '[{asctime}] {levelname} {module} {message}',
+                'style': '{',
+                'datefmt': '%Y-%m-%d %H:%M:%S'
+            },
+        },
+        'handlers': {
+            'file': {
+                'level': 'DEBUG',
+                'class': 'logging.FileHandler',
+                'filename': str(LOG_DIR / 'debug.log'),
+                'formatter': 'verbose',
+                'mode': 'a',
+            },
+            'cron': {
+                'level': 'INFO',
+                'class': 'logging.FileHandler',
+                'filename': str(LOG_DIR / 'cron.log'),
+                'formatter': 'verbose',
+                'mode': 'a',
+            }
+        },
+        'loggers': {
+            'django': {
+                'handlers': ['file'],
+                'level': 'ERROR',
+                'propagate': True,
+            },
+            'accounts': {
+                'handlers': ['file'],
+                'level': 'DEBUG',
+                'propagate': False,
+            },
+            'accounts.tasks': {
+                'handlers': ['cron'],
+                'level': 'INFO',
+                'propagate': False,
+            }
+        },
+    }
+
 else:
     # 生产环境设置
     ALLOWED_HOSTS = [
@@ -130,51 +176,51 @@ else:
     # AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
     # MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/media/'
 
-# 基于环境配置的日志设置
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format': '[{asctime}] {levelname} {module} {message}',
-            'style': '{',
-            'datefmt': '%Y-%m-%d %H:%M:%S'
+    # 生产环境日志配置
+    LOGGING = {
+        'version': 1,
+        'disable_existing_loggers': False,
+        'formatters': {
+            'verbose': {
+                'format': '[{asctime}] {levelname} {module} {message}',
+                'style': '{',
+                'datefmt': '%Y-%m-%d %H:%M:%S'
+            },
         },
-    },
-    'handlers': {
-        'file': {
-            'level': 'DEBUG' if DEBUG else 'ERROR',
-            'class': 'logging.FileHandler',
-            'filename': str(LOG_DIR / 'debug.log') if DEBUG else '/var/log/apache2/a4lamerica_error.log',
-            'formatter': 'verbose',
-            'mode': 'a',
+        'handlers': {
+            'file': {
+                'level': 'ERROR',
+                'class': 'logging.FileHandler',
+                'filename': '/var/log/apache2/a4lamerica_error.log',
+                'formatter': 'verbose',
+                'mode': 'a',
+            },
+            'cron': {
+                'level': 'INFO',
+                'class': 'logging.FileHandler',
+                'filename': '/var/log/apache2/cron.log',
+                'formatter': 'verbose',
+                'mode': 'a',
+            }
         },
-        'cron': {
-            'level': 'INFO',
-            'class': 'logging.FileHandler',
-            'filename': str(LOG_DIR / 'cron.log') if DEBUG else '/var/log/apache2/cron.log',
-            'formatter': 'verbose',
-            'mode': 'a',
-        }
-    },
-    'loggers': {
-        'django': {  # Django框架的日志
-            'handlers': ['file'],
-            'level': 'ERROR',
-            'propagate': True,
+        'loggers': {
+            'django': {  # Django框架的日志
+                'handlers': ['file'],
+                'level': 'ERROR',
+                'propagate': True,
+            },
+            'accounts': {  # accounts应用的普通日志
+                'handlers': ['file'],
+                'level': 'INFO',
+                'propagate': False,
+            },
+            'accounts.tasks': {  # accounts应用的cron任务日志
+                'handlers': ['cron'],
+                'level': 'INFO',
+                'propagate': False,  # 防止日志重复
+            }
         },
-        'accounts': {  # accounts应用的普通日志
-            'handlers': ['file'],
-            'level': 'DEBUG' if DEBUG else 'INFO',
-            'propagate': False,  # 防止日志重复
-        },
-        'accounts.tasks': {  # accounts应用的cron任务日志
-            'handlers': ['cron'],
-            'level': 'INFO',
-            'propagate': False,  # 防止日志重复
-        }
-    },
-}
+    }
 
 # Application definition
 
