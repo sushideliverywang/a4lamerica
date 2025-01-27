@@ -145,15 +145,16 @@ LOGGING = {
         'file': {
             'level': 'DEBUG' if DEBUG else 'ERROR',
             'class': 'logging.FileHandler',
-            'filename': LOG_DIR / 'debug.log' if DEBUG else '/var/log/apache2/a4lamerica_error.log',
+            'filename': str(LOG_DIR / 'debug.log') if DEBUG else '/var/log/apache2/a4lamerica_error.log',
             'formatter': 'verbose',
+            'mode': 'a',
         },
         'cron': {
             'level': 'INFO',
             'class': 'logging.FileHandler',
-            'filename': LOG_DIR / 'cron.log' if DEBUG else '/var/log/apache2/cron.log',
+            'filename': str(LOG_DIR / 'cron.log') if DEBUG else '/var/log/apache2/cron.log',
             'formatter': 'verbose',
-            'mode': 'a',  # 添加mode参数
+            'mode': 'a',
         }
     },
     'loggers': {
