@@ -4,6 +4,8 @@ from django.contrib.auth.models import User
 from .models import Subscriber, RegistrationToken
 from django.utils.html import format_html
 import logging
+import os
+from django.conf import settings
 
 logger = logging.getLogger('accounts')
 
@@ -68,6 +70,47 @@ class CustomUserAdmin(UserAdmin):
     get_token_valid.short_description = 'Token Valid'
     get_token_valid.boolean = True
 
-# 只注册 User 模型
+    def delete_model(self, request, obj):
+        """
+        处理单个对象删除
+        """
+        try:
+            # 获取关联的subscriber
+            if hasattr(obj, 'subscriber'):
+                subscriber = obj.subscriber
+                
+                # 删除头像文件
+                if subscriber.avatar:
+                    avatar_path = os.path.join(settings.MEDIA_ROOT, str(subscriber.avatar))
+                    if os.path.exists(avatar_path):
+                        os.remove(avatar_path)
+                        logger.info(f"Deleted avatar file: {avatar_path}")
+                
+                # 删除相关的token
+                tokens = RegistrationToken.objects.filter(subscriber=subscriber)
+                for token in tokens:
+                    token.delete()
+                    logger.info(f"Deleted token: {token.token}")
+                
+                # 删除subscriber
+                subscriber.delete()
+                logger.info(f"Deleted subscriber: {subscriber.email}")
+            
+            # 删除用户
+            obj.delete()
+            logger.info(f"Deleted user: {obj.username}")
+            
+        except Exception as e:
+            logger.error(f"Error deleting user {obj.username}: {str(e)}")
+            raise
+
+    def delete_queryset(self, request, queryset):
+        """
+        处理批量删除
+        """
+        for obj in queryset:
+            self.delete_model(request, obj)
+
+# 注销默认的User admin并注册自定义的admin
 admin.site.unregister(User)
 admin.site.register(User, CustomUserAdmin) 

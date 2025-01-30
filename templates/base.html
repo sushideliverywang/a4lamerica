@@ -158,6 +158,14 @@
                 video1.parentElement.style.aspectRatio = "16/9";
                 video2.parentElement.style.aspectRatio = "16/9";
             }
+
+            // 确保视频静音播放
+            video1.muted = true;
+            video2.muted = true;
+
+            // 添加playsinline属性
+            video1.setAttribute('playsinline', '');
+            video2.setAttribute('playsinline', '');
         }
 
         function handleVideoError(e) {
@@ -204,7 +212,7 @@
     <!-- 第一个视频部分（全屏） -->
     <section id="firstScreen" class="relative h-screen flex-none transition-opacity duration-500">
         <div class="absolute inset-0 flex justify-center items-center bg-black">
-            <video autoplay muted loop playsinline class="h-full max-w-none opacity-0 transition-opacity duration-500" id="video1">
+            <video id="video1" autoplay loop muted playsinline class="absolute inset-0 w-full h-full object-cover">
                 <source type="video/mp4">
             </video>
         </div>
@@ -222,7 +230,7 @@
     <section class="relative min-h-screen flex-1">
         <!-- 背景视频 -->
         <div class="fixed inset-0 flex justify-center items-center bg-black -z-10">
-            <video autoplay muted loop playsinline class="h-full max-w-none opacity-0 transition-opacity duration-500" id="video2">
+            <video id="video2" autoplay loop muted playsinline class="absolute inset-0 w-full h-full object-cover">
             </video>
         </div>
         
