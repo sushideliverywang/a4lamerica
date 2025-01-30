@@ -56,4 +56,6 @@ def cleanup_expired_registrations():
         logger.info(f"Cleanup completed. Processed {len(expired_tokens)} expired registrations")
         
     except Exception as e:
-        logger.error(f"Cleanup task failed: {str(e)}") 
+        logger.error(f"Cleanup task failed: {str(e)}")
+
+# 其他任务函数同样保留 

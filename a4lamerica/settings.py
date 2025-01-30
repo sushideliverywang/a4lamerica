@@ -89,13 +89,6 @@ if DEBUG:
                 'filename': str(LOG_DIR / 'debug.log'),
                 'formatter': 'verbose',
                 'mode': 'a',
-            },
-            'cron': {
-                'level': 'INFO',
-                'class': 'logging.FileHandler',
-                'filename': str(LOG_DIR / 'cron.log'),
-                'formatter': 'verbose',
-                'mode': 'a',
             }
         },
         'loggers': {
@@ -107,11 +100,6 @@ if DEBUG:
             'accounts': {
                 'handlers': ['file'],
                 'level': 'DEBUG',
-                'propagate': False,
-            },
-            'accounts.tasks': {
-                'handlers': ['cron'],
-                'level': 'INFO',
                 'propagate': False,
             }
         },
@@ -137,7 +125,7 @@ else:
     
     # 媒体文件配置
     MEDIA_URL = '/media/'
-    MEDIA_ROOT = '/var/www/a4lamerica/media'  # 使用项目目录的符号链接
+    MEDIA_ROOT = '/Volumes/ExternalSSD/a4lamerica/media'  # 使用项目目录的符号链接
     
     SECURE_SSL_REDIRECT = False  # 由 Apache 处理
     SESSION_COOKIE_SECURE = True
@@ -156,9 +144,8 @@ else:
     PROTOCOL = 'https'
     
     # 生产环境日志配置
-    LOG_DIR = BASE_DIR / 'logs'  # 改用项目目录
-    if not os.path.exists(LOG_DIR):
-        os.makedirs(LOG_DIR)
+    LOG_DIR = Path('/var/log/apache2')  # Apache虚拟主机的日志目录
+    # 注意: 确保Apache用户对此目录有写入权限
     
     # 生产环境限制配置
     IP_RATE_LIMIT_MAX = 5
@@ -191,35 +178,26 @@ else:
         },
         'handlers': {
             'file': {
-                'level': 'ERROR',
-                'class': 'logging.FileHandler',
-                'filename': str(LOG_DIR / 'debug.log'),  # 使用项目目录
-                'formatter': 'verbose',
-                'mode': 'a',
-            },
-            'cron': {
                 'level': 'INFO',
-                'class': 'logging.FileHandler',
-                'filename': str(LOG_DIR / 'cron.log'),  # 使用项目目录
+                'class': 'logging.handlers.RotatingFileHandler',
+                'filename': str(LOG_DIR / 'a4lamerica_error.log'),  # 与Apache的ErrorLog保持一致
                 'formatter': 'verbose',
+                'maxBytes': 1024 * 1024 * 5,  # 5 MB
+                'backupCount': 5,
+                'encoding': 'utf-8',
                 'mode': 'a',
             }
         },
         'loggers': {
-            'django': {  # Django框架的日志
+            'django': {
                 'handlers': ['file'],
                 'level': 'ERROR',
                 'propagate': True,
             },
-            'accounts': {  # accounts应用的普通日志
+            'accounts': {
                 'handlers': ['file'],
                 'level': 'INFO',
                 'propagate': False,
-            },
-            'accounts.tasks': {  # accounts应用的cron任务日志
-                'handlers': ['cron'],
-                'level': 'INFO',
-                'propagate': False,  # 防止日志重复
             }
         },
     }
@@ -234,7 +212,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'accounts',
-    'django_crontab',
 ]
 
 MIDDLEWARE = [
@@ -351,23 +328,3 @@ RECAPTCHA_SCORE_THRESHOLD = os.getenv('RECAPTCHA_SCORE_THRESHOLD')  # 设置分�
 DATE_FORMAT = 'm/d/Y'           # 例如: 01/15/2024
 TIME_FORMAT = 'g:i A'           # 例如: 3:45 PM
 DATETIME_FORMAT = 'm/d/Y g:i A' # 例如: 01/15/2024 3:45 PM
-
-# 根据环境设置CRONJOBS
-if DEBUG:
-    CRONJOBS = [
-        ('0 1 * * *', 'accounts.tasks.cleanup_expired_registrations')  # 删除重定向部分
-    ]
-else:
-    CRONJOBS = [
-        ('0 1 * * *', 'accounts.tasks.cleanup_expired_registrations')  # 删除重定向部分
-    ]
-
-# CRONTAB配置
-CRONTAB_LOCK_JOBS = True
-CRONTAB_COMMAND_PREFIX = 'DJANGO_SETTINGS_MODULE=a4lamerica.settings'
-
-if not DEBUG:
-    # 使用当前用户运行cron任务
-    CRONTAB_COMMAND_PREFIX = f'{CRONTAB_COMMAND_PREFIX}'
-    # 确保日志文件可写
-    CRONTAB_COMMAND_SUFFIX = f'2>> /var/log/apache2/cron.log'
