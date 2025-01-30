@@ -2,16 +2,17 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
 from .models import Subscriber, RegistrationToken
+from django.utils.html import format_html
 import logging
 
 logger = logging.getLogger('accounts')
 
 class CustomUserAdmin(UserAdmin):
     list_display = (
+        'get_avatar',
         'username', 
         'first_name',
         'last_name',
-        'email', 
         'get_phone',    
         'get_phone_verified',
         'is_active', 
@@ -19,19 +20,28 @@ class CustomUserAdmin(UserAdmin):
         'get_ip_address',
         'get_token_used',
         'get_token_valid',
-    
     )
     list_filter = ('is_active', 'date_joined')
     search_fields = (
         'username', 
-        'email', 
         'first_name',
         'last_name',
         'subscriber__phone',
         'subscriber__ip_address'
     )
     ordering = ('-date_joined',)
-    sortable_by = ('username', 'email', 'date_joined', 'is_active')
+    sortable_by = ('username', 'date_joined', 'is_active')
+    
+    def get_avatar(self, obj):
+        if hasattr(obj, 'subscriber') and obj.subscriber.avatar:
+            return format_html(
+                '<img src="{}" width="50" height="50" style="border-radius: 50%;" />',
+                obj.subscriber.avatar.url
+            )
+        return format_html(
+            '<img src="/static/accounts/images/default-avatar.png" width="50" height="50" style="border-radius: 50%;" />'
+        )
+    get_avatar.short_description = 'Avatar'
     
     def get_phone_verified(self, obj):
         return obj.subscriber.phone_verified if hasattr(obj, 'subscriber') else False

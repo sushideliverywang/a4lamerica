@@ -224,7 +224,7 @@ def complete_registration(request, token):
         password2 = request.POST.get('password2')
         first_name = request.POST.get('first_name', '').strip()
         last_name = request.POST.get('last_name', '').strip()
-        phone_number = request.POST.get('phone_number', '').strip()
+        phone = request.POST.get('phone', '').strip()
         
         # 表单验证
         if password1 != password2:
@@ -252,7 +252,7 @@ def complete_registration(request, token):
                 user.save()
                 
                 # 更新订阅者信息
-                subscriber.phone_number = phone_number
+                subscriber.phone = phone
                 
                 # 处理临时头像文件
                 if temp_avatar:
