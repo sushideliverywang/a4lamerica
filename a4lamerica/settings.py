@@ -110,7 +110,7 @@ else:
     ALLOWED_HOSTS = [
         'a4lamerica.com',
         'www.a4lamerica.com',
-        '192.168.1.69',     # 服务器内网IP，即使配置了hosts也需要
+        '192.168.1.78',     # 服务器内网IP，即使配置了hosts也需要
     ]
     
     # 从环境变量获取额外的allowed hosts（用于外网IP）
