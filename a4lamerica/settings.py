@@ -109,6 +109,7 @@ else:
         'a4lamerica.com',
         'www.a4lamerica.com',
         '192.168.1.*',     # 允许整个192.168.1网段访问
+        'a4lamerica.local',  # 添加本地域名支持
     ]
     
     # 从环境变量获取额外的allowed hosts（用于外网IP）
@@ -138,7 +139,9 @@ else:
         'http://a4lamerica.com',
         'http://www.a4lamerica.com',
         'http://192.168.1.*',    # 添加内网HTTP支持
-        'https://192.168.1.*'    # 添加内网HTTPS支持
+        'https://192.168.1.*',   # 添加内网HTTPS支持
+        'http://a4lamerica.local',  # 添加本地域名支持
+        'https://a4lamerica.local'
     ]
     SITE_URL = 'https://a4lamerica.com'
     PROTOCOL = 'https'
