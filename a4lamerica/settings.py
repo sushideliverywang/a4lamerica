@@ -35,7 +35,7 @@ if DEBUG:
     ALLOWED_HOSTS = [
         'localhost',
         '127.0.0.1',
-        '192.168.1.70',  # 允许所有192.168.1网段
+        '192.168.1.*',  # 允许整个192.168.1网段
     ]
     # 开发环境媒体文件配置
     MEDIA_URL = '/media/'
@@ -51,10 +51,8 @@ if DEBUG:
     CSRF_TRUSTED_ORIGINS = [
         'http://localhost:8000',
         'http://127.0.0.1:8000',
-        'http://192.168.1.70:8000',
-        'http://192.168.1.71:8000',
-        'http://192.168.1.75:8000',
         'http://192.168.1.*:8000',
+        'https://192.168.1.*:8000',  # 添加https支持
     ]
     # 根据请求动态设置SITE_URL
     SITE_URL = 'http://192.168.1.70:8000'  # 使用开发机器的实际IP
@@ -110,7 +108,7 @@ else:
     ALLOWED_HOSTS = [
         'a4lamerica.com',
         'www.a4lamerica.com',
-        '192.168.1.78',     # 服务器内网IP，即使配置了hosts也需要
+        '192.168.1.*',     # 允许整个192.168.1网段访问
     ]
     
     # 从环境变量获取额外的allowed hosts（用于外网IP）
@@ -138,7 +136,9 @@ else:
         'https://a4lamerica.com',
         'https://www.a4lamerica.com',
         'http://a4lamerica.com',
-        'http://www.a4lamerica.com'
+        'http://www.a4lamerica.com',
+        'http://192.168.1.*',    # 添加内网HTTP支持
+        'https://192.168.1.*'    # 添加内网HTTPS支持
     ]
     SITE_URL = 'https://a4lamerica.com'
     PROTOCOL = 'https'
