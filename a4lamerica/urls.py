@@ -25,6 +25,5 @@ urlpatterns = [
     path('', include('frontend.urls')),  # 其他 frontend 页面
 ]
 
-# 开发环境下添加媒体文件的URL配置
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# 添加媒体文件的URL配置（开发和生产环境都生效）
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
