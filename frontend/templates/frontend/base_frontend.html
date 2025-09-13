@@ -82,12 +82,31 @@
     <script async src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_CLIENT_API_KEY }}&libraries=places,marker"></script>
     {% block extra_css %}{% endblock %}
     <meta name="google-site-verification" content="JWRnPllHFZE1RLIgIzO8yY63pUDYoU-eGZRCaGbCFOQ" />
+    
+    <!-- Meta Pixel Code -->
+    <script>
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window, document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', '1335126891106027');
+    fbq('track', 'PageView');
+    </script>
+    <noscript><img height="1" width="1" style="display:none"
+    src="https://www.facebook.com/tr?id=1335126891106027&ev=PageView&noscript=1"
+    /></noscript>
+    <!-- End Meta Pixel Code -->
+
 </head>
 
 <body class="bg-background-light min-h-screen flex flex-col {% block body_class %}{% endblock %}">
     <!-- 顶部通知栏 -->
     <div class="notification-bar">
-        <p class="text-sm">OUR 6 YEARS ANNIVERSARY EVENT Up to 60% Off Select Online Items - <a href="{% url 'frontend:store' location_slug='doraville-store' %}" class="underline hover:no-underline">Shop Now</a></p>
+        <p class="text-sm">OUR 6 YEARS ANNIVERSARY EVENT Up to 60% Off - <a href="{% url 'frontend:store' location_slug='doraville-store' %}" class="underline hover:no-underline">Shop Now</a></p>
     </div>
 
     <!-- 主标题区域 - 仅在相关页面显示 -->
