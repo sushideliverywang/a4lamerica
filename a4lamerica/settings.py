@@ -37,9 +37,9 @@ if DEBUG:
         '127.0.0.1',
         '192.168.1.*',  # 允许整个192.168.1网段
     ]
-    # 开发环境媒体文件配置
+    # 开发环境媒体文件配置 - 指向 nasmaha 的媒体文件
     MEDIA_URL = '/media/'
-    MEDIA_ROOT = BASE_DIR / 'media'
+    MEDIA_ROOT = '/Users/yiqunwang/project/nasmaha/media'  # 直接指向 nasmaha 的媒体文件
     
     SECURE_SSL_REDIRECT = False
     SESSION_COOKIE_SECURE = False
@@ -124,7 +124,7 @@ else:
     
     # 媒体文件配置
     MEDIA_URL = '/media/'
-    MEDIA_ROOT = '/Volumes/ExternalSSD/a4lamerica/media'  # 使用项目目录的符号链接
+    MEDIA_ROOT = '/Volumes/ExternalSSD/nasmaha/media'  # 使用nasmaha的媒体文件
     
     SECURE_SSL_REDIRECT = False  # 由 Apache 处理
     SESSION_COOKIE_SECURE = True
@@ -214,11 +214,19 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'accounts',
+    'django.contrib.humanize',  # 提供人性化的数据展示
+    
+    # 第三方应用（最小化）
+    'corsheaders',
+    
+    # 自定义应用
+    'accounts',  # 保留原有的 accounts app
+    'frontend',  # 只保留 frontend app
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware',       # CORS支持
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -256,16 +264,23 @@ WSGI_APPLICATION = 'a4lamerica.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.getenv('DB_NAME'),
-        'USER': os.getenv('DB_USER'),
-        'PASSWORD': os.getenv('DB_PASSWORD'),
-        'HOST': os.getenv('DB_HOST'),
-        'PORT': os.getenv('DB_PORT'),
+        'NAME': os.getenv('DATABASE_NAME'),  # 使用与nasmaha相同的环境变量名
+        'USER': os.getenv('DATABASE_USER'),
+        'PASSWORD': os.getenv('DATABASE_PASSWORD'),
+        'HOST': os.getenv('DATABASE_HOST', 'localhost'),
+        'PORT': os.getenv('DATABASE_PORT', '3306'),
         'OPTIONS': {
             'charset': 'utf8mb4',
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
         }
     }
+}
+
+# 禁用迁移检查，因为 a4lamerica 不管理数据库表
+# 所有数据都来自 nasmaha 的数据库
+MIGRATION_MODULES = {
+    'accounts': None,
+    'frontend': None,
 }
 
 
@@ -306,6 +321,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
+    BASE_DIR / 'frontend' / 'static',  # 只保留 frontend 的静态文件
 ]
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
@@ -331,3 +347,26 @@ RECAPTCHA_SCORE_THRESHOLD = os.getenv('RECAPTCHA_SCORE_THRESHOLD')  # 设置分�
 DATE_FORMAT = 'm/d/Y'           # 例如: 01/15/2024
 TIME_FORMAT = 'g:i A'           # 例如: 3:45 PM
 DATETIME_FORMAT = 'm/d/Y g:i A' # 例如: 01/15/2024 3:45 PM
+
+# 最小化配置，只保留 frontend 功能需要的
+AUTH_USER_MODEL = 'frontend.User'  # 使用 frontend.models_proxy 中的 User 模型
+
+# Google Maps API（frontend 需要）
+GOOGLE_MAPS_API_KEY = os.getenv('GOOGLE_MAPS_API_KEY', '')
+GOOGLE_MAPS_CLIENT_API_KEY = os.getenv('GOOGLE_MAPS_CLIENT_API_KEY', '')
+
+# 商品哈希编码密钥（frontend 需要）
+ITEM_HASH_SECRET_KEY = os.getenv('ITEM_HASH_SECRET_KEY', 'default-secret-key')
+
+# CORS 配置
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:3000',
+    'http://127.0.0.1:8000',
+    'http://192.168.1.70:8000',
+    'https://a4lamerica.com',
+    'https://www.a4lamerica.com',
+]
+
+# 公司过滤配置
+# 这个项目只显示特定公司的数据，而不是所有公司的数据
+COMPANY_ID = int(os.getenv('COMPANY_ID'))  # 默认使用公司ID 58

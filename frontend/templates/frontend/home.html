@@ -1,0 +1,327 @@
+{% extends "frontend/base_frontend.html" %}
+{% load static %}
+{% load frontend_filters %}
+{% load tz %}
+
+{% block title %}Appliances 4 Less Doraville - Quality Appliances Store | Refrigerators, Washers, Dryers & More{% endblock %}
+
+{% block meta_description %}
+Shop quality appliances at Appliances 4 Less Doraville! Find refrigerators, washers, dryers, stoves, dishwashers and more with competitive prices. 6 years of trusted service. Visit our stores or shop online today!
+{% endblock %}
+
+{% block meta_keywords %}
+appliances, refrigerators, washers, dryers, stoves, dishwashers, Appliances 4 Less Doraville, home appliances, kitchen appliances, laundry appliances, quality appliances, appliance store
+{% endblock %}
+
+{% block og_type %}website{% endblock %}
+
+{% block body_class %}home-page{% endblock %}
+
+{% block hero_section %}{% endblock %}
+
+{% block content %}
+<!-- 结构化数据 - 本地商家信息 -->
+<script type="application/ld+json">
+[
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "Appliances 4 Less Doraville",
+    "description": "Quality appliances store offering refrigerators, washers, dryers, stoves, dishwashers and more with competitive prices and excellent customer service.",
+    "url": "{{ request.scheme }}://{{ request.get_host }}/",
+    "logo": "{{ request.scheme }}://{{ request.get_host }}{% static 'frontend/images/logo.png' %}",
+    "foundingDate": "2018",
+    "sameAs": [],
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "contactType": "customer service",
+      "availableLanguage": "English"
+    },
+    "hasOfferCatalog": {
+      "@type": "OfferCatalog",
+      "name": "Appliances Catalog",
+      "itemListElement": [
+        {% for category, items in category_items.items %}
+        {
+          "@type": "Offer",
+          "itemOffered": {
+            "@type": "Product",
+            "name": "{{ category.name }} Appliances",
+            "description": "{{ category.name }} appliances and accessories",
+            "category": "{{ category.name }}"
+          }
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+      ]
+    }
+  },
+  {% for store in stores %}
+  {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    "name": "{{ store.name }}",
+    "description": "{{ store.name }} - Quality appliances store offering refrigerators, washers, dryers, stoves, dishwashers and more.",
+    "url": "{{ request.scheme }}://{{ request.get_host }}{% url 'frontend:store' store.slug %}",
+    "image": "{% if store.image %}{{ request.scheme }}://{{ request.get_host }}{{ store.image.url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{% static 'frontend/images/store-default.png' %}{% endif %}",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "{{ store.address.street_number }} {{ store.address.street_name }}",
+      "addressLocality": "{{ store.address.city }}",
+      "addressRegion": "{{ store.address.state }}",
+      "postalCode": "{{ store.address.zip_code }}",
+      "addressCountry": "US"
+    }{% if store.address.latitude and store.address.longitude %},
+    "geo": {
+      "@type": "GeoCoordinates",
+      "latitude": "{{ store.address.latitude }}",
+      "longitude": "{{ store.address.longitude }}"
+    }{% endif %},
+    "openingHoursSpecification": [
+      {% for hours in store.business_hours.all %}
+      {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": "{{ hours.get_day_of_week_display }}",
+        "opens": "{{ hours.open_time|time:'H:i' }}",
+        "closes": "{{ hours.close_time|time:'H:i' }}"
+      }{% if not forloop.last %},{% endif %}
+      {% endfor %}
+    ]
+  }{% if not forloop.last %},{% endif %}
+  {% endfor %}
+]
+</script>
+
+<!-- 主轮播区域 -->
+<div class="bg-background-light mt-6">
+    <div class="container mx-auto px-4 py-4">
+        <!-- 轮播图 -->
+        <div class="carousel-container">
+            <div class="carousel-wrapper">
+                {% if stores %}
+                    {% for store in stores %}
+                    <div class="carousel-item">
+                        <a href="{% url 'frontend:store' store.slug %}" class="block">
+                            {% if store.image %}
+                                <img src="{{ store.image.url }}" alt="{{ store.name }}" class="carousel-image">
+                            {% else %}
+                                <img src="{% static 'frontend/images/store-default.png' %}" alt="{{ store.name }}" class="carousel-image">
+                            {% endif %}
+                        </a>
+                        <div class="carousel-content">
+                            <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+                                <div class="carousel-text">
+                                    <h4 class="text-xl md:text-2xl font-bold text-text-primary mb-2">{{ store.name }}</h4>
+                                    <p class="text-base md:text-lg text-text-secondary">{{ store.address.street_number }} {{ store.address.street_name }}, {{ store.address.city }}, {{ store.address.state }} {{ store.address.zip_code }}</p>
+                                    <div class="mt-2">
+                                        {% with today_hours=store.business_hours.all|filter_today %}
+                                            {% if today_hours %}
+                                                {% if today_hours.is_open_now %}
+                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                        </svg>
+                                                        Open Now
+                                                    </span>
+                                                {% else %}
+                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                        </svg>
+                                                        Closed
+                                                    </span>
+                                                {% endif %}
+                                                <span class="text-sm text-text-secondary ml-2">{{ today_hours.get_today_hours }} ({{ store.business_hours.all|location_weekday }})</span>
+                                            {% else %}
+                                                <span class="text-sm text-text-secondary">Hours not available</span>
+                                            {% endif %}
+                                        {% endwith %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+            
+            <!-- 轮播控制按钮 -->
+            <button class="carousel-button prev">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                </svg>
+            </button>
+            <button class="carousel-button next">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- 网站介绍区域 -->
+<div class="container mx-auto px-4 py-6 text-center">
+    <h1 class="text-lg text-text-primary mb-2">Quality Appliances at Appliances 4 Less Doraville</h1>
+    <p class="text-sm text-text-secondary">Your trusted national platform for refrigerators, washers, dryers, stoves, and more • 6 years of trusted service • Competitive prices • Expert customer service</p>
+</div>
+
+<!-- 分类商品展示区域 -->
+{% for category, items in category_items.items %}
+<section id="category-{{ category.id }}" class="container mx-auto px-4 pt-2 pb-4" itemscope itemtype="https://schema.org/OfferCatalog">
+    <div class="flex flex-col mb-1">
+        <div class="flex items-center gap-2">
+            <h2 class="text-2xl font-bold text-text-primary" itemprop="name">{{ category.name }}</h2>
+            <p class="text-lg text-text-secondary">
+                {% if items.0.total_category_count %}
+                    {{ items.0.total_category_count }} items available
+                {% else %}
+                    {{ items|length }} items available
+                {% endif %}
+            </p>
+            <a href="{% url 'frontend:category' category.slug %}" 
+               class="text-sm text-text-primary hover:text-text-secondary transition-colors"
+               aria-label="View all {{ category.name }}">
+                View All {{ category.name }}
+            </a>
+        </div>
+    </div>
+    
+    <div class="product-scroll-container">
+        <div class="product-scroll-wrapper" id="scroll-wrapper-{{ category.id }}">
+            {% for item in items %}
+            <a href="{% url 'frontend:item_detail' item|item_hash %}" class="block" itemprop="itemListElement" itemscope itemtype="https://schema.org/Offer">
+                <div class="product-card">
+                    {% if item.item_images %}
+                        <img src="{{ item.item_images.0.image.url }}" 
+                             alt="{{ item.model_number.brand.name }} {{ item.model_number.model_number }} - {{ item.model_number.category.name }} at {{ item.location.name }}"
+                             itemprop="image">
+                    {% elif item.model_number.model_images %}
+                        <img src="{{ item.model_number.model_images.0.image.url }}" 
+                             alt="{{ item.model_number.brand.name }} {{ item.model_number.model_number }} - {{ item.model_number.category.name }} at {{ item.location.name }}"
+                             itemprop="image">
+                    {% else %}
+                        <img src="{% static 'frontend/images/product-default.png' %}" 
+                             alt="{{ item.model_number.brand.name }} {{ item.model_number.model_number }} - {{ item.model_number.category.name }} at {{ item.location.name }}"
+                             itemprop="image">
+                    {% endif %}
+                    <div class="product-info" itemprop="itemOffered" itemscope itemtype="https://schema.org/Product">
+                        <div class="brand-model">
+                            <div class="brand" itemprop="brand" itemscope itemtype="https://schema.org/Brand">
+                                <span itemprop="name">{{ item.model_number.brand.name }}</span>
+                            </div>
+                            <div class="model" itemprop="model">{{ item.model_number.model_number }}</div>
+                        </div>
+                        <div class="price-info" itemprop="offers" itemscope itemtype="https://schema.org/Offer">
+                            <div class="flex justify-between items-center">
+                                <div class="text-lg font-bold text-text-primary" itemprop="price">${{ item.retail_price }}</div>
+                                {% if item.model_number.msrp %}
+                                <div class="text-xs text-text-secondary line-through">MSRP: ${{ item.model_number.msrp }}</div>
+                                {% endif %}
+                            </div>
+                            {% if item.model_number.msrp %}
+                            <div class="text-xs text-success">Save ${{ item.savings|floatformat:2 }} ({{ item.savings_percentage|floatformat:0 }}%)</div>
+                            {% endif %}
+                            <meta itemprop="priceCurrency" content="USD">
+                            <meta itemprop="availability" content="https://schema.org/InStock">
+                        </div>
+                        <div class="store-info">
+                            {% if item.location and item.location.image %}
+                                <img src="{{ item.location.image.url }}" alt="{{ item.location.name }}">
+                            {% else %}
+                                <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                                </svg>
+                            {% endif %}
+                            <span class="flex-1">{% if item.location %}{{ item.location.name }}{% else %}Store{% endif %}</span>
+                            <div class="flex items-center gap-1">
+                                <div class="likes">
+                                    <svg class="w-4 h-4 text-error" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                                    </svg>
+                                    <span class="text-xs text-text-secondary">{{ item.favorite_count }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        
+        <!-- 滚动按钮 -->
+        <button class="scroll-button prev hidden md:flex">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+        </button>
+        <button class="scroll-button next hidden md:flex">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            </svg>
+        </button>
+    </div>
+</section>
+{% endfor %}
+
+<!-- SEO内容区域 -->
+<div class="bg-gray-50 py-8 mt-8">
+    <div class="container mx-auto px-4">
+        <div class="max-w-4xl mx-auto">
+            <h2 class="text-2xl font-bold text-text-primary mb-6 text-center">Why Choose Appliances 4 Less Doraville for Your Appliances?</h2>
+            <div class="grid md:grid-cols-3 gap-6">
+                <div class="text-center">
+                    <div class="bg-primary text-white rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-semibold text-text-primary mb-2">Quality Guaranteed</h3>
+                    <p class="text-text-secondary text-sm">We offer only the highest quality appliances from trusted brands with comprehensive warranties.</p>
+                </div>
+                <div class="text-center">
+                    <div class="bg-primary text-white rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-semibold text-text-primary mb-2">Competitive Prices</h3>
+                    <p class="text-text-secondary text-sm">Get the best value for your money with our competitive pricing and regular sales events.</p>
+                </div>
+                <div class="text-center">
+                    <div class="bg-primary text-white rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192L5.636 18.364M12 2.25a9.75 9.75 0 100 19.5 9.75 9.75 0 000-19.5z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-semibold text-text-primary mb-2">Expert Service</h3>
+                    <p class="text-text-secondary text-sm">Our knowledgeable team provides expert advice and support to help you find the perfect appliances.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 本地SEO内容 -->
+<div class="bg-white py-8">
+    <div class="container mx-auto px-4">
+        <div class="max-w-4xl mx-auto text-center">
+            <h2 class="text-2xl font-bold text-text-primary mb-4">Shop Appliances at Appliances 4 Less Doraville</h2>
+            <p class="text-text-secondary mb-6">
+                Quality refrigerators, washers, dryers, stoves, and dishwashers. 6 years of trusted service in the community.
+            </p>
+            <div class="flex flex-wrap justify-center gap-4 text-sm text-text-secondary mb-6">
+                <span>• Refrigerators & Freezers</span>
+                <span>• Washers & Dryers</span>
+                <span>• Stoves & Ovens</span>
+                <span>• Dishwashers</span>
+                <span>• Microwaves</span>
+            </div>
+            <p class="text-sm text-text-secondary">
+                <strong>For retailers:</strong> If you're an appliance retailer, join our platform. Email us at 
+                <a href="mailto:atlanta@a4lamerica.com" class="text-primary hover:text-secondary underline">atlanta@a4lamerica.com</a>
+            </p>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

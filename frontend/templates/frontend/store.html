@@ -1,0 +1,222 @@
+{% extends "frontend/base_frontend.html" %}
+{% load static %}
+{% load frontend_filters %}
+{% load tz %}
+
+{% block title %}{{ location.name }}{% endblock %}
+
+{% block body_class %}store-page{% endblock %}
+
+{% block content %}
+<!-- 商店信息头部 -->
+<div class="bg-background-light mt-6">
+    <div class="container mx-auto px-4 py-8">
+        <!-- 商店基本信息 -->
+        <div class="flex items-start gap-4 mb-6">
+            <!-- 商店圆形小图片 -->
+            <div class="flex-shrink-0">
+                {% if location.image %}
+                    <img src="{{ location.image.url }}" alt="{{ location.name }}" class="w-20 h-20 object-cover rounded-full shadow-sm">
+                {% else %}
+                    <img src="{% static 'frontend/images/store-default.png' %}" alt="{{ location.name }}" class="w-20 h-20 object-cover rounded-full shadow-sm">
+                {% endif %}
+            </div>
+            
+            <!-- 商店名称和地址 -->
+            <div class="flex-1">
+                <h1 class="text-3xl font-bold text-text-primary mb-2">{{ location.name }}</h1>
+                
+                <!-- 地址信息 -->
+                <div class="flex items-start gap-2">
+                    <svg class="w-5 h-5 text-gray-500 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    <div>
+                        <p class="text-text-primary">{{ location.address.street_number }} {{ location.address.street_name }}</p>
+                        <p class="text-text-secondary">{{ location.address.city }}, {{ location.address.state }} {{ location.address.zip_code }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 营业时间 -->
+        <div class="mb-6">
+            <div class="flex items-center gap-3">
+                {% with today_hours=location.business_hours.all|filter_today %}
+                    {% if today_hours %}
+                        {% if today_hours.is_open_now %}
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                Open Now
+                            </span>
+                        {% else %}
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                Closed
+                            </span>
+                        {% endif %}
+                    {% else %}
+                        <span class="text-sm text-text-secondary">Hours not available</span>
+                    {% endif %}
+                {% endwith %}
+                
+                <!-- 查看营业时间按钮 -->
+                <button id="toggleHoursBtn" class="text-sm text-blue-600 hover:text-blue-800 underline">
+                    View Business Hours
+                </button>
+            </div>
+            
+            <!-- 完整营业时间（默认隐藏） -->
+            <div id="businessHours" class="text-sm text-text-secondary mt-3 hidden">
+                {% for hours in location.business_hours.all %}
+                    <div class="flex justify-between py-1">
+                        <span>{{ hours.get_day_of_week_display }}:</span>
+                        <span>
+                            {% if hours.is_closed %}
+                                Closed
+                            {% elif hours.is_24_hours %}
+                                24 Hours
+                            {% else %}
+                                {{ hours.open_time|time:"g:i A" }} - {{ hours.close_time|time:"g:i A" }}
+                            {% endif %}
+                        </span>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 分类商品展示区域 -->
+{% for category, items in category_items.items %}
+<div id="category-{{ category.id }}" class="container mx-auto px-4 pt-2 pb-4">
+    <div class="flex flex-col mb-1">
+        <div class="flex items-center gap-2">
+            <h2 class="text-2xl font-bold text-text-primary">{{ category.name }}</h2>
+            <p class="text-lg text-text-secondary">
+                {% if items.0.total_category_count %}
+                    {{ items.0.total_category_count }} items
+                {% else %}
+                    {{ items|length }} items
+                {% endif %}
+            </p>
+            <a href="{% url 'frontend:category' category.slug %}?store={{ location.slug }}" class="text-sm text-text-primary hover:text-text-secondary transition-colors">
+                View All
+            </a>
+        </div>
+    </div>
+    
+    <div class="product-scroll-container">
+        <div class="product-scroll-wrapper" id="scroll-wrapper-{{ category.id }}">
+            {% for item in items %}
+            <a href="{% url 'frontend:item_detail' item|item_hash %}" class="block">
+                <div class="product-card">
+                    {% if item.item_images %}
+                        <img src="{{ item.item_images.0.image.url }}" alt="{{ item.name }}">
+                    {% elif item.model_number.model_images %}
+                        <img src="{{ item.model_number.model_images.0.image.url }}" alt="{{ item.name }}">
+                    {% else %}
+                        <img src="{% static 'frontend/images/product-default.png' %}" alt="{{ item.name }}">
+                    {% endif %}
+                    <div class="product-info">
+                        <div class="brand-model">
+                            <div class="brand">{{ item.model_number.brand.name }}</div>
+                            <div class="model">{{ item.model_number.model_number }}</div>
+                        </div>
+                        <div class="price-info">
+                            <div class="flex justify-between items-center">
+                                <div class="text-lg font-bold text-text-primary">${{ item.retail_price }}</div>
+                                {% if item.model_number.msrp %}
+                                <div class="text-xs text-text-secondary line-through">MSRP: ${{ item.model_number.msrp }}</div>
+                                {% endif %}
+                            </div>
+                            {% if item.model_number.msrp %}
+                            <div class="text-xs text-success">Save ${{ item.savings|floatformat:2 }} ({{ item.savings_percentage|floatformat:0 }}%)</div>
+                            {% endif %}
+                        </div>
+                        <div class="store-info">
+                            <span class="flex-1">{{ location.name }}</span>
+                            <div class="flex items-center gap-1">
+                                <div class="likes">
+                                    <svg class="w-4 h-4 text-error" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                                    </svg>
+                                    <span class="text-xs text-text-secondary">{{ item.favorite_count }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        
+        <!-- 滚动按钮 -->
+        <button class="scroll-button prev hidden md:flex">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+        </button>
+        <button class="scroll-button next hidden md:flex">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            </svg>
+        </button>
+    </div>
+</div>
+{% endfor %}
+
+<!-- 如果没有商品显示提示 -->
+{% if not category_items %}
+<div class="container mx-auto px-4 py-16">
+    <div class="text-center">
+        <h2 class="text-2xl font-bold text-text-primary mb-4">No Products Available</h2>
+        <p class="text-text-secondary mb-6">This store currently has no products available.</p>
+        <a href="{% url 'frontend:home' %}" class="btn btn-primary">Browse All Stores</a>
+    </div>
+</div>
+{% endif %}
+
+<!-- 页面底部操作按钮 -->
+<div class="bg-background-light py-8 mt-8">
+    <div class="container mx-auto px-4">
+        <div class="flex flex-col md:flex-row gap-4 justify-center items-center">
+            <a href="{% url 'frontend:warranty_policy' location.slug %}" class="btn btn-outline">
+                Warranty Policy
+            </a>
+            <a href="{% url 'frontend:terms_conditions' location.slug %}" class="btn btn-outline">
+                Terms & Conditions
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const toggleBtn = document.getElementById('toggleHoursBtn');
+    const hoursDiv = document.getElementById('businessHours');
+    
+    // 营业时间切换功能
+    if (toggleBtn && hoursDiv) {
+        toggleBtn.addEventListener('click', function() {
+            if (hoursDiv.classList.contains('hidden')) {
+                // 显示营业时间
+                hoursDiv.classList.remove('hidden');
+                toggleBtn.textContent = 'Hide Business Hours';
+            } else {
+                // 隐藏营业时间
+                hoursDiv.classList.add('hidden');
+                toggleBtn.textContent = 'View Business Hours';
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

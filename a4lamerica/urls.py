@@ -21,7 +21,8 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('accounts.urls')),
+    path('accounts/', include('accounts.urls')),
+    path('', include('frontend.urls')),  # 其他 frontend 页面
 ]
 
 # 开发环境下添加媒体文件的URL配置

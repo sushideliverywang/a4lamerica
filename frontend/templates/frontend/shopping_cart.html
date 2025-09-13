@@ -1,0 +1,557 @@
+{% extends 'frontend/base_frontend.html' %}
+{% load static %}
+{% load frontend_filters %}
+
+{% block title %}Shopping Cart - NASMAHA{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-2 sm:px-4 py-8">
+    <!-- 面包屑导航 -->
+    <nav class="breadcrumb-nav mb-4 md:mb-6 mt-4">
+        <ol class="flex items-center space-x-2 text-sm">
+            {% for crumb in breadcrumbs %}
+                <li class="flex items-center">
+                    {% if not forloop.first %}
+                        <svg class="w-4 h-4 mx-2 text-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    {% endif %}
+                    {% if forloop.last %}
+                        <a href="{{ crumb.url }}" class="text-text-primary font-medium hover:text-primary transition-colors">{{ crumb.name }}</a>
+                    {% else %}
+                        <a href="{{ crumb.url }}" class="text-text-secondary hover:text-primary transition-colors">{{ crumb.name }}</a>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ol>
+    </nav>
+
+    <div class="max-w-4xl mx-auto">
+        {% if location_items %}
+            <div class="space-y-8">
+                {% for location, data in location_items.items %}
+                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                        <!-- Location Header -->
+                        <div class="flex items-center justify-between mb-6">
+                            <div class="flex items-center space-x-4">
+                                {% if location.image %}
+                                    <img src="{{ location.image.url }}" alt="{{ location.name }}" class="w-12 h-12 rounded-lg object-cover">
+                                {% else %}
+                                    <div class="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center">
+                                        <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                                        </svg>
+                                    </div>
+                                {% endif %}
+                                <div>
+                                    <h3 class="text-xl font-semibold text-text-primary">{{ location.name }}</h3>
+                                    <p class="text-text-secondary">{{ location.address.get_full_address }}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Items List -->
+                        <div class="space-y-4">
+                            {% for cart_item in data.items %}
+                                {% if cart_item.popularity_count > 1 %}
+                                    <div class="border-b border-gray-200 py-2 last:border-0 mt-1" 
+                                         data-cart-item-id="{{ cart_item.id }}"
+                                         data-inventory-item-id="{{ cart_item.item.id }}"
+                                         data-price="{{ cart_item.price_at_add }}">
+                                        <div class="flex items-start">
+                                            <div class="flex flex-col items-start">
+                                                <a href="{% url 'frontend:item_detail' cart_item.item|item_hash %}" class="w-20 h-20 flex-shrink-0">
+                                                    {% if cart_item.item.item_images %}
+                                                        <img src="{{ cart_item.item.item_images.0.image.url }}" 
+                                                             alt="{{ cart_item.item.model_number.model_number }}"
+                                                             class="w-full h-full object-cover rounded-lg hover:opacity-90 transition-opacity">
+                                                    {% elif cart_item.item.model_number.model_images %}
+                                                        <img src="{{ cart_item.item.model_number.model_images.0.image.url }}" 
+                                                             alt="{{ cart_item.item.model_number.model_number }}"
+                                                             class="w-full h-full object-cover rounded-lg hover:opacity-90 transition-opacity">
+                                                    {% else %}
+                                                        <div class="w-full h-full bg-gray-200 rounded-lg flex items-center justify-center">
+                                                            <span class="text-gray-400">No Image</span>
+                                                        </div>
+                                                    {% endif %}
+                                                </a>
+                                            </div>
+                                            <div class="ml-4 flex-grow">
+                                                <h4 class="text-lg font-medium text-text-primary">
+                                                    {{ cart_item.item.model_number.brand.name }} {{ cart_item.item.model_number.model_number }}
+                                                </h4>
+                                                <p class="text-text-secondary mt-1 break-words">
+                                                    Control Number: {{ cart_item.item.control_number }}
+                                                </p>
+                                            </div>
+                                            <div class="ml-4 flex flex-col items-end">
+                                                <p class="text-text-secondary whitespace-nowrap">${{ cart_item.price_at_add }}</p>
+                                                <button onclick="removeFromCart({{ cart_item.id }})" 
+                                                        class="text-error hover:text-red-700 mt-2">
+                                                    Remove
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="mt-2 text-xs text-text-secondary flex items-center space-x-1">
+                                            <span class="text-red-500">🔥</span>
+                                            <span>{{ cart_item.popularity_count }} customers added</span>
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <div class="flex items-start border-b border-gray-200 py-2 last:border-0 mt-1" 
+                                         data-cart-item-id="{{ cart_item.id }}"
+                                         data-inventory-item-id="{{ cart_item.item.id }}"
+                                         data-price="{{ cart_item.price_at_add }}">
+
+                                        <!-- Item Image and Cart Count -->
+                                        <div class="flex flex-col items-start">
+                                            <a href="{% url 'frontend:item_detail' cart_item.item|item_hash %}" class="w-20 h-20 flex-shrink-0">
+                                                {% if cart_item.item.item_images %}
+                                                    <img src="{{ cart_item.item.item_images.0.image.url }}" 
+                                                         alt="{{ cart_item.item.model_number.model_number }}"
+                                                         class="w-full h-full object-cover rounded-lg hover:opacity-90 transition-opacity">
+                                                {% elif cart_item.item.model_number.model_images %}
+                                                    <img src="{{ cart_item.item.model_number.model_images.0.image.url }}" 
+                                                         alt="{{ cart_item.item.model_number.model_number }}"
+                                                         class="w-full h-full object-cover rounded-lg hover:opacity-90 transition-opacity">
+                                                {% else %}
+                                                    <div class="w-full h-full bg-gray-200 rounded-lg flex items-center justify-center">
+                                                        <span class="text-gray-400">No Image</span>
+                                                    </div>
+                                                {% endif %}
+                                            </a>
+                                        </div>
+                                        <!-- Item Info -->
+                                        <div class="ml-4 flex-grow">
+                                            <h4 class="text-lg font-medium text-text-primary">
+                                                {{ cart_item.item.model_number.brand.name }} {{ cart_item.item.model_number.model_number }}
+                                            </h4>
+                                            <p class="text-text-secondary mt-1 break-words">
+                                                Control Number: {{ cart_item.item.control_number }}
+                                            </p>
+                                        </div>
+
+                                        <!-- Price and Remove Button -->
+                                        <div class="ml-4 flex flex-col items-end">
+                                            <p class="text-text-secondary whitespace-nowrap">${{ cart_item.price_at_add }}</p>
+                                            <button onclick="removeFromCart({{ cart_item.id }})" 
+                                                    class="text-error hover:text-red-700 mt-2">
+                                                Remove
+                                            </button>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+
+                        <!-- Order Summary -->
+                        <div class="mt-6 pt-6 border-t border-gray-200">
+                            <div class="space-y-4">
+                                <!-- Shipping Address Selection -->
+                                <div class="flex flex-col space-y-2">
+                                    <label class="text-text-secondary">Shipping Address (Optional)</label>
+                                    <select class="location-address-select mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-secondary focus:border-secondary sm:text-sm rounded-md"
+                                            data-location-id="{{ location.id }}">
+                                        <option value="">No Address (Pick up at store)</option>
+                                        {% if addresses %}
+                                            {% for address in addresses %}
+                                                <option value="{{ address.id }}" {% if address.id == default_address.id %}selected{% endif %}>
+                                                    {{ address.get_full_address }}
+                                                </option>
+                                            {% endfor %}
+                                        {% endif %}
+                                        <option value="profile">+ Add New Address</option>
+                                    </select>
+                                    <!-- Show on Map Link -->
+                                    <a href="#" 
+                                       class="show-map-link text-secondary hover:text-orange-600 text-sm flex items-center"
+                                       data-address-id="{{ default_address.id }}">
+                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                        </svg>
+                                        Show on Map
+                                    </a>
+                                </div>
+
+                                <!-- Subtotal -->
+                                <div class="flex justify-between items-center">
+                                    <span class="text-text-secondary">Subtotal</span>
+                                    <span class="text-lg font-semibold text-text-primary">
+                                        ${{ data.total_price }}
+                                    </span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-text-secondary">Delivery Fee and service fee may apply</span>
+                                </div>
+                                <!-- Sales Tax -->
+                                <div class="flex justify-between items-center">
+                                    <span class="text-text-secondary">Sales Tax ({{ location.sales_tax_rate|percent }})</span>
+                                    <span class="text-lg font-semibold text-text-primary">
+                                        ${{ data.sales_tax|floatformat:2 }}
+                                    </span>
+                                </div>
+                                
+                                <!-- Place Order Button - Temporarily Disabled -->
+                                <!-- TODO: Re-enable when ready - original onclick: placeOrder('{{ location.id }}') -->
+                                <div class="w-full bg-gray-300 text-gray-600 py-3 rounded-lg text-center cursor-not-allowed">
+                                    Please visit store to place order
+                                </div>
+                                <!-- Original button (commented out for future re-enabling):
+                                <button class="w-full bg-secondary text-white py-3 rounded-lg hover:bg-orange-600 transition-colors"
+                                        onclick="placeOrder('{{ location.id }}')">
+                                    Place Order
+                                </button>
+                                -->
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-12">
+                <svg class="w-16 h-16 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+                </svg>
+                <h2 class="mt-4 text-xl font-semibold text-text-primary">Your cart is empty</h2>
+                <p class="mt-2 text-text-secondary">Looks like you haven't added any items to your cart yet.</p>
+                <a href="{% url 'frontend:home' %}" class="mt-6 inline-block bg-secondary text-white px-6 py-3 rounded-lg hover:bg-orange-600 transition-colors">
+                    Continue Shopping
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // 页面加载时检查 URL 参数和 localStorage
+    document.addEventListener('DOMContentLoaded', function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const returnAddressId = urlParams.get('return_address_id');
+        
+        if (returnAddressId) {
+            // 如果 URL 中有地址 ID，更新所有地址选择器
+            document.querySelectorAll('.location-address-select').forEach(select => {
+                if (select.querySelector(`option[value="${returnAddressId}"]`)) {
+                    select.value = returnAddressId;
+                    // 更新对应的地图链接
+                    const mapLink = select.closest('.p-6').querySelector('.show-map-link');
+                    if (mapLink) {
+                        mapLink.dataset.addressId = returnAddressId;
+                        mapLink.style.display = 'flex';
+                    }
+                }
+            });
+            // 清除 URL 参数
+            window.history.replaceState({}, document.title, window.location.pathname);
+        } else {
+            // 检查 localStorage 中是否有保存的地址
+            const savedAddresses = JSON.parse(localStorage.getItem('selectedAddresses') || '{}');
+            Object.entries(savedAddresses).forEach(([locationId, addressId]) => {
+                const select = document.querySelector(`.location-address-select[data-location-id="${locationId}"]`);
+                if (select && select.querySelector(`option[value="${addressId}"]`)) {
+                    select.value = addressId;
+                    const mapLink = select.closest('.p-6').querySelector('.show-map-link');
+                    if (mapLink) {
+                        mapLink.dataset.addressId = addressId;
+                        mapLink.style.display = addressId ? 'flex' : 'none';
+                    }
+                }
+            });
+        }
+        
+        // 初始化地图链接显示状态
+        document.querySelectorAll('.location-address-select').forEach(select => {
+            const selectedValue = select.value;
+            const mapLink = select.closest('.p-6').querySelector('.show-map-link');
+            if (mapLink) {
+                mapLink.style.display = selectedValue ? 'flex' : 'none';
+            }
+        });
+    });
+
+    // 监听所有地址选择变化
+    document.querySelectorAll('.location-address-select').forEach(select => {
+        select.addEventListener('change', function(e) {
+            const selectedValue = e.target.value;
+            const locationId = this.dataset.locationId;
+            
+            if (selectedValue === 'profile') {
+                window.location.href = "{% url 'frontend:customer_profile' %}";
+                return;
+            }
+            
+            // 更新对应的地图链接
+            const mapLink = this.closest('.p-6').querySelector('.show-map-link');
+            if (mapLink) {
+                if (selectedValue) {
+                    mapLink.dataset.addressId = selectedValue;
+                    mapLink.style.display = 'flex';
+                } else {
+                    mapLink.style.display = 'none';
+                }
+            }
+
+            // 保存选择的地址到 localStorage
+            const savedAddresses = JSON.parse(localStorage.getItem('selectedAddresses') || '{}');
+            savedAddresses[locationId] = selectedValue;
+            localStorage.setItem('selectedAddresses', JSON.stringify(savedAddresses));
+        });
+    });
+
+    // 处理地图链接点击
+    document.querySelectorAll('.show-map-link').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const addressId = this.dataset.addressId;
+            if (addressId) {
+                // 在打开地图页面时，将当前地址 ID 添加到 URL
+                window.location.href = "{% url 'frontend:show_map' %}?address_id=" + addressId + "&return_to=cart";
+            }
+        });
+    });
+
+    function removeFromCart(cartItemId) {
+        showConfirmModal(
+            'Remove Item',
+            'Are you sure you want to remove this item from your cart?',
+            () => {
+                fetch(`/cart/remove/${cartItemId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        // 移除商品行
+                        const itemRow = document.querySelector(`[data-cart-item-id="${cartItemId}"]`);
+                        if (itemRow) {
+                            // 获取商品所在的位置容器
+                            const locationContainer = itemRow.closest('.p-6');
+                            
+                            // 删除商品相关的所有元素
+                            // 1. 删除商品行
+                            itemRow.remove();
+                            
+                            // 2. 删除商品数量显示（如果存在）
+                            const cartCountDiv = locationContainer.querySelector('.flex.text-secondary.text-sm.mt-2.mb-0');
+                            if (cartCountDiv) {
+                                cartCountDiv.remove();
+                            }
+                            
+                            // 3. 删除商品行下方的分割线（如果存在）
+                            const nextDivider = itemRow.nextElementSibling;
+                            if (nextDivider && nextDivider.classList.contains('border-b')) {
+                                nextDivider.remove();
+                            }
+                            
+                            // 检查该位置是否还有其他商品
+                            const remainingItems = locationContainer.querySelectorAll('[data-cart-item-id]');
+                            if (remainingItems.length === 0) {
+                                // 如果该位置没有商品了，删除整个位置卡片
+                                locationContainer.closest('.bg-white.rounded-lg.shadow-sm').remove();
+                                
+                                // 检查是否还有其他位置卡片
+                                const remainingLocations = document.querySelectorAll('.bg-white.rounded-lg.shadow-sm');
+                                if (remainingLocations.length === 0) {
+                                    // 如果没有位置卡片了，刷新页面显示空购物车
+                                    location.reload();
+                                    return;
+                                }
+                            } else {
+                                // 更新该位置的 subtotal
+                                if (data.location_total !== undefined) {
+                                    // 更新小计金额
+                                    const subtotalElements = locationContainer.querySelectorAll('.flex.justify-between.items-center');
+                                    subtotalElements.forEach(container => {
+                                        const labelSpan = container.querySelector('.text-text-secondary');
+                                        if (labelSpan && labelSpan.textContent.trim() === 'Subtotal') {
+                                            const valueSpan = container.querySelector('.text-lg.font-semibold.text-text-primary');
+                                            if (valueSpan) {
+                                                valueSpan.textContent = `$${data.location_total}`;
+                                            }
+                                        }
+                                    });
+                                    
+                                    // 更新销售税
+                                    subtotalElements.forEach(container => {
+                                        const labelSpan = container.querySelector('.text-text-secondary');
+                                        if (labelSpan && labelSpan.textContent.includes('Sales Tax')) {
+                                            const valueSpan = container.querySelector('.text-lg.font-semibold.text-text-primary');
+                                            if (valueSpan && data.sales_tax !== undefined) {
+                                                valueSpan.textContent = `$${data.sales_tax.toFixed(2)}`;
+                                            }
+                                        }
+                                    });
+                                }
+                            }
+                        }
+
+                        // 更新购物车数量显示
+                        const cartCountElements = document.querySelectorAll('.cart-count');
+                        cartCountElements.forEach(element => {
+                            if (data.cart_count > 0) {
+                                element.textContent = data.cart_count;
+                                element.classList.remove('hidden');
+                            } else {
+                                element.classList.add('hidden');
+                            }
+                        });
+
+                        // 如果购物车为空，显示空购物车信息
+                        if (data.cart_count === 0) {
+                            location.reload();
+                        }
+                    } else {
+                        console.error('Remove cart error:', data.error);
+                        alert(data.error || 'Failed to remove item from cart');
+                    }
+                })
+                .catch(error => {
+                    console.error('Remove cart error:', error);
+                    alert('Failed to remove item from cart: ' + error.message);
+                });
+            }
+        );
+    }
+
+    function placeOrder(locationId) {
+        const addressSelect = document.querySelector(`.location-address-select[data-location-id="${locationId}"]`);
+        const selectedAddress = addressSelect.value;
+
+        
+        // 收集商品信息
+        const locationContainer = document.querySelector(`.location-address-select[data-location-id="${locationId}"]`).closest('.bg-white');
+        const inventoryItems = [];
+        locationContainer.querySelectorAll('[data-cart-item-id]').forEach(item => {
+            inventoryItems.push({
+                inventory_item_id: parseInt(item.dataset.inventoryItemId),
+                unit_price: parseFloat(item.dataset.price).toFixed(2)
+            });
+        });
+       // 构建订单数据
+        const orderData = {
+            location_id: parseInt(locationId),
+            shipping_address_id: selectedAddress ? parseInt(selectedAddress) : null,
+            inventory_items: inventoryItems
+        };
+        console.log(orderData);
+        
+        // 创建优化的HTML格式订单确认消息
+        const orderConfirmMessage = `<div class="text-sm space-y-3">
+            <div class="flex">
+                <div class="w-1 bg-secondary mr-3 flex-shrink-0"></div>
+                <div class="flex-1">
+                    <p class="font-medium text-text-primary">Payment Details:</p>
+                    <p class="text-text-secondary">• Service fee and delivery fee will be added to the total price</p>
+                    <p class="text-text-secondary">• We do not accept remote payment</p>
+                </div>
+            </div>
+            
+            <div class="flex">
+                <div class="w-1 bg-secondary mr-3 flex-shrink-0"></div>
+                <div class="flex-1">
+                    <p class="font-medium text-text-primary">Time Limit:</p>
+                    <p class="text-text-secondary">• You have <strong>2 hours</strong> to visit the store and complete payment</p>
+                    <p class="text-text-secondary">• Orders not paid within <strong>2 hours</strong> will be automatically cancelled</p>
+                </div>
+            </div>
+            
+            <div class="flex">
+                <div class="w-1 bg-secondary mr-3 flex-shrink-0"></div>
+                <div class="flex-1">
+                    <p class="font-medium text-text-primary">Item Reservation:</p>
+                    <p class="text-text-secondary">• Placing this order does not guarantee ownership of the items</p>
+                    <p class="text-text-secondary">• The merchant will hold the items for you for only <strong>2 hours</strong></p>
+                </div>
+            </div>
+            
+            <div class="flex">
+                <div class="w-1 bg-secondary mr-3 flex-shrink-0"></div>
+                <div class="flex-1">
+                    <p class="font-medium text-text-primary">Recommendation:</p>
+                    <p class="text-text-secondary">• Please visit the store in person as soon as possible to speed up the process</p>
+                </div>
+            </div>
+            
+            <div class="flex">
+                <div class="w-1 bg-secondary mr-3 flex-shrink-0"></div>
+                <div class="flex-1">
+                    <p class="font-medium text-text-primary">Terms & Conditions:</p>
+                    <p class="text-text-secondary">• Please read and accept the store's terms and policies when placing the order</p>
+                </div>
+            </div>
+        </div>`;
+        
+        // 使用通用确认框，启用HTML格式
+        showConfirmModal(
+            'Place Order',
+            orderConfirmMessage,
+            () => {
+                // 显示加载状态
+                const placeOrderButton = document.querySelector(`button[onclick="placeOrder('${locationId}')"]`);
+                const originalText = placeOrderButton.textContent;
+                placeOrderButton.disabled = true;
+                placeOrderButton.textContent = 'Processing...';
+                
+                // 发送创建订单请求
+                fetch('/api/orders/create/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify(orderData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // 如果创建成功，跳转到订单确认页面
+                        window.location.href = data.redirect_url;
+                    } else {
+                        // 显示错误信息
+                        alert(data.error || 'Failed to create order');
+                        // 恢复按钮状态
+                        placeOrderButton.disabled = false;
+                        placeOrderButton.textContent = originalText;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Failed to create order');
+                    // 恢复按钮状态
+                    placeOrderButton.disabled = false;
+                    placeOrderButton.textContent = originalText;
+                });
+            },
+            true // 启用HTML格式
+        );
+    }
+
+    // 获取CSRF Token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+</script>
+{% endblock %} 

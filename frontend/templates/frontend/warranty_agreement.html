@@ -1,0 +1,86 @@
+{% extends 'frontend/base_frontend.html' %}
+{% load static %}
+
+{% block title %}Agree to Warranty Policy - {{ location.name }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-4xl mx-auto">
+        <!-- 面包屑导航 -->
+        <nav class="mb-6">
+            <ol class="flex items-center space-x-2 text-sm text-gray-500">
+                <li><a href="{% url 'frontend:home' %}" class="hover:text-gray-700">Home</a></li>
+                <li>/</li>
+                <li><a href="{% url 'frontend:store' location.slug %}" class="hover:text-gray-700">{{ location.name }}</a></li>
+                <li>/</li>
+                <li><a href="{% url 'frontend:warranty_policy' location.slug %}" class="hover:text-gray-700">Warranty Policy</a></li>
+                <li>/</li>
+                <li class="text-gray-900">Agreement</li>
+            </ol>
+        </nav>
+        
+        <!-- 页面标题 -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Warranty Policy Agreement</h1>
+            <p class="text-gray-600">{{ location.name }}</p>
+        </div>
+        
+        <!-- 政策内容 -->
+        <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+            {% if warranty_policy and policy_content %}
+                <div class="prose max-w-none">
+                    {{ policy_content|safe }}
+                </div>
+            {% elif warranty_policy %}
+                <p class="text-gray-500">Warranty policy file not found or cannot be read.</p>
+            {% else %}
+                <p class="text-gray-500">No warranty policy available for this location.</p>
+            {% endif %}
+        </div>
+        
+        <!-- 同意表单 -->
+        {% if not has_agreed %}
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
+            <h3 class="text-lg font-semibold text-blue-900 mb-4">Agreement Required</h3>
+            <p class="text-blue-800 mb-4">Please read the warranty policy above and agree to proceed with your order.</p>
+            <button id="agreeBtn" class="btn btn-primary">I Agree to the Warranty Policy</button>
+        </div>
+        {% else %}
+        <div class="bg-green-50 border border-green-200 rounded-lg p-6">
+            <h3 class="text-lg font-semibold text-green-900 mb-2">Already Agreed</h3>
+            <p class="text-green-800">You have already agreed to this warranty policy.</p>
+        </div>
+        {% endif %}
+        
+        <!-- 返回按钮 -->
+        <div class="mt-6">
+            {% if source == 'order_confirm' and order_number %}
+                <a href="{% url 'frontend:customer_order_detail' order_number %}#order-confirmation" class="btn btn-outline">Back to Order Confirm</a>
+            {% else %}
+                <a href="{% url 'frontend:store' location.slug %}" class="btn btn-outline">Back to Store</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('agreeBtn').addEventListener('click', function() {
+    // AJAX提交同意
+    fetch('{% url "frontend:agree_warranty_policy" location.slug %}', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Error: ' + data.error);
+        }
+    });
+});
+</script>
+{% endblock %}

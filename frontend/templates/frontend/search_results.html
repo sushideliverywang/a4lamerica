@@ -1,0 +1,158 @@
+{% extends 'frontend/base_frontend.html' %}
+{% load static %}
+{% load frontend_filters %}
+
+{% block title %}Search Results - NASMAHA{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-2 sm:px-4 py-8">
+    <!-- 搜索结果标题 -->
+    <div class="mb-8">
+        <h1 class="text-2xl md:text-3xl font-bold text-text-primary mb-2">
+            Search Results
+        </h1>
+        {% if query %}
+            <p class="text-lg text-text-secondary mb-6">
+                {% if total_count == 0 %}
+                    No results found for "<span class="font-semibold">{{ query }}</span>"
+                {% elif total_count == 1 %}
+                    1 result found for "<span class="font-semibold">{{ query }}</span>"
+                {% else %}
+                    {{ total_count }} results found for "<span class="font-semibold">{{ query }}</span>"
+                {% endif %}
+            </p>
+        {% endif %}
+    </div>
+
+    <!-- 搜索结果 -->
+    {% if query %}
+        {% if total_count == 0 %}
+            <!-- 无搜索结果 -->
+            <div class="text-center py-12">
+                <div class="mb-4">
+                    <svg class="w-16 h-16 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-semibold text-text-primary mb-2">No products found</h3>
+                <p class="text-text-secondary mb-6">
+                    Try adjusting your search terms or browse our categories
+                </p>
+                <a href="{% url 'frontend:home' %}" 
+                   class="inline-flex items-center px-4 py-2 bg-secondary text-white rounded-lg hover:bg-orange-600 transition-colors">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                    </svg>
+                    Back to Home
+                </a>
+            </div>
+        {% else %}
+            <!-- 搜索结果网格 - 使用与category.html相同的布局 -->
+            <div class="grid grid-cols-2 md:flex md:flex-wrap gap-3 md:gap-6 pr-2 md:pr-0">
+                {% for item in items %}
+                <a href="{% url 'frontend:item_detail' item.item_hash %}" class="block">
+                    <div class="product-card">
+                        {% if item.images.exists %}
+                            <img src="{{ item.images.first.image.url }}" alt="{{ item.model_number.model_number }}">
+                        {% elif item.model_number.images.exists %}
+                            <img src="{{ item.model_number.images.first.image.url }}" alt="{{ item.model_number.model_number }}">
+                        {% else %}
+                            <img src="{% static 'frontend/images/product-default.png' %}" alt="{{ item.model_number.model_number }}">
+                        {% endif %}
+                        <div class="product-info">
+                            <div class="brand-model">
+                                <div class="brand">{{ item.model_number.brand.name }}</div>
+                                <div class="model">{{ item.model_number.model_number }}</div>
+                            </div>
+                            <div class="price-info">
+                                <div class="flex justify-between items-center">
+                                    <div class="text-lg font-bold text-text-primary">${{ item.retail_price }}</div>
+                                    {% if item.model_number.msrp %}
+                                    <div class="text-xs text-text-secondary line-through">MSRP: ${{ item.model_number.msrp }}</div>
+                                    {% endif %}
+                                </div>
+                                {% if item.model_number.msrp %}
+                                <div class="text-xs text-success">Save ${{ item.savings|floatformat:2 }} ({{ item.savings_percentage|floatformat:0 }}%)</div>
+                                {% endif %}
+                            </div>
+                            <div class="store-info">
+                                <div class="store-name-container">
+                                    {% if item.location and item.location.image %}
+                                        <img src="{{ item.location.image.url }}" alt="{{ item.location.name }}">
+                                    {% else %}
+                                        <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                                        </svg>
+                                    {% endif %}
+                                    <span>{% if item.location %}{{ item.location.name }}{% else %}Store{% endif %}</span>
+                                </div>
+                                <div class="likes">
+                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"/>
+                                    </svg>
+                                    <span>{{ item.favorite_count|default:0 }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endif %}
+</div>
+
+<script>
+// 添加到购物车功能
+function addToCart(itemHash) {
+    if (!window.isAuthenticated) {
+        showLoginModal('Please login to add items to your cart.', window.location.href);
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+    
+    fetch(`/cart/add/${itemHash}/`, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            // 更新购物车数量
+            const cartCounts = document.querySelectorAll('.cart-count');
+            cartCounts.forEach(count => {
+                count.textContent = data.cart_count;
+                count.classList.remove('hidden');
+            });
+            
+            // 显示成功消息
+            showMessage('cartMessage', 'Item added to cart successfully!', false);
+        } else {
+            showMessage('cartMessage', data.message || 'Failed to add item to cart.', true);
+        }
+    })
+    .catch(error => {
+        showMessage('cartMessage', 'Failed to add item to cart. Please try again.', true);
+    });
+}
+
+// 显示消息函数
+function showMessage(elementId, message, isError = false) {
+    // 创建临时消息元素
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `fixed top-4 right-4 z-50 px-4 py-2 rounded-lg text-white text-sm ${isError ? 'bg-red-500' : 'bg-green-500'}`;
+    messageDiv.textContent = message;
+    
+    document.body.appendChild(messageDiv);
+    
+    setTimeout(() => {
+        messageDiv.remove();
+    }, 3000);
+}
+</script>
+{% endblock %} 

@@ -1,0 +1,1272 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>{% block title %}NASMAHA{% endblock %}</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="{% block meta_description %}Appliances 4 Less Doraville - Your trusted appliances store offering quality products with competitive prices and excellent customer service. Shop for the latest refrigerators, washers, dryers, stoves, dishwashers, and more.{% endblock %}">
+    <meta name="keywords" content="{% block meta_keywords %}refrigerators, washers, dryers, stoves, dishwashers, NASMAHA, online store, quality products{% endblock %}">
+    <meta name="robots" content="{% block meta_robots %}index, follow{% endblock %}">
+    <meta name="author" content="Appliances 4 Less Doraville">
+    
+    <!-- Open Graph Meta Tags for Social Media -->
+    <meta property="og:title" content="{% block og_title %}Appliances 4 Less Doraville{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}Appliances 4 Less Doraville - Your trusted appliances store offering quality products with competitive prices and excellent customer service.{% endblock %}">
+    <meta property="og:type" content="{% block og_type %}website{% endblock %}">
+    <meta property="og:url" content="{{ request.build_absolute_uri }}">
+    <meta property="og:site_name" content="Appliances 4 Less Doraville">
+    {% block og_image %}{% endblock %}
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="{% block twitter_card %}summary_large_image{% endblock %}">
+    <meta name="twitter:title" content="{% block twitter_title %}Appliances 4 Less Doraville{% endblock %}">
+    <meta name="twitter:description" content="{% block twitter_description %}Appliances 4 Less Doraville - Your trusted appliances store offering quality products with competitive prices and excellent customer service.{% endblock %}">
+    {% block twitter_image %}{% endblock %}
+    
+    <!-- Favicon配置 -->
+    {% load static %}
+    <link rel="icon" type="image/x-icon" href="{% static 'frontend/images/favicon.ico' %}">
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'frontend/images/favicon.ico' %}">
+    <link rel="apple-touch-icon" href="{% static 'frontend/images/favicon.ico' %}">
+
+    <!-- 添加移动端滚动优化 -->
+    <style>
+        html {
+            height: 100%;
+        }
+        body {
+            min-height: 100%;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+        }
+        main {
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+        }
+    </style>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#110f1a',
+                        secondary: '#b32712',
+                        background: {
+                            light: '#FDF8F4',
+                            dark: '#133C38'
+                        },
+                        text: {
+                            primary: '#2C3E50',
+                            secondary: '#6B7A90'
+                        },
+                        border: '#D9D9D9',
+                        success: '#28A745',
+                        warning: '#FFC107',
+                        error: '#DC3545'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- 基础样式 -->
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'frontend/css/base_frontend.css' %}">
+    <link href="{% static 'css/tailwind.css' %}" rel="stylesheet">
+    <script async src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_CLIENT_API_KEY }}&libraries=places,marker"></script>
+    {% block extra_css %}{% endblock %}
+    <meta name="google-site-verification" content="JWRnPllHFZE1RLIgIzO8yY63pUDYoU-eGZRCaGbCFOQ" />
+</head>
+
+<body class="bg-background-light min-h-screen flex flex-col {% block body_class %}{% endblock %}">
+    <!-- 顶部通知栏 -->
+    <div class="notification-bar">
+        <p class="text-sm">OUR 6 YEARS ANNIVERSARY EVENT Up to 60% Off Select Online Items - <a href="{% url 'frontend:store' location_slug='doraville-store' %}" class="underline hover:no-underline">Shop Now</a></p>
+    </div>
+
+    <!-- 主标题区域 - 仅在相关页面显示 -->
+    {% block hero_section %}{% endblock %}
+
+    <!-- 桌面端导航 -->
+    <div class="hidden md:block">
+        <nav class="navbar">
+            <div class="container mx-auto px-4">
+                <div class="flex items-center justify-between h-16">
+                    <!-- Shop All 按钮 -->
+                    <div class="relative group">
+                        <button class="flex items-center text-text-primary hover:text-secondary px-4 py-2 rounded-lg hover:bg-gray-100">
+                            <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                            </svg>
+                        </button>
+                        <!-- 分类弹出菜单 -->
+                        <div class="hidden absolute left-0 top-full mt-2 w-64 bg-white rounded-lg shadow-lg py-2 z-50 max-h-[80vh] overflow-y-auto">
+                            {% for category in categories %}
+                                {% if not category.parent_category %}
+                                    <div class="category-group">
+                                        <a href="{% url 'frontend:category' category.slug %}" 
+                                           class="block px-4 py-2 text-sm text-text-primary hover:bg-background-light hover:text-secondary">
+                                            {{ category.name }}
+                                        </a>
+                                        {% for subcategory in category.subcategories.all %}
+                                            <a href="{% url 'frontend:category' subcategory.slug %}" 
+                                               class="block px-8 py-2 text-sm text-text-primary hover:bg-background-light hover:text-secondary relative">
+                                                <span class="absolute left-4 top-1/2 transform -translate-y-1/2 w-2 h-px bg-gray-300"></span>
+                                                {{ subcategory.name }}
+                                            </a>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Logo -->
+                    <div class="flex-shrink-0">
+                        <a href="{% url 'frontend:home' %}" class="flex items-center">
+                            <img src="{% static 'frontend/images/logo.png' %}" alt="Logo" class="h-12 w-36">
+                        </a>
+                    </div>
+
+                    <!-- 搜索栏 -->
+                    <div id="desktop-search-container" class="flex-1 max-w-3xl mx-8">
+                        <div class="relative">
+                            <input type="text" 
+                                id="desktop-search-input"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-secondary"
+                                placeholder="Search">
+                            <button id="desktop-search-button" onclick="testSearch('desktop')" class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-secondary text-white p-2 rounded-lg">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                </svg>
+                            </button>
+                            <!-- 搜索建议容器 -->
+                            <div id="desktop-search-suggestions" class="hidden absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 右侧功能区 -->
+                    <div class="flex items-center space-x-6">
+                        {% if user.is_authenticated %}
+                            <div class="relative">
+                                <button id="userMenuButton" class="flex items-center text-text-primary hover:text-secondary">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                    </svg>
+                                    <span class="ml-2">{{ user.first_name }} {{ user.last_name }}</span>
+                                </button>
+                                <!-- 桌面端下拉菜单 -->
+                                <div id="userMenu" class="hidden absolute top-full left-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-50">
+                                    {% if user.is_superuser %}
+                                        <p class="text-sm text-text-secondary mt-1 px-4 py-2">Superuser</p>
+                                        <div class="border-t border-gray-200 my-1"></div>
+                                        <a href="{% url 'dashboard:staff_dashboard' %}" class="block px-4 py-2 text-sm text-text-primary hover:bg-background-light hover:text-secondary">
+                                            Dashboard
+                                        </a>
+                                        <div class="border-t border-gray-200 my-1"></div>
+                                        <button onclick="showLogoutModal()" class="w-full text-left px-4 py-2 text-sm text-error hover:bg-background-light">
+                                            Logout
+                                        </button>
+                                    {% elif user.is_staff %}
+                                            <p class="text-sm text-text-secondary mt-1 px-4 py-2">Staff Member</p>
+                                            <div class="border-t border-gray-200 my-1"></div>
+                                            <a href="{% url 'dashboard:employee_dashboard' %}" class="block px-4 py-2 text-sm text-text-primary hover:bg-background-light hover:text-secondary">
+                                                Dashboard
+                                            </a>
+                                            <div class="border-t border-gray-200 my-1"></div>
+                                            <button onclick="showLogoutModal()" class="w-full text-left px-4 py-2 text-sm text-error hover:bg-background-light">
+                                                Logout
+                                            </button>
+                                    {% else %}
+                                        <p class="text-sm text-text-secondary mt-1 px-4 py-2">Member since {{ user.customer.created_at|date:"M Y" }}</p>
+                                        <div class="border-t border-gray-200 my-1"></div>
+                                        <a href="{% url 'frontend:customer_profile' %}" class="block px-4 py-2 text-sm text-text-primary hover:bg-background-light hover:text-secondary">
+                                            Profile
+                                        </a>
+                                        <a href="{% url 'frontend:customer_favorites' %}" class="block px-4 py-2 text-sm text-text-primary hover:bg-background-light hover:text-secondary">
+                                            Favorites
+                                        </a>
+                                        <a href="{% url 'frontend:customer_dashboard' %}" class="block px-4 py-2 text-sm text-text-primary hover:bg-background-light hover:text-secondary">
+                                            Orders
+                                        </a>
+                                        <a href="{% url 'accounts:change_password' %}" class="block px-4 py-2 text-sm text-text-primary hover:bg-background-light hover:text-secondary">
+                                            Change Password
+                                        </a>
+                                        <div class="border-t border-gray-200 my-1"></div>
+                                        <button onclick="showLogoutModal()" class="w-full text-left px-4 py-2 text-sm text-error hover:bg-background-light">
+                                            Logout
+                                        </button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% else %}
+                            <a href="{% url 'accounts:login' %}?next={{ request.path }}" class="flex items-center text-text-primary hover:text-secondary">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
+                                </svg>
+                                <span class="ml-2">Log In</span>
+                            </a>
+                        {% endif %}
+                        <!-- 桌面端购物车图标 -->
+                        <a href="{% if user.is_authenticated %}{% url 'frontend:shopping_cart' %}{% else %}javascript:void(0){% endif %}" 
+                           {% if not user.is_authenticated %}onclick="showLoginModal('Please login to access your shopping cart.', '{% url 'frontend:shopping_cart' %}')"{% endif %} 
+                           class="flex items-center text-text-primary hover:text-secondary">
+                            <div class="relative">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+                                </svg>
+                                <span class="absolute -top-1 -right-1 bg-secondary text-white text-xs rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 !w-[18px] !h-[18px] cart-count {% if not user.is_authenticated or user.customer.cart_items.count == 0 %}hidden{% endif %}">
+                                    {{ user.customer.cart_items.count }}
+                                </span>
+                            </div>
+                            <span class="ml-2">Cart</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </div>
+
+    <!-- 移动端导航 -->
+    <div class="md:hidden">
+        <nav class="navbar">
+            <div class="px-4 py-2">
+                <div class="flex items-center justify-between">
+                    <!-- Logo -->
+                    <a href="{% url 'frontend:home' %}" class="flex items-center">
+                        <img src="{% static 'frontend/images/logo.png' %}" alt="Logo" class="h-12 w-36">
+                    </a>
+                    <!-- 搜索栏 -->
+                    <div id="mobile-search-container" class="flex-1 ml-4">
+                        <div class="relative">
+                            <input type="text" 
+                                id="mobile-search-input"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-primary text-sm"
+                                placeholder="Search">
+                            <button id="mobile-search-button" onclick="testSearch('mobile')" class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-secondary text-white p-1.5 rounded-lg">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                </svg>
+                            </button>
+                            <!-- 搜索建议容器 -->
+                            <div id="mobile-search-suggestions" class="hidden absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- 移动端分类菜单 -->
+        <div id="mobileCategoryMenu" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 z-50">
+            <div class="bg-white h-full w-64 overflow-y-auto">
+                <div class="p-4 border-b border-gray-200">
+                    <h2 class="text-lg font-semibold">Categories</h2>
+                </div>
+                <div class="py-2">
+                    {% for category in categories %}
+                        {% if not category.parent_category %}
+                            <div class="category-group">
+                                <a href="{% url 'frontend:category' category.slug %}" 
+                                   class="block px-4 py-3 text-text-primary hover:bg-background-light hover:text-secondary">
+                                    {{ category.name }}
+                                </a>
+                                {% for subcategory in category.subcategories.all %}
+                                    <a href="{% url 'frontend:category' subcategory.slug %}" 
+                                       class="block px-8 py-3 text-text-primary hover:bg-background-light hover:text-secondary relative">
+                                        <span class="absolute left-4 top-1/2 transform -translate-y-1/2 w-2 h-px bg-gray-300"></span>
+                                        {{ subcategory.name }}
+                                    </a>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            <!-- 添加遮罩层 -->
+            <div class="absolute inset-0 -z-10"></div>
+        </div>
+    </div>
+
+    <!-- 主要内容区域 -->
+    <main class="flex-grow">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container text-center">
+            <p class="mb-0">&copy; {% now "Y" %} A4L America LLC All rights reserved.</p>
+            <div class="text-gray-400 text-sm mt-2 overflow-x-auto whitespace-nowrap">
+                <a href="{% url 'frontend:privacy_policy' %}" class="underline text-xs md:text-sm">Privacy Policy</a>
+                <span class="mx-2">|</span>
+                <a href="{% url 'frontend:terms_of_service' %}" class="underline text-xs md:text-sm">Terms of Service</a>
+                <span class="mx-2">|</span>
+                <a href="{% url 'frontend:cookie_policy' %}" class="underline text-xs md:text-sm">Cookie Policy</a>
+            </div>
+        </div>
+        <!-- 移动端底部间距 -->
+        <div class="md:hidden h-16"></div>
+    </footer>
+
+    <!-- 移动端底部导航栏 -->
+    <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 md:hidden">
+        <div class="grid grid-cols-4 gap-0 py-2">
+            <a href="{% url 'frontend:home' %}" class="flex flex-col items-center justify-center text-text-primary hover:text-secondary">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                </svg>
+                <span class="text-xs mt-1">Home</span>
+            </a>
+            <button id="mobileShopAllButton" class="flex flex-col items-center justify-center text-text-primary hover:text-secondary">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
+                <span class="text-xs mt-1">Shop All</span>
+            </button>
+            {% if user.is_authenticated %}
+                <button id="mobileUserMenuButton" class="flex flex-col items-center justify-center text-text-primary hover:text-secondary">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                    </svg>
+                    <span class="text-xs mt-1">Account</span>
+                </button>
+            {% else %}
+                <a href="{% url 'accounts:login' %}?next={{ request.path }}" class="flex flex-col items-center justify-center text-text-primary hover:text-secondary">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
+                    </svg>
+                    <span class="text-xs mt-1">Log In</span>
+                </a>
+            {% endif %}
+            <!-- 移动端购物车图标 -->
+            <a href="{% if user.is_authenticated %}{% url 'frontend:shopping_cart' %}{% else %}javascript:void(0){% endif %}" 
+               {% if not user.is_authenticated %}onclick="showLoginModal('Please login to access your shopping cart.', '{% url 'frontend:shopping_cart' %}')"{% endif %} 
+               class="flex flex-col items-center justify-center text-text-primary hover:text-secondary">
+                <div class="relative">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+                    </svg>
+                    <span class="absolute -top-1 -right-1 bg-secondary text-white text-xs rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 !w-[18px] !h-[18px] cart-count {% if not user.is_authenticated or user.customer.cart_items.count == 0 %}hidden{% endif %}">
+                        {{ user.customer.cart_items.count }}
+                    </span>
+                </div>
+                <span class="text-xs mt-1">Cart</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Logout Modal -->
+    <div id="logoutModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 z-50">
+        <!-- 移动端样式 -->
+        <div class="md:hidden bg-white w-full absolute left-0 bottom-0 rounded-t-2xl">
+            <div class="p-4 border-b border-gray-200">
+                <h2 class="text-lg font-semibold">Confirm Logout</h2>
+            </div>
+            <div class="py-2">
+                <div class="px-4 py-3">
+                    <p class="text-sm text-text-secondary">
+                        Are you sure you want to logout?
+                    </p>
+                </div>
+                <div class="px-4 py-3 flex gap-2">
+                    <form action="{% url 'accounts:logout' %}" method="post" class="flex-1">
+                        {% csrf_token %}
+                        <button type="submit" class="w-full px-4 py-3 bg-secondary text-white rounded-lg hover:bg-orange-600 transition-colors">
+                            Logout
+                        </button>
+                    </form>
+                </div>
+                <div class="border-t border-gray-200 my-1"></div>
+                <button onclick="hideLogoutModal()" class="w-full text-center px-4 py-3 text-text-primary hover:text-secondary">
+                    Cancel
+                </button>
+            </div>
+        </div>
+
+        <!-- 桌面端样式 -->
+        <div class="hidden md:flex items-center justify-center min-h-screen">
+            <div class="bg-white w-full max-w-lg mx-4 rounded-lg shadow-lg">
+                <div class="p-6">
+                    <h3 class="text-lg font-semibold mb-4">Confirm Logout</h3>
+                    <p class="text-gray-600 mb-6">
+                        Are you sure you want to logout?
+                    </p>
+                    <div class="flex justify-end space-x-4">
+                        <button onclick="hideLogoutModal()" class="px-4 py-2 text-text-primary hover:text-secondary">
+                            Cancel
+                        </button>
+                        <form action="{% url 'accounts:logout' %}" method="post" class="inline">
+                            {% csrf_token %}
+                            <button type="submit" class="px-4 py-2 bg-secondary text-white rounded-lg hover:bg-orange-600 transition-colors">
+                                Logout
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 移动端用户菜单 -->
+    <div id="mobileUserMenu" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 z-50">
+        <div class="bg-white w-full absolute bottom-0 left-0 rounded-t-2xl">
+            <div class="p-4 border-b border-gray-200">
+                {% if user.is_superuser %}
+                    <p class="text-sm text-text-secondary mt-1">Superuser</p>
+                {% elif user.is_staff %}
+                    <p class="text-sm text-text-secondary mt-1">Staff Member</p>
+                {% else %}
+                    <p class="text-sm text-text-secondary mt-1">{{ user.first_name }} {{ user.last_name }}</p>
+                    <p class="text-sm text-text-secondary mt-1">Member since {{ user.customer.created_at|date:"M Y" }}</p>
+                {% endif %}
+            </div>
+            <div class="py-2">
+                {% if user.is_superuser %}
+                    <a href="{% url 'dashboard:staff_dashboard' %}" class="block px-4 py-3 text-text-primary hover:bg-background-light hover:text-secondary">
+                        Dashboard
+                    </a>
+                {% elif user.is_staff %}
+                    <a href="{% url 'dashboard:employee_dashboard' %}" class="block px-4 py-3 text-text-primary hover:bg-background-light hover:text-secondary">
+                        Dashboard
+                    </a>
+                {% else %}
+                    <a href="{% url 'frontend:customer_profile' %}" class="block px-4 py-3 text-text-primary hover:bg-background-light hover:text-secondary">
+                        Profile
+                    </a>
+                    <a href="{% url 'frontend:customer_favorites' %}" class="block px-4 py-3 text-text-primary hover:bg-background-light hover:text-secondary">
+                        Favorites
+                    </a>
+                    <a href="{% url 'frontend:customer_dashboard' %}" class="block px-4 py-3 text-text-primary hover:bg-background-light hover:text-secondary">
+                        Orders
+                    </a>
+                    <a href="{% url 'accounts:change_password' %}" class="block px-4 py-3 text-text-primary hover:bg-background-light hover:text-secondary">
+                        Change Password
+                    </a>
+                {% endif %}
+                <div class="border-t border-gray-200 my-1"></div>
+                <button onclick="showLogoutModal()" class="w-full text-left px-4 py-3 text-sm text-error hover:bg-background-light">
+                    Logout
+                </button>
+            </div>
+            <!-- 添加一个关闭按钮 -->
+            <div class="p-4 border-t border-gray-200">
+                <button class="w-full text-center text-text-primary hover:text-secondary" onclick="document.getElementById('mobileUserMenu').classList.add('hidden')">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 登录提示模态框 -->
+    <div id="loginModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 z-50">
+        <!-- 移动端样式 -->
+        <div class="md:hidden bg-white w-full absolute left-0 bottom-0 rounded-t-2xl">
+            <div class="p-4 border-b border-gray-200">
+                <h2 class="text-lg font-semibold">Login Required</h2>
+            </div>
+            <div class="py-2">
+                <div class="px-4 py-3">
+                    <p class="text-sm text-text-secondary" id="loginModalMessage">
+                        Please login to continue.
+                    </p>
+                </div>
+                <div class="px-4 py-3">
+                    <a id="mobileLoginButton" href="{% url 'accounts:login' %}?next={{ request.path }}" class="block w-full text-center px-4 py-3 bg-secondary text-white rounded-lg hover:bg-secondary transition-colors">
+                        Login
+                    </a>
+                </div>
+                <div class="border-t border-gray-200 my-1"></div>
+                <button id="cancelLoginModal" class="w-full text-center px-4 py-3 text-text-primary hover:text-secondary">
+                    Cancel
+                </button>
+            </div>
+        </div>
+
+        <!-- 桌面端样式 -->
+        <div class="hidden md:flex items-center justify-center min-h-screen">
+            <div class="bg-white w-full max-w-md mx-4 rounded-lg shadow-lg">
+                <div class="p-6">
+                    <h3 class="text-lg font-semibold mb-4">Login Required</h3>
+                    <p class="text-gray-600 mb-6" id="loginModalMessageDesktop">
+                        Please login to continue.
+                    </p>
+                    <div class="flex justify-end space-x-4">
+                        <button id="cancelLoginModalDesktop" class="px-4 py-2 text-text-primary hover:text-secondary">
+                            Cancel
+                        </button>
+                        <a id="desktopLoginButton" href="{% url 'accounts:login' %}?next={{ request.path }}" class="px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondary transition-colors">
+                            Login
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 确认对话框 -->
+    <div id="confirmModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 z-50">
+        <!-- 移动端样式 -->
+        <div class="md:hidden bg-white w-full absolute left-0 bottom-0 rounded-t-2xl">
+            <div class="p-4 border-b border-gray-200">
+                <h2 class="text-lg font-semibold" id="confirmModalTitle">Confirm</h2>
+            </div>
+            <div class="py-2">
+                <div class="px-4 py-3">
+                    <div class="text-sm text-text-secondary whitespace-pre-line" id="confirmModalMessage">
+                        Are you sure you want to proceed?
+                    </div>
+                </div>
+                <div class="px-4 py-3 flex gap-2">
+                    <button id="confirmModalConfirm" class="flex-1 px-4 py-3 bg-secondary text-white rounded-lg hover:bg-orange-600 transition-colors">
+                        Confirm
+                    </button>
+                </div>
+                <div class="border-t border-gray-200 my-1"></div>
+                <button id="confirmModalCancel" class="w-full text-center px-4 py-3 text-text-primary hover:text-secondary">
+                    Cancel
+                </button>
+            </div>
+        </div>
+
+        <!-- 桌面端样式 -->
+        <div class="hidden md:flex items-center justify-center min-h-screen">
+            <div class="bg-white w-full max-w-lg mx-4 rounded-lg shadow-lg">
+                <div class="p-6">
+                    <h3 class="text-lg font-semibold mb-4" id="confirmModalTitleDesktop">Confirm</h3>
+                    <div class="text-gray-600 mb-6 whitespace-pre-line" id="confirmModalMessageDesktop">
+                        Are you sure you want to proceed?
+                    </div>
+                    <div class="flex justify-end space-x-4">
+                        <button id="confirmModalCancelDesktop" class="px-4 py-2 text-text-primary hover:text-secondary">
+                            Cancel
+                        </button>
+                        <button id="confirmModalConfirmDesktop" class="px-4 py-2 bg-secondary text-white rounded-lg hover:bg-orange-600 transition-colors">
+                            Confirm
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 地址模态框 -->
+    <div id="addressModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 z-[60]">
+        <!-- 移动端样式 -->
+        <div class="md:hidden bg-white w-full absolute left-0 bottom-0 rounded-t-2xl">
+            <div class="p-4 border-b border-gray-200">
+                <h3 class="text-lg font-semibold" id="addressModalTitle">Add New Address</h3>
+            </div>
+            <div class="py-2">
+                <form id="addressForm" method="post" action="{% url 'frontend:customer_profile' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="add_address">
+                    <input type="hidden" name="address_id" id="address_id">
+                    <div class="px-4 py-3 space-y-4">
+                        <div>
+                            <label class="block text-base font-medium text-gray-700 mb-2">Street Address</label>
+                            <input type="text" name="street_address" id="street_address" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-base" autocomplete="off">
+                            <div id="address-suggestions" class="hidden absolute z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg mt-1"></div>
+                        </div>
+                        <div>
+                            <label class="block text-base font-medium text-gray-700 mb-2">Apartment, suite, etc. (optional)</label>
+                            <input type="text" name="apartment_suite" id="apartment_suite" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-base">
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-base font-medium text-gray-700 mb-2">City</label>
+                                <input type="text" name="city" id="city" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-base">
+                            </div>
+                            <div>
+                                <label class="block text-base font-medium text-gray-700 mb-2">State</label>
+                                <input type="text" name="state" id="state" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-base">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-base font-medium text-gray-700 mb-2">ZIP Code</label>
+                                <input type="text" name="zip_code" id="zip_code" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-base">
+                            </div>
+                            <div>
+                                <label class="block text-base font-medium text-gray-700 mb-2">Country</label>
+                                <input type="text" name="country" id="country" value="US" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-base">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="flex items-center">
+                                <input type="checkbox" name="is_default" id="is_default" class="rounded border-gray-300 text-secondary focus:ring-secondary">
+                                <span class="ml-2 text-base text-gray-700">Set as default address</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="px-4 py-3 flex gap-2">
+                        <button type="submit" class="flex-1 bg-secondary text-white py-3 px-4 rounded-lg hover:bg-orange-600 transition-colors text-base">
+                            Save
+                        </button>
+                    </div>
+                </form>
+                <div class="border-t border-gray-200 my-1"></div>
+                <button onclick="hideAddressModal()" class="w-full text-center px-4 py-3 text-text-primary hover:text-secondary text-base">
+                    Cancel
+                </button>
+            </div>
+        </div>
+
+        <!-- 桌面端样式 -->
+        <div class="hidden md:flex items-center justify-center min-h-screen">
+            <div class="bg-white w-full max-w-2xl mx-4 rounded-lg shadow-lg">
+                <div class="p-6">
+                    <h3 class="text-lg font-semibold mb-4" id="addressModalTitleDesktop">Add New Address</h3>
+                    <form id="addressFormDesktop" method="post" action="{% url 'frontend:customer_profile' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="add_address">
+                        <input type="hidden" name="address_id" id="address_id_desktop">
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-base font-medium text-gray-700 mb-2">Street Address</label>
+                                <input type="text" name="street_address" id="street_address_desktop" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-base" autocomplete="off">
+                                <div id="address-suggestions-desktop" class="hidden absolute z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg mt-1"></div>
+                            </div>
+                            <div>
+                                <label class="block text-base font-medium text-gray-700 mb-2">Apartment, suite, etc. (optional)</label>
+                                <input type="text" name="apartment_suite" id="apartment_suite_desktop" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-base">
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-base font-medium text-gray-700 mb-2">City</label>
+                                    <input type="text" name="city" id="city_desktop" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-base">
+                                </div>
+                                <div>
+                                    <label class="block text-base font-medium text-gray-700 mb-2">State</label>
+                                    <input type="text" name="state" id="state_desktop" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-base">
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-base font-medium text-gray-700 mb-2">ZIP Code</label>
+                                    <input type="text" name="zip_code" id="zip_code_desktop" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-base">
+                                </div>
+                                <div>
+                                    <label class="block text-base font-medium text-gray-700 mb-2">Country</label>
+                                    <input type="text" name="country" id="country_desktop" value="US" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-base">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="is_default" id="is_default_desktop" class="rounded border-gray-300 text-secondary focus:ring-secondary">
+                                    <span class="ml-2 text-base text-gray-700">Set as default address</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="flex justify-end space-x-4 mt-6">
+                            <button type="button" onclick="hideAddressModal()" class="px-4 py-2 text-text-primary hover:text-secondary">
+                                Cancel
+                            </button>
+                            <button type="submit" class="px-4 py-2 bg-secondary text-white rounded-lg hover:bg-orange-600 transition-colors">
+                                Save
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 基础脚本 -->
+    <script src="{% static 'frontend/js/base_frontend.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+
+    <script>
+    function showLoginModal(message, returnUrl) {
+        const loginModal = document.getElementById('loginModal');
+        const loginModalMessage = document.getElementById('loginModalMessage');
+        const loginModalMessageDesktop = document.getElementById('loginModalMessageDesktop');
+        const mobileLoginButton = document.getElementById('mobileLoginButton');
+        const desktopLoginButton = document.getElementById('desktopLoginButton');
+        
+        if (message) {
+            loginModalMessage.textContent = message;
+            loginModalMessageDesktop.textContent = message;
+        }
+        
+        // 设置返回URL
+        if (returnUrl) {
+            const loginUrl = "{% url 'accounts:login' %}";
+            const loginUrlWithNext = `${loginUrl}?next=${encodeURIComponent(returnUrl)}`;
+            mobileLoginButton.href = loginUrlWithNext;
+            desktopLoginButton.href = loginUrlWithNext;
+        }
+        
+        loginModal.classList.remove('hidden');
+    }
+
+    function checkLoginAndRedirect(url, message) {
+        if (window.isAuthenticated) {
+            window.location.href = url;
+        } else {
+            showLoginModal(message || 'Please login to continue.', window.location.href);
+        }
+    }
+
+    // 关闭登录模态框
+    const loginModal = document.getElementById('loginModal');
+    const cancelLoginModal = document.getElementById('cancelLoginModal');
+    const cancelLoginModalDesktop = document.getElementById('cancelLoginModalDesktop');
+
+    if (loginModal) {
+        loginModal.addEventListener('click', function(e) {
+            if (e.target === loginModal) {
+                loginModal.classList.add('hidden');
+            }
+        });
+
+        if (cancelLoginModal) {
+            cancelLoginModal.addEventListener('click', function(e) {
+                e.preventDefault();
+                loginModal.classList.add('hidden');
+            });
+        }
+
+        if (cancelLoginModalDesktop) {
+            cancelLoginModalDesktop.addEventListener('click', function(e) {
+                e.preventDefault();
+                loginModal.classList.add('hidden');
+            });
+        }
+    }
+
+    // 确认对话框功能
+    function showConfirmModal(title, message, onConfirm, useHTML = false) {
+        const confirmModal = document.getElementById('confirmModal');
+        const confirmModalTitle = document.getElementById('confirmModalTitle');
+        const confirmModalTitleDesktop = document.getElementById('confirmModalTitleDesktop');
+        const confirmModalMessage = document.getElementById('confirmModalMessage');
+        const confirmModalMessageDesktop = document.getElementById('confirmModalMessageDesktop');
+        const confirmModalConfirm = document.getElementById('confirmModalConfirm');
+        const confirmModalConfirmDesktop = document.getElementById('confirmModalConfirmDesktop');
+        const confirmModalCancel = document.getElementById('confirmModalCancel');
+        const confirmModalCancelDesktop = document.getElementById('confirmModalCancelDesktop');
+        
+        // 设置标题和消息
+        if (title) {
+            confirmModalTitle.textContent = title;
+            confirmModalTitleDesktop.textContent = title;
+        }
+        if (message) {
+            if (useHTML) {
+                // 使用HTML内容，移除whitespace-pre-line类避免换行符间距
+                confirmModalMessage.classList.remove('whitespace-pre-line');
+                confirmModalMessageDesktop.classList.remove('whitespace-pre-line');
+                confirmModalMessage.innerHTML = message;
+                confirmModalMessageDesktop.innerHTML = message;
+            } else {
+                // 使用纯文本内容（向后兼容），保持whitespace-pre-line类
+                confirmModalMessage.classList.add('whitespace-pre-line');
+                confirmModalMessageDesktop.classList.add('whitespace-pre-line');
+                confirmModalMessage.textContent = message;
+                confirmModalMessageDesktop.textContent = message;
+            }
+        }
+        
+        // 显示对话框
+        confirmModal.classList.remove('hidden');
+        
+        // 处理确认按钮点击
+        const handleConfirm = () => {
+            confirmModal.classList.add('hidden');
+            if (onConfirm) {
+                onConfirm();
+            }
+        };
+        
+        // 处理取消按钮点击
+        const handleCancel = () => {
+            confirmModal.classList.add('hidden');
+        };
+        
+        // 添加事件监听器
+        confirmModalConfirm.onclick = handleConfirm;
+        confirmModalConfirmDesktop.onclick = handleConfirm;
+        confirmModalCancel.onclick = handleCancel;
+        confirmModalCancelDesktop.onclick = handleCancel;
+        
+        // 点击背景关闭
+        confirmModal.onclick = (e) => {
+            if (e.target === confirmModal) {
+                handleCancel();
+            }
+        };
+    }
+
+    // 地址相关全局变量
+    let addressInputTimeout;
+    
+    // 显示消息
+    function showMessage(elementId, message, isError = false) {
+        const element = document.getElementById(elementId);
+        if (!element) return;
+        element.textContent = message;
+        element.classList.remove('hidden');
+        element.classList.remove('bg-red-100', 'text-red-700', 'bg-green-100', 'text-green-700');
+        element.classList.add(isError ? 'bg-red-100' : 'bg-green-100');
+        element.classList.add(isError ? 'text-red-700' : 'text-green-700');
+        setTimeout(() => {
+            element.classList.add('hidden');
+        }, 3000);
+    }
+
+    // 显示新增地址模态框
+    function showAddAddressModal() {
+        const modal = document.getElementById('addressModal');
+        const form = document.getElementById('addressForm');
+        const formDesktop = document.getElementById('addressFormDesktop');
+        const title = document.getElementById('addressModalTitle');
+        const titleDesktop = document.getElementById('addressModalTitleDesktop');
+        if (!modal || !form || !formDesktop || !title || !titleDesktop) return;
+        
+        // 重置表单
+        form.reset();
+        formDesktop.reset();
+        form.action.value = 'add_address';
+        formDesktop.action.value = 'add_address';
+        document.getElementById('address_id').value = '';
+        document.getElementById('address_id_desktop').value = '';
+        
+        // 设置标题
+        title.textContent = 'Add New Address';
+        titleDesktop.textContent = 'Add New Address';
+        
+        modal.classList.remove('hidden');
+    }
+
+    // 显示编辑地址模态框
+    function showEditAddressModal(addressId) {
+        const address = document.getElementById(`address-${addressId}`);
+        if (!address) return;
+        
+        const modal = document.getElementById('addressModal');
+        const form = document.getElementById('addressForm');
+        const formDesktop = document.getElementById('addressFormDesktop');
+        const title = document.getElementById('addressModalTitle');
+        const titleDesktop = document.getElementById('addressModalTitleDesktop');
+        
+        if (!modal || !form || !formDesktop || !title || !titleDesktop) return;
+        
+        // 设置表单动作
+        form.action.value = 'edit_address';
+        formDesktop.action.value = 'edit_address';
+        
+        // 设置地址ID
+        document.getElementById('address_id').value = addressId;
+        document.getElementById('address_id_desktop').value = addressId;
+        
+        // 设置表单值
+        const fields = {
+            'street_address': address.dataset.streetAddress || '',
+            'apartment_suite': address.dataset.apartmentSuite || '',
+            'city': address.dataset.city || '',
+            'state': address.dataset.state || '',
+            'zip_code': address.dataset.zipCode || '',
+            'country': address.dataset.country || 'US'
+        };
+        
+        // 填充移动端表单
+        Object.entries(fields).forEach(([field, value]) => {
+            const input = document.getElementById(field);
+            if (input) input.value = value;
+        });
+        
+        // 填充桌面端表单
+        Object.entries(fields).forEach(([field, value]) => {
+            const input = document.getElementById(`${field}_desktop`);
+            if (input) input.value = value;
+        });
+        
+        // 设置默认地址复选框
+        const isDefault = address.dataset.isDefault === 'true';
+        document.getElementById('is_default').checked = isDefault;
+        document.getElementById('is_default_desktop').checked = isDefault;
+        
+        // 设置标题
+        title.textContent = 'Edit Address';
+        titleDesktop.textContent = 'Edit Address';
+        
+        modal.classList.remove('hidden');
+    }
+
+    function handleAddressSuggestion(suggestionsContainer) {
+        suggestionsContainer.addEventListener('click', async function(e) {
+            const suggestion = e.target.closest('[data-place-id]');
+            if (suggestion) {
+                const placeId = suggestion.dataset.placeId;
+                const formData = new FormData();
+                formData.append('action', 'get_address_details');
+                formData.append('place_id', placeId);
+                formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+                try {
+                    const response = await fetch('{% url "frontend:customer_profile" %}', {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+                    const data = await response.json();
+                    if (data.status === 'success') {
+                        // 获取当前激活的输入框（移动端或桌面端）
+                        const isDesktop = suggestionsContainer.id === 'address-suggestions-desktop';
+                        const suffix = isDesktop ? '_desktop' : '';
+                        
+                        // 填充表单字段
+                        const fields = {
+                            'street_address': data.address.street_address || '',
+                            'city': data.address.city || '',
+                            'state': data.address.state || '',
+                            'zip_code': data.address.zip_code || '',
+                            'country': 'US'
+                        };
+                        
+                        Object.entries(fields).forEach(([field, value]) => {
+                            const input = document.getElementById(`${field}${suffix}`);
+                            if (input) input.value = value;
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error fetching address details:', error);
+                }
+                suggestionsContainer.classList.add('hidden');
+            }
+        });
+    }
+
+    // 删除地址确认
+    function confirmDeleteAddress(addressId) {
+        showConfirmModal(
+            'Delete Address',
+            'Are you sure you want to delete this address? This action cannot be undone.',
+            async () => {
+                try {
+                    const formData = new FormData();
+                    formData.append('action', 'delete_address');
+                    formData.append('address_id', addressId);
+                    formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+                    const response = await fetch('{% url "frontend:customer_profile" %}', {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+                    const data = await response.json();
+                    if (data.status === 'success') {
+                        location.reload();
+                    } else {
+                        showMessage('addressMessage', data.message, true);
+                    }
+                } catch (error) {
+                    showMessage('addressMessage', 'Failed to delete address. Please try again later.', true);
+                }
+            }
+        );
+    }
+
+    // 全局挂载
+    window.showAddAddressModal = showAddAddressModal;
+    window.showEditAddressModal = showEditAddressModal;
+    window.hideAddressModal = hideAddressModal;
+    window.confirmDeleteAddress = confirmDeleteAddress;
+    window.showMessage = showMessage;
+
+    // 隐藏地址模态框
+    function hideAddressModal() {
+        const modal = document.getElementById('addressModal');
+        if (modal) modal.classList.add('hidden');
+    }
+
+    // 地址表单提交
+    document.addEventListener('DOMContentLoaded', function() {
+        const addressForm = document.getElementById('addressForm');
+        const addressFormDesktop = document.getElementById('addressFormDesktop');
+        
+        if (addressForm) {
+            addressForm.addEventListener('submit', handleAddressFormSubmit);
+        }
+        
+        if (addressFormDesktop) {
+            addressFormDesktop.addEventListener('submit', handleAddressFormSubmit);
+        }
+    });
+
+    // 处理地址表单提交
+    async function handleAddressFormSubmit(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        formData.set('is_default', this.querySelector('[name="is_default"]').checked);
+        
+        try {
+            const url = '{% url "frontend:customer_profile" %}';
+            const response = await fetch(url, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+            const data = await response.json();
+            if (data.status === 'success') {
+                location.reload();
+            } else {
+                showMessage('addressMessage', data.message, true);
+            }
+        } catch (error) {
+            showMessage('addressMessage', 'Failed to save address. Please try again later.', true);
+        }
+    }
+
+    // 地址自动完成功能
+    document.addEventListener('DOMContentLoaded', function() {
+        const streetAddressInput = document.getElementById('street_address');
+        const streetAddressInputDesktop = document.getElementById('street_address_desktop');
+        const suggestionsContainer = document.getElementById('address-suggestions');
+        const suggestionsContainerDesktop = document.getElementById('address-suggestions-desktop');
+        
+        if (streetAddressInput && suggestionsContainer) {
+            streetAddressInput.addEventListener('input', () => handleAddressInput(streetAddressInput, suggestionsContainer));
+            handleAddressSuggestion(suggestionsContainer);
+        }
+        
+        if (streetAddressInputDesktop && suggestionsContainerDesktop) {
+            streetAddressInputDesktop.addEventListener('input', () => handleAddressInput(streetAddressInputDesktop, suggestionsContainerDesktop));
+            handleAddressSuggestion(suggestionsContainerDesktop);
+        }
+        
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('#street_address') && !e.target.closest('#address-suggestions') &&
+                !e.target.closest('#street_address_desktop') && !e.target.closest('#address-suggestions-desktop')) {
+                suggestionsContainer?.classList.add('hidden');
+                suggestionsContainerDesktop?.classList.add('hidden');
+            }
+        });
+
+        // 简化搜索功能初始化
+        
+        // 为搜索输入框添加回车键事件和实时搜索
+        const desktopSearchInput = document.getElementById('desktop-search-input');
+        const mobileSearchInput = document.getElementById('mobile-search-input');
+        
+        if (desktopSearchInput) {
+            // 回车键搜索
+            desktopSearchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleSearch(desktopSearchInput.value);
+                }
+            });
+            
+            // 实时搜索建议
+            desktopSearchInput.addEventListener('input', function(e) {
+                const query = e.target.value.trim();
+                if (query.length >= 2) {
+                    getSearchSuggestions(query, 'desktop');
+                } else {
+                    hideSearchSuggestions('desktop');
+                }
+            });
+            
+            // 点击外部隐藏建议
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('#desktop-search-container')) {
+                    hideSearchSuggestions('desktop');
+                }
+            });
+        }
+        
+        if (mobileSearchInput) {
+            // 回车键搜索
+            mobileSearchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleSearch(mobileSearchInput.value);
+                }
+            });
+            
+            // 实时搜索建议
+            mobileSearchInput.addEventListener('input', function(e) {
+                const query = e.target.value.trim();
+                if (query.length >= 2) {
+                    getSearchSuggestions(query, 'mobile');
+                } else {
+                    hideSearchSuggestions('mobile');
+                }
+            });
+            
+            // 点击外部隐藏建议
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('#mobile-search-container')) {
+                    hideSearchSuggestions('mobile');
+                }
+            });
+        }
+    });
+
+    // 搜索功能
+    function handleSearch(query) {
+        const trimmedQuery = query.trim();
+        if (!trimmedQuery) {
+            return;
+        }
+        
+        // 构建搜索URL
+        const searchUrl = `{% url 'frontend:search_results' %}?q=${encodeURIComponent(trimmedQuery)}`;
+        
+        // 跳转到搜索结果页面
+        window.location.href = searchUrl;
+    }
+
+    // 测试搜索函数
+    function testSearch(type) {
+        let inputElement;
+        
+        if (type === 'desktop') {
+            inputElement = document.getElementById('desktop-search-input');
+        } else if (type === 'mobile') {
+            inputElement = document.getElementById('mobile-search-input');
+        }
+        
+        if (inputElement) {
+            handleSearch(inputElement.value);
+        }
+    }
+
+    // 实时搜索建议
+    let searchTimeout;
+    
+    function getSearchSuggestions(query, type) {
+        // 清除之前的超时
+        clearTimeout(searchTimeout);
+        
+        // 设置防抖延迟
+        searchTimeout = setTimeout(() => {
+            const formData = new FormData();
+            formData.append('query', query);
+            
+            fetch('{% url "frontend:search_suggestions" %}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    displaySearchSuggestions(data.suggestions, type);
+                } else {
+                    hideSearchSuggestions(type);
+                }
+            })
+            .catch(error => {
+                hideSearchSuggestions(type);
+            });
+        }, 300); // 300ms 防抖延迟
+    }
+    
+    function displaySearchSuggestions(suggestions, type) {
+        const containerId = `${type}-search-suggestions`;
+        const container = document.getElementById(containerId);
+        
+        if (!container) return;
+        
+        if (suggestions.length === 0) {
+            container.innerHTML = '<div class="p-3 text-gray-500 text-sm">No results found</div>';
+        } else {
+            const suggestionsHtml = suggestions.map(suggestion => `
+                <div class="search-suggestion-item p-3 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0" 
+                     onclick="selectSearchSuggestion('${suggestion.item_hash}', '${type}')">
+                    <div class="flex items-center space-x-3">
+                        <div class="flex-shrink-0 w-12 h-12 bg-gray-200 rounded-lg overflow-hidden">
+                            ${suggestion.image_url ? 
+                                `<img src="${suggestion.image_url}" alt="${suggestion.model_number}" class="w-full h-full object-cover">` :
+                                `<div class="w-full h-full flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                    </svg>
+                                </div>`
+                            }
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="text-sm font-medium text-gray-900 truncate">${suggestion.model_number}</div>
+                            <div class="text-xs text-gray-500">${suggestion.brand} • ${suggestion.category}</div>
+                            <div class="text-sm font-semibold text-secondary">$${suggestion.retail_price.toFixed(2)}</div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            container.innerHTML = suggestionsHtml;
+        }
+        
+        container.classList.remove('hidden');
+    }
+    
+    function hideSearchSuggestions(type) {
+        const containerId = `${type}-search-suggestions`;
+        const container = document.getElementById(containerId);
+        if (container) {
+            container.classList.add('hidden');
+        }
+    }
+    
+    function selectSearchSuggestion(itemHash, type) {
+        // 跳转到商品详情页
+        window.location.href = `{% url 'frontend:item_detail' 'PLACEHOLDER' %}`.replace('PLACEHOLDER', itemHash);
+    }
+
+    function handleAddressInput(inputElement, suggestionsContainer) {
+        clearTimeout(addressInputTimeout);
+        const value = inputElement.value.trim();
+        if (value.length < 3) {
+            suggestionsContainer.classList.add('hidden');
+            return;
+        }
+        addressInputTimeout = setTimeout(() => {
+            const formData = new FormData();
+            formData.append('action', 'get_address_suggestions');
+            formData.append('address', value);
+            formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+            fetch('{% url "frontend:customer_profile" %}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success' && data.suggestions.length > 0) {
+                    suggestionsContainer.innerHTML = data.suggestions.map(suggestion => {
+                        const address = suggestion.address;
+                        const fullAddress = `${address.street_address}, ${address.city}, ${address.state} ${address.zip_code}`;
+                        return `<div class="p-2 hover:bg-gray-100 cursor-pointer" data-place-id="${suggestion.place_id}" data-address="${fullAddress}">${fullAddress}</div>`;
+                    }).join('');
+                    suggestionsContainer.classList.remove('hidden');
+                } else {
+                    suggestionsContainer.classList.add('hidden');
+                }
+            })
+            .catch(error => {
+                suggestionsContainer.classList.add('hidden');
+            });
+        }, 300);
+    }
+    </script>
+</body>
+
+</html>

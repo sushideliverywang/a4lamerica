@@ -1,0 +1,118 @@
+{% extends "frontend/base_frontend.html" %}
+
+{% block content %}
+<div class="container mx-auto px-2 sm:px-4 py-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 pt-8">
+        <div class="bg-white shadow-md rounded-lg px-4 py-6 sm:px-8 sm:py-8">
+            <div class="flex items-center justify-between mb-8">
+                <h2 class="text-2xl font-bold">Personal Information</h2>
+            </div>
+            <div id="profileMessage" class="mb-6 hidden"></div>
+
+            <form id="profileForm" method="post" action="{% url 'frontend:customer_profile' %}">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="update_profile">
+                <div class="mb-6">
+                    <label for="first_name" class="block text-base font-medium text-gray-700 mb-2">First Name</label>
+                    <input type="text" name="first_name" id="first_name" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-base" value="{{ user.first_name }}">
+                </div>
+                <div class="mb-6">
+                    <label for="last_name" class="block text-base font-medium text-gray-700 mb-2">Last Name</label>
+                    <input type="text" name="last_name" id="last_name" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-base" value="{{ user.last_name }}">
+                </div>
+                <div class="mb-6">
+                    <label for="email" class="block text-base font-medium text-gray-700 mb-2">
+                        Email
+                        <span class="text-sm text-gray-500 ml-1">(Account username cannot be changed)</span>
+                    </label>    
+                    <input type="email" name="email" id="email" class="mt-1 block w-full rounded-md border-gray-300 bg-gray-50 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-base" value="{{ user.email }}" readonly disabled>
+                </div>
+                <div class="mb-6">
+                    <label for="phone" class="block text-base font-medium text-gray-700 mb-2">Phone</label>
+                    <input type="text" name="phone" id="phone" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-base" value="{{ user.customer.phone }}">
+                </div>
+                <button type="submit" class="w-full py-3 px-4 btn-secondary text-base">Update Profile</button>
+            </form>
+        </div>
+
+        <div class="bg-white shadow-md rounded-lg px-4 py-6 sm:px-8 sm:py-8">
+            <div class="flex items-center justify-between mb-8">
+                <h2 class="text-2xl font-bold">Address Management</h2>
+            </div>
+
+            <div id="addressMessage" class="hidden mt-4 p-4 rounded-lg"></div>
+
+            <div class="space-y-4">
+                {% for address in addresses %}
+                <div id="address-{{ address.id }}" class="bg-white p-4 rounded-lg shadow-sm border border-gray-200"
+                     data-street-address="{{ address.street_address }}"
+                     data-apartment-suite="{{ address.apartment_suite }}"
+                     data-city="{{ address.city }}"
+                     data-state="{{ address.state }}"
+                     data-zip-code="{{ address.zip_code }}"
+                     data-country="{{ address.country }}"
+                     data-is-default="{{ address.is_default }}">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-base text-gray-900">{{ address.street_address }}</p>
+                            {% if address.apartment_suite %}
+                            <p class="text-base text-gray-900">{{ address.apartment_suite }}</p>
+                            {% endif %}
+                            <p class="text-base text-gray-900">{{ address.city }}, {{ address.state }} {{ address.zip_code }}</p>
+                            <p class="text-base text-gray-900">{{ address.country }}</p>
+                            {% if address.is_default %}
+                            <span class="inline-block mt-2 px-2 py-1 text-xs font-medium text-secondary bg-orange-50 rounded">Default</span>
+                            {% endif %}
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="showEditAddressModal({{ address.id }})" class="text-text-primary hover:text-secondary">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                </svg>
+                            </button>
+                            <button onclick="confirmDeleteAddress({{ address.id }})" class="text-text-primary hover:text-secondary">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-gray-500 text-center py-4 text-base">No addresses found</p>
+                {% endfor %}
+            </div>
+            <div class="flex justify-end mt-4">  
+                <button onclick="showAddAddressModal()" class="px-4 py-2 btn-secondary text-base">
+                    Add New Address
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- 只保留个人信息相关JS，删除所有地址相关JS -->
+<script>
+document.getElementById('profileForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    try {
+        const url = '{% url "frontend:customer_profile" %}';
+        const response = await fetch(url, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+        const data = await response.json();
+        // 这里调用 showMessage 由 base_frontend.html 提供
+        showMessage('profileMessage', data.message, data.status === 'error');
+    } catch (error) {
+        showMessage('profileMessage', 'Failed to update profile. Please try again later.', true);
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,952 @@
+{% extends "frontend/base_frontend.html" %}
+{% load static %}
+{% load frontend_filters %}
+
+{% block title %}{{ item.model_number.brand.name }} {{ item.model_number.model_number }} - {{ item.location.name }}{% endblock %}
+
+{% block body_class %}item-detail-page{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* 图片切换样式 */
+    .image-slide {
+        display: none;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+    }
+
+    .image-slide.active {
+        display: block;
+        position: relative;
+    }
+
+    #imageSlider {
+        position: relative;
+        aspect-ratio: 3/4;
+        /* 设置3:4的宽高比（高度4，宽度3） */
+        width: 100%;
+    }
+
+    /* 移动端图片样式 - 与屏幕等宽 */
+    @media (max-width: 1023px) {
+
+        /* 图片展示区域容器 */
+        .image-container {
+            width: 100vw;
+            margin-left: calc(-50vw + 50%);
+            margin-right: calc(-50vw + 50%);
+            border-radius: 0;
+            box-shadow: none;
+        }
+
+        #imageSlider {
+            width: 100%;
+        }
+    }
+
+    /* 确保图片在容器内正确显示 */
+    .image-slide img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    /* 圆点指示器样式 */
+    .dot-indicator {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: #d1d5db;
+        margin: 0 4px;
+        transition: background-color 0.3s ease;
+    }
+
+    .dot-indicator.active {
+        background-color: var(--secondary-color);
+    }
+
+    /* 移动端隐藏缩略图 */
+    @media (max-width: 1023px) {
+        .thumbnail-container {
+            display: none;
+        }
+
+        /* 移动端隐藏导航按钮 */
+        #prevBtn,
+        #nextBtn {
+            display: none;
+        }
+    }
+
+    /* 桌面端显示导航按钮 */
+    @media (min-width: 1024px) {
+        #prevBtn,
+        #nextBtn {
+            display: block !important;
+            opacity: 1;
+            visibility: visible;
+            z-index: 10;
+        }
+        
+        /* 桌面端按钮悬停效果 - 移除动画 */
+        #prevBtn:hover,
+        #nextBtn:hover {
+            background-color: white !important;
+        }
+    }
+
+    /* 图片切换动画 */
+    .image-slide {
+        transition: transform 0.3s ease-out;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: none;
+    }
+
+    .image-slide.active {
+        position: relative;
+        z-index: 2;
+        display: block;
+    }
+
+    .image-slide.sliding {
+        transition: none;
+        display: block;
+    }
+
+    /* 移动端手势识别样式 */
+    @media (max-width: 1023px) {
+        #imageSlider {
+            touch-action: pan-y pinch-zoom;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            overflow: hidden;
+        }
+    }
+
+    /* 缩略图容器样式 */
+    .thumbnail-container .flex.space-x-2.overflow-x-auto {
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none; /* IE and Edge */
+        scroll-behavior: smooth;
+    }
+
+    .thumbnail-container .flex.space-x-2.overflow-x-auto::-webkit-scrollbar {
+        display: none; /* Chrome, Safari and Opera */
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+
+<div class="container mx-auto px-2 sm:px-4 py-8">
+    <!-- 面包屑导航 -->
+    <nav class="breadcrumb-nav mb-4 md:mb-6 mt-4">
+        <ol class="flex items-center space-x-2 text-sm">
+            {% for crumb in breadcrumbs %}
+            <li class="flex items-center">
+                {% if not forloop.first %}
+                <svg class="w-4 h-4 mx-2 text-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+                {% endif %}
+                {% if forloop.last %}
+                <a href="{{ crumb.url }}" class="text-text-primary font-medium hover:text-primary transition-colors">{{ crumb.name }}</a>
+                {% else %}
+                <a href="{{ crumb.url }}" class="text-text-secondary hover:text-primary transition-colors">{{ crumb.name }}</a>
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ol>
+    </nav>
+
+    <div class="py-2">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- 左侧：商品图片 -->
+            <div class="space-y-4 lg:col-span-1">
+                <!-- 店铺信息 -->
+                <div class="flex items-center justify-between">
+                    <a href="{% url 'frontend:store' item.location.slug %}" class="flex items-center space-x-3 hover:bg-gray-50 p-2 rounded-lg transition-colors group">
+                        {% if item.location.image %}
+                        <img src="{{ item.location.image.url }}" alt="{{ item.location.name }}"
+                            class="w-8 h-8 rounded-full object-cover">
+                        {% else %}
+                        <div class="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
+                            <svg class="w-4 h-4 text-text-secondary" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                            </svg>
+                        </div>
+                        {% endif %}
+                        <div>
+                            <h3 class="font-medium text-text-primary group-hover:text-primary transition-colors">{{ item.location.name }}</h3>
+                            {% if item.location.address %}
+                            <p class="text-sm text-text-secondary">{{ item.location.address.city }}, {{ item.location.address.state }}</p>
+                            {% endif %}
+                        </div>
+                        <!-- 跳转箭头图标 -->
+                        <svg class="w-4 h-4 text-text-secondary group-hover:text-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+
+                    <!-- 收藏按钮 -->
+                    <button id="favoriteButton"
+                        class="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 transition-colors">
+                        {% if is_favorited %}
+                        <svg class="w-6 h-6 text-error" fill="currentColor" viewBox="0 0 24 24">
+                            <path
+                                d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                        </svg>
+                        {% else %}
+                        <svg class="w-6 h-6 text-text-secondary hover:text-error" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                        </svg>
+                        {% endif %}
+                        <span id="favoriteCount" class="text-sm text-text-secondary">{{ favorite_count }}</span>
+                    </button>
+                </div>
+
+                <!-- 图片展示区 -->
+                <div class="image-container relative bg-white rounded-lg overflow-hidden shadow-sm">
+                    <div id="imageSlider" class="relative">
+                        {% if item.item_images %}
+                        {% for image in item.item_images %}
+                        <div class="image-slide {% if forloop.first %}active{% endif %}"
+                            data-index="{{ forloop.counter0 }}">
+                            <img src="{{ image.image.url }}" alt="{{ item.model_number.brand.name }} {{ item.model_number.model_number }} - {{ item.model_number.category.name }} at {{ item.location.name }}"
+                                class="w-full object-cover">
+                        </div>
+                        {% endfor %}
+                        {% else %}
+                        <div class="image-slide active">
+                            <img src="{% static 'frontend/images/product-default.png' %}"
+                                alt="{{ item.model_number.brand.name }} {{ item.model_number.model_number }} - {{ item.model_number.category.name }} at {{ item.location.name }}" class="w-full object-cover">
+                        </div>
+                        {% endif %}
+
+                        <!-- 图片导航按钮 -->
+                        {% if item.item_images|length > 1 %}
+                        <button id="prevBtn"
+                            class="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white rounded-full p-3 shadow-lg border border-gray-200">
+                            <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 19l-7-7 7-7" />
+                            </svg>
+                        </button>
+                        <button id="nextBtn"
+                            class="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white rounded-full p-3 shadow-lg border border-gray-200">
+                            <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 5l7 7-7 7" />
+                            </svg>
+                        </button>
+                        {% endif %}
+                    </div>
+
+                    <!-- 圆点指示器 -->
+                    {% if item.item_images|length > 1 %}
+                    <div class="flex justify-center py-4">
+                        {% for image in item.item_images %}
+                        <span class="dot-indicator {% if forloop.first %}active{% endif %}"
+                            data-index="{{ forloop.counter0 }}"></span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <!-- 缩略图 -->
+                    {% if item.item_images|length > 1 %}
+                    <div class="thumbnail-container p-4 border-t border-border">
+                        <div class="flex space-x-2 overflow-x-auto">
+                            {% for image in item.item_images %}
+                            <button
+                                class="thumbnail-btn flex-shrink-0 w-16 h-16 rounded border-2 {% if forloop.first %}border-primary{% else %}border-border{% endif %} overflow-hidden"
+                                data-index="{{ forloop.counter0 }}">
+                                <img src="{{ image.image.url }}" alt="" class="w-full h-full object-cover">
+                            </button>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- 右侧：商品信息 -->
+            <div class="space-y-6 lg:col-span-2">
+                <!-- 商品信息容器 -->
+                <div class="px-4 sm:px-6 lg:px-8">
+                    <!-- 品牌和型号 -->
+                    <div class="space-y-3">
+                        <!-- 第一行：品牌和型号 -->
+                        <div class="flex items-center justify-between">
+                            <h1 class="text-2xl font-bold text-text-primary">{{ item.model_number.brand.name }}</h1>
+                            <div class="text-right">
+                                {% if item.model_number.link %}
+                                <a href="{{ item.model_number.link }}" target="_blank" rel="noopener noreferrer"
+                                    class="text-lg text-primary hover:text-primary/80 transition-colors">
+                                    Model #{{ item.model_number.model_number }}
+                                    <svg class="w-4 h-4 inline ml-1" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                    </svg>
+                                </a>
+                                {% else %}
+                                <span class="text-lg text-text-secondary">Model #{{ item.model_number.model_number }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- 第二行：价格信息 -->
+                        <div class="space-y-2">
+                            <div class="flex items-start justify-between">
+                                <div class="flex items-baseline space-x-2">
+                                    <span class="text-3xl font-bold text-text-primary">${{ item.retail_price }}</span>
+                                </div>
+                                {% if item.model_number.msrp and item.model_number.msrp > item.retail_price %}
+                                <div class="flex flex-col space-y-1 text-right">
+                                    <div class="flex items-baseline space-x-2 justify-end">
+                                        <span class="text-sm text-text-secondary">MSRP:</span>
+                                        <span class="text-lg text-text-secondary line-through">${{ item.model_number.msrp }}</span>
+                                    </div>
+                                    {% if item.savings > 0 %}
+                                    <div class="flex items-center space-x-2 justify-end">
+                                        <span class="text-sm text-text-secondary">Save:</span>
+                                        <span class="text-lg font-semibold text-success">${{ item.savings|floatformat:2 }} ({{ item.savings_percentage|floatformat:0 }}%)</span>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 产品特性 -->
+                    {% if item.model_number.description %}
+                    <div class="space-y-3 mb-6">
+                        <h3 class="text-lg font-semibold text-text-primary">Product Features</h3>
+                        <div class="prose prose-sm text-text-secondary">
+                            {{ item.model_number.description|safe }}
+                        </div>
+                    </div>
+                    {% endif %}
+                    <!-- 商品信息卡片 -->
+                    <div class="card mt-8">
+                        <!-- 商品状态 -->
+                        {% if item.condition %}
+                        <div class="card-body pb-4">
+                            <h3 class="card-title text-lg font-semibold text-text-primary mb-2">Item Condition</h3>
+                            <p class="card-text text-text-secondary leading-relaxed">{{ item.get_condition_display }}
+                            </p>
+                        </div>
+                        <hr class="border-border mx-6">
+                        {% endif %}
+
+                        <!-- 商品描述 -->
+                        {% if item.item_description %}
+                        <div class="card-body py-4">
+                            <h3 class="card-title text-lg font-semibold text-text-primary mb-2">Item Description</h3>
+                            <p class="card-text text-text-secondary leading-relaxed">{{ item.item_description }}</p>
+                        </div>
+                        <hr class="border-border mx-6">
+                        {% endif %}
+
+                        <!-- 保修信息 -->
+                        {% if item.warranty_type %}
+                        <div class="card-body pt-4">
+                            <h3 class="card-title text-lg font-semibold text-text-primary mb-2">Warranty Information
+                            </h3>
+                            <div class="space-y-2 text-sm">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-text-secondary font-medium">Type:</span>
+                                    <span class="font-semibold text-text-primary">{{ item.get_warranty_type_display }}</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-text-secondary font-medium">Period:</span>
+                                    <span class="font-semibold text-text-primary">{{ item.warranty_display }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                    </div>
+                    <!-- 操作按钮 -->
+                    <div class="space-y-4 pt-6 border-t border-border">
+                        {% if is_in_cart %}
+                        <div class="bg-success/10 border border-success/20 rounded-lg p-4 text-center">
+                            <div class="flex items-center justify-center space-x-2">
+                                <svg class="w-5 h-5 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M5 13l4 4L19 7" />
+                                </svg>
+                                <span class="text-success font-medium">Item already in your cart</span>
+                            </div>
+                        </div>
+                        {% else %}
+                        <button id="addToCartBtn"
+                            class="w-full btn-secondary hover:bg-primary/90 text-white font-semibold py-3 px-6 rounded-lg transition-colors">
+                            Add to Cart
+                        </button>
+                        {% endif %}
+                    </div>
+
+                </div>
+                <!-- 可折叠的详细信息 -->
+                <div class="border border-border rounded-lg mt-6">
+                    <button id="detailsToggle"
+                        class="w-full px-4 py-3 text-left flex items-center justify-between hover:bg-gray-50 transition-colors">
+                        <span class="font-medium text-text-primary">Specifications</span>
+                        <svg id="detailsIcon" class="w-5 h-5 text-text-secondary transform transition-transform"
+                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+                    <div id="detailsContent" class="hidden px-4 pb-4">
+                        <!-- 技术规格表格 -->
+                        {% if item.model_number.specs.all %}
+                        <div class="mt-4">
+                            <table class="w-full">
+                                <tbody class="divide-y divide-border">
+                                    {% for product_spec in item.model_number.specs.all %}
+                                    <tr class="py-3">
+                                        <td class="py-3 pr-4 text-text-secondary font-medium">{{ product_spec.spec.name }}</td>
+                                        <td class="py-3 text-text-primary">{{ product_spec.value }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // 图片切换功能
+        const slider = document.getElementById('imageSlider');
+        const slides = document.querySelectorAll('.image-slide');
+        const thumbnails = document.querySelectorAll('.thumbnail-btn');
+        const dots = document.querySelectorAll('.dot-indicator');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        let currentIndex = 0;
+        let startX = 0;
+        let endX = 0;
+
+        function showSlide(index) {
+            // 隐藏所有图片
+            slides.forEach((slide, i) => {
+                slide.classList.toggle('active', i === index);
+            });
+
+            // 更新缩略图状态
+            thumbnails.forEach((thumb, i) => {
+                thumb.classList.toggle('border-primary', i === index);
+                thumb.classList.toggle('border-border', i !== index);
+            });
+
+            // 更新圆点指示器状态
+            dots.forEach((dot, i) => {
+                dot.classList.toggle('active', i === index);
+            });
+
+            // 自动滚动缩略图到当前选中的位置
+            if (thumbnails.length > 0) {
+                const thumbnailContainer = thumbnails[0].closest('.flex.space-x-2.overflow-x-auto');
+                if (thumbnailContainer) {
+                    const currentThumb = thumbnails[index];
+                    const containerWidth = thumbnailContainer.offsetWidth;
+                    const thumbWidth = currentThumb.offsetWidth;
+                    const thumbLeft = currentThumb.offsetLeft;
+                    const containerLeft = thumbnailContainer.scrollLeft;
+                    
+                    // 计算需要滚动的位置，确保当前缩略图居中显示
+                    const targetScrollLeft = thumbLeft - (containerWidth / 2) + (thumbWidth / 2);
+                    
+                    // 平滑滚动到目标位置
+                    thumbnailContainer.scrollTo({
+                        left: targetScrollLeft,
+                        behavior: 'smooth'
+                    });
+                }
+            }
+
+            currentIndex = index;
+        }
+
+        // 缩略图点击
+        thumbnails.forEach((thumb, index) => {
+            thumb.addEventListener('click', () => showSlide(index));
+        });
+
+        // 圆点指示器点击
+        dots.forEach((dot, index) => {
+            dot.addEventListener('click', () => showSlide(index));
+        });
+
+        // 导航按钮
+        if (prevBtn) {
+            prevBtn.addEventListener('click', () => {
+                if (currentIndex > 0) {
+                    showSlide(currentIndex - 1);
+                }
+            });
+        }
+
+        if (nextBtn) {
+            nextBtn.addEventListener('click', () => {
+                if (currentIndex < slides.length - 1) {
+                    showSlide(currentIndex + 1);
+                }
+            });
+        }
+
+        // 移动端手势识别和动画切换
+        if (slider && slides.length > 1) {
+            let startX = 0;
+            let startY = 0;
+            let startTime = 0;
+            let isDragging = false;
+            let gestureDirection = null; // 'horizontal' 或 'vertical'
+            let currentSlide = null;
+            let nextSlide = null;
+            let prevSlide = null;
+            const GESTURE_THRESHOLD = 10; // 手势判断阈值
+
+            // 触摸开始
+            slider.addEventListener('touchstart', function (e) {
+                const touch = e.touches[0];
+                startX = touch.clientX;
+                startY = touch.clientY;
+                startTime = Date.now();
+                isDragging = false;
+                gestureDirection = null;
+
+                // 获取当前和相邻的图片（只在边界内）
+                currentSlide = slides[currentIndex];
+                nextSlide = currentIndex < slides.length - 1 ? slides[currentIndex + 1] : null;
+                prevSlide = currentIndex > 0 ? slides[currentIndex - 1] : null;
+            });
+
+            // 触摸移动
+            slider.addEventListener('touchmove', function (e) {
+                const touch = e.touches[0];
+                const deltaX = touch.clientX - startX;
+                const deltaY = touch.clientY - startY;
+
+                // 如果还没有确定手势方向，判断用户意图
+                if (!gestureDirection && (Math.abs(deltaX) > GESTURE_THRESHOLD || Math.abs(deltaY) > GESTURE_THRESHOLD)) {
+                    if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                        gestureDirection = 'horizontal';
+                        isDragging = true;
+                        e.preventDefault(); // 阻止页面滚动
+
+                        // 准备相邻图片，显示所有相关图片
+                        slides.forEach(slide => {
+                            slide.classList.add('sliding');
+                            slide.style.display = 'block';
+                        });
+
+                        // 设置初始位置 - 图片紧挨着排列
+                        currentSlide.style.transform = 'translateX(0)';
+                        currentSlide.style.zIndex = '2';
+
+                        if (nextSlide) {
+                            nextSlide.style.transform = `translateX(${slider.offsetWidth}px)`;
+                            nextSlide.style.zIndex = '2';
+                        }
+
+                        if (prevSlide) {
+                            prevSlide.style.transform = `translateX(${-slider.offsetWidth}px)`;
+                            prevSlide.style.zIndex = '2';
+                        }
+
+                        // 隐藏其他图片
+                        slides.forEach((slide, index) => {
+                            if (index !== currentIndex &&
+                                index !== (currentIndex < slides.length - 1 ? currentIndex + 1 : -1) &&
+                                index !== (currentIndex > 0 ? currentIndex - 1 : -1)) {
+                                slide.style.display = 'none';
+                            }
+                        });
+                    } else {
+                        gestureDirection = 'vertical';
+                        // 允许页面滚动，不处理图片切换
+                    }
+                }
+
+                // 如果是水平手势，处理图片切换
+                if (gestureDirection === 'horizontal' && isDragging) {
+                    e.preventDefault();
+
+                    // 计算移动距离
+                    const moveDistance = deltaX;
+
+                    if (deltaX > 0 && prevSlide) {
+                        // 向右拖动，显示上一张（只在有上一张时）
+                        currentSlide.style.transform = `translateX(${moveDistance}px)`;
+                        if (nextSlide) {
+                            nextSlide.style.transform = `translateX(${slider.offsetWidth + moveDistance}px)`;
+                        }
+                        prevSlide.style.transform = `translateX(${-slider.offsetWidth + moveDistance}px)`;
+                    } else if (deltaX < 0 && nextSlide) {
+                        // 向左拖动，显示下一张（只在有下一张时）
+                        currentSlide.style.transform = `translateX(${moveDistance}px)`;
+                        nextSlide.style.transform = `translateX(${slider.offsetWidth + moveDistance}px)`;
+                        if (prevSlide) {
+                            prevSlide.style.transform = `translateX(${-slider.offsetWidth + moveDistance}px)`;
+                        }
+                    } else {
+                        // 在边界时，限制移动距离
+                        const limitedDistance = deltaX * 0.3; // 限制移动距离为30%
+                        currentSlide.style.transform = `translateX(${limitedDistance}px)`;
+                        if (nextSlide) {
+                            nextSlide.style.transform = `translateX(${slider.offsetWidth + limitedDistance}px)`;
+                        }
+                        if (prevSlide) {
+                            prevSlide.style.transform = `translateX(${-slider.offsetWidth + limitedDistance}px)`;
+                        }
+                    }
+                }
+            });
+
+            // 触摸结束
+            slider.addEventListener('touchend', function (e) {
+                if (!isDragging || gestureDirection !== 'horizontal') {
+                    // 重置状态
+                    isDragging = false;
+                    gestureDirection = null;
+                    return;
+                }
+
+                const touch = e.changedTouches[0];
+                const endX = touch.clientX;
+                const endY = touch.clientY;
+                const deltaX = endX - startX;
+                const deltaTime = Date.now() - startTime;
+                const velocity = Math.abs(deltaX) / deltaTime; // 像素/毫秒
+
+                // 判断是否切换图片
+                const minDistance = slider.offsetWidth * 0.25; // 最小距离阈值
+                const minVelocity = 0.5; // 最小速度阈值（像素/毫秒）
+
+                let shouldSwitch = false;
+                let direction = 0;
+
+                if (Math.abs(deltaX) > minDistance || velocity > minVelocity) {
+                    shouldSwitch = true;
+                    direction = deltaX > 0 ? 1 : -1;
+                }
+
+                // 重新启用过渡动画
+                slides.forEach(slide => {
+                    slide.classList.remove('sliding');
+                });
+
+                // 执行切换动画
+                if (shouldSwitch) {
+                    if (direction > 0 && prevSlide) {
+                        // 向右滑动，显示上一张（只在有上一张时）
+                        currentSlide.style.transform = `translateX(${slider.offsetWidth}px)`;
+                        prevSlide.style.transform = 'translateX(0)';
+                        if (nextSlide) {
+                            nextSlide.style.transform = `translateX(${slider.offsetWidth * 2}px)`;
+                        }
+
+                        setTimeout(() => {
+                            showSlide(currentIndex - 1);
+                        }, 300);
+                    } else if (direction < 0 && nextSlide) {
+                        // 向左滑动，显示下一张（只在有下一张时）
+                        currentSlide.style.transform = `translateX(${-slider.offsetWidth}px)`;
+                        nextSlide.style.transform = 'translateX(0)';
+                        if (prevSlide) {
+                            prevSlide.style.transform = `translateX(${-slider.offsetWidth * 2}px)`;
+                        }
+
+                        setTimeout(() => {
+                            showSlide(currentIndex + 1);
+                        }, 300);
+                    } else {
+                        // 在边界时，回弹到原位置
+                        currentSlide.style.transform = 'translateX(0)';
+                        if (nextSlide) {
+                            nextSlide.style.transform = `translateX(${slider.offsetWidth}px)`;
+                        }
+                        if (prevSlide) {
+                            prevSlide.style.transform = `translateX(${-slider.offsetWidth}px)`;
+                        }
+                    }
+                } else {
+                    // 回弹到原位置
+                    currentSlide.style.transform = 'translateX(0)';
+                    if (nextSlide) {
+                        nextSlide.style.transform = `translateX(${slider.offsetWidth}px)`;
+                    }
+                    if (prevSlide) {
+                        prevSlide.style.transform = `translateX(${-slider.offsetWidth}px)`;
+                    }
+                }
+
+                // 重置所有图片的变换和状态
+                setTimeout(() => {
+                    slides.forEach(slide => {
+                        slide.style.transform = '';
+                        slide.style.display = '';
+                        slide.style.zIndex = '';
+                    });
+                    // 恢复正常的显示状态
+                    showSlide(currentIndex);
+                }, 300);
+
+                // 重置状态
+                isDragging = false;
+                gestureDirection = null;
+            });
+        }
+
+        // 收藏功能
+        const favoriteButton = document.getElementById('favoriteButton');
+        const favoriteCount = document.getElementById('favoriteCount');
+        let isFavorited = {% if is_favorited %}true{% else %}false{% endif %};
+        let favoriteCountValue = {{ favorite_count }};
+
+        // 调试：记录初始状态
+        console.log('=== 收藏功能初始化 ===');
+        console.log('商品ID:', '{{ item.id }}');
+        console.log('商品Hash:', '{{ item|item_hash }}');
+        console.log('初始收藏状态:', isFavorited);
+        console.log('初始收藏数量:', favoriteCountValue);
+        console.log('用户认证状态:', {% if user.is_authenticated %}true{% else %}false{% endif %});
+        console.log('用户ID:', {% if user.is_authenticated %}'{{ user.id }}'{% else %}null{% endif %});
+
+        if (favoriteButton) {
+            console.log('收藏按钮元素找到:', favoriteButton);
+            favoriteButton.addEventListener('click', function () {
+                console.log('=== 收藏按钮被点击 ===');
+                console.log('点击时间:', new Date().toISOString());
+                console.log('当前收藏状态:', isFavorited);
+                console.log('当前收藏数量:', favoriteCountValue);
+                
+                const isAuthenticated = {% if user.is_authenticated %}true{% else %} false{% endif %};
+                console.log('用户认证状态:', isAuthenticated);
+                
+                if (!isAuthenticated) {
+                    console.log('用户未认证，显示登录模态框');
+                    showLoginModal('Please login to add items to your favorites.');
+                    return;
+                }
+
+                console.log('开始发送收藏请求...');
+                const requestUrl = `{% url 'frontend:toggle_favorite' item|item_hash %}`;
+                console.log('请求URL:', requestUrl);
+                
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                console.log('CSRF Token:', csrfToken ? '已获取' : '未获取');
+
+                fetch(requestUrl, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => {
+                    console.log('=== API响应 ===');
+                    console.log('响应状态:', response.status);
+                    console.log('响应状态文本:', response.statusText);
+                    console.log('响应头:', Object.fromEntries(response.headers.entries()));
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('=== 响应数据 ===');
+                    console.log('完整响应数据:', data);
+                    console.log('操作成功:', data.success);
+                    console.log('新的收藏状态:', data.is_favorited);
+                    console.log('新的收藏数量:', data.favorite_count);
+                    
+                    if (data.success) {
+                        console.log('收藏操作成功，更新UI...');
+                        const oldIsFavorited = isFavorited;
+                        const oldFavoriteCount = favoriteCountValue;
+                        
+                        isFavorited = data.is_favorited;
+                        favoriteCountValue = data.favorite_count;
+                        
+                        console.log('状态变化:', {
+                            '收藏状态': `${oldIsFavorited} -> ${isFavorited}`,
+                            '收藏数量': `${oldFavoriteCount} -> ${favoriteCountValue}`
+                        });
+                        
+                        updateFavoriteButton();
+                        console.log('UI更新完成');
+                    } else {
+                        console.error('收藏操作失败:', data.error);
+                        alert(data.error || 'Operation failed');
+                    }
+                })
+                .catch(error => {
+                    console.error('=== 请求错误 ===');
+                    console.error('错误类型:', error.name);
+                    console.error('错误消息:', error.message);
+                    console.error('错误堆栈:', error.stack);
+                    alert('Operation failed');
+                });
+            });
+        } else {
+            console.error('收藏按钮元素未找到!');
+        }
+
+        function updateFavoriteButton() {
+            console.log('=== 更新收藏按钮UI ===');
+            console.log('目标收藏状态:', isFavorited);
+            console.log('目标收藏数量:', favoriteCountValue);
+            
+            if (isFavorited) {
+                console.log('设置为已收藏状态（红色心形）');
+                favoriteButton.querySelector('svg').outerHTML =
+                    '<svg class="w-6 h-6 text-error" fill="currentColor" viewBox="0 0 24 24">' +
+                    '<path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>' +
+                    '</svg>';
+            } else {
+                console.log('设置为未收藏状态（空心心形）');
+                favoriteButton.querySelector('svg').outerHTML =
+                    '<svg class="w-6 h-6 text-text-secondary hover:text-error" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
+                    '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>' +
+                    '</svg>';
+            }
+            
+            if (favoriteCount) {
+                console.log('更新收藏数量显示:', favoriteCountValue);
+                favoriteCount.textContent = favoriteCountValue;
+            } else {
+                console.error('收藏数量元素未找到!');
+            }
+            
+            console.log('收藏按钮UI更新完成');
+        }
+
+        // 可折叠详细信息功能
+        const detailsToggle = document.getElementById('detailsToggle');
+        const detailsContent = document.getElementById('detailsContent');
+        const detailsIcon = document.getElementById('detailsIcon');
+
+        if (detailsToggle && detailsContent && detailsIcon) {
+            detailsToggle.addEventListener('click', function () {
+                const isHidden = detailsContent.classList.contains('hidden');
+
+                if (isHidden) {
+                    detailsContent.classList.remove('hidden');
+                    detailsIcon.style.transform = 'rotate(180deg)';
+                } else {
+                    detailsContent.classList.add('hidden');
+                    detailsIcon.style.transform = 'rotate(0deg)';
+                }
+            });
+        }
+
+        // 添加到购物车功能
+        const addToCartBtn = document.getElementById('addToCartBtn');
+        if (addToCartBtn) {
+            addToCartBtn.addEventListener('click', function () {
+                const isAuthenticated = {% if user.is_authenticated %}true{% else %} false{% endif %};
+                if (!isAuthenticated) {
+                    showLoginModal('Please login to add items to your cart.');
+                    return;
+                }
+
+                addToCartBtn.disabled = true;
+                addToCartBtn.textContent = 'Adding...';
+
+                fetch(`{% url 'frontend:add_to_cart' item|item_hash %}`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // 更新购物车图标
+                        updateCartCount();
+
+                        // 更新按钮状态
+                        const container = addToCartBtn.parentElement;
+                        container.innerHTML = `
+                                <div class="bg-success/10 border border-success/20 rounded-lg p-4 text-center">
+                                    <div class="flex items-center justify-center space-x-2">
+                                        <svg class="w-5 h-5 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                        </svg>
+                                        <span class="text-success font-medium">Item added to cart successfully!</span>
+                                    </div>
+                                </div>
+                            `;
+                    } else {
+                        alert(data.error || 'Failed to add item to cart');
+                        addToCartBtn.disabled = false;
+                        addToCartBtn.textContent = 'Add to Cart';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Failed to add item to cart');
+                    addToCartBtn.disabled = false;
+                    addToCartBtn.textContent = 'Add to Cart';
+                });
+            });
+        }
+
+        function updateCartCount() {
+            const cartCountElements = document.querySelectorAll('.cart-count');
+            cartCountElements.forEach(element => {
+                if (element.classList.contains('hidden')) {
+                    element.textContent = '1';
+                    element.classList.remove('hidden');
+                } else {
+                    const currentCount = parseInt(element.textContent) || 0;
+                    element.textContent = currentCount + 1;
+                }
+            });
+        }
+    });
+
+    // 登录模态框功能
+    function showLoginModal(message) {
+        document.getElementById('loginMessage').textContent = message;
+        document.getElementById('loginModal').classList.remove('hidden');
+    }
+
+    function closeLoginModal() {
+        document.getElementById('loginModal').classList.add('hidden');
+    }
+
+    // 点击模态框外部关闭
+    document.getElementById('loginModal').addEventListener('click', function (e) {
+        if (e.target === this) {
+            closeLoginModal();
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,1304 @@
+{% extends 'frontend/base_frontend.html' %}
+{% load order_status_tags %}
+{% load transaction_status_tags %}
+{% load frontend_filters %}
+{% load tz %}
+{% block title %}Order Detail{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* 地址验证消息样式 */
+    .address-validation-message {
+        animation: slideIn 0.3s ease-out;
+        border-left: 3px solid;
+    }
+    
+    .address-validation-message.bg-green-100 {
+        border-left-color: #10b981;
+    }
+    
+    .address-validation-message.bg-yellow-100 {
+        border-left-color: #f59e0b;
+    }
+    
+    .address-validation-message.bg-red-100 {
+        border-left-color: #ef4444;
+    }
+    
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    /* 地址自动完成下拉框样式优化 */
+    .pac-container {
+        border-radius: 8px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        border: 1px solid #e5e7eb;
+        font-family: inherit;
+    }
+    
+    .pac-item {
+        padding: 8px 12px;
+        border-bottom: 1px solid #f3f4f6;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+    
+    .pac-item:hover {
+        background-color: #f9fafb;
+    }
+    
+    .pac-item:last-child {
+        border-bottom: none;
+    }
+    
+    .pac-item-selected {
+        background-color: #e5e7eb;
+    }
+    
+    /* 地址输入框焦点状态优化 */
+    .address-autocomplete:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-16">
+    <!-- 头部操作栏 -->
+    <div class="bg-white rounded-lg shadow-sm mb-6">
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200 rounded-t-lg">
+            <div class="flex flex-col md:flex-row md:justify-between md:items-center space-y-4 md:space-y-0">
+                <div class="flex flex-col md:flex-row md:items-center space-y-2 md:space-y-0 md:space-x-4">
+                    <h2 class="text-xl font-semibold text-text-primary">Order Detail</h2>
+                    <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
+                        <div class="flex items-center">
+                            <h3 class="text-sm font-medium text-text-secondary mr-2">Order Status:</h3>
+                            {% order_status_badge order.order_status %}
+                        </div>
+                        <div class="flex items-center">
+                            <h3 class="text-sm font-medium text-text-secondary mr-2">Payment Status:</h3>
+                            {% payment_status_badge order.payment_status %}
+                        </div>
+                    </div>
+                </div>
+                <a href="{% url 'frontend:customer_dashboard' %}" class="btn btn-secondary hidden md:inline-flex">
+                    Back to Orders
+                </a>
+            </div>
+        </div>
+
+        <!-- 订单基本信息 -->
+        <div class="px-6 py-4 border-b border-gray-200">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                    <h3 class="text-sm font-medium text-text-secondary">Order Number</h3>
+                    <p class="mt-1 text-lg font-semibold text-text-primary">{{ order.order_number }}</p>
+                </div>
+                <div>
+                    <h3 class="text-sm font-medium text-text-secondary">Company Name</h3>
+                    <p class="mt-1 text-lg font-semibold text-text-primary">{{ company_name }}</p>
+                </div>
+                <div>
+                    <h3 class="text-sm font-medium text-text-secondary">Location Name</h3>
+                    <p class="mt-1 text-lg font-semibold text-text-primary">{{ location_name }}</p>
+                    <p class="mt-1 text-sm text-text-secondary">{{ location_address }}</p>
+                </div>
+                <div>
+                    <h3 class="text-sm font-medium text-text-secondary">Created At</h3>
+                    <p class="mt-1 text-lg font-semibold text-text-primary">
+                        {% timezone location_timezone %}
+                            {{ order.created_at|date:"M d, Y H:i" }}
+                        {% endtimezone %}
+                    </p>
+                    <p class="mt-1 text-sm text-text-secondary">Created {{ time_since_creation }}</p>
+                </div>
+                <div>
+                    <h3 class="text-sm font-medium text-text-secondary">Customer Name</h3>
+                    <p class="mt-1 text-lg font-semibold text-text-primary">{{ order.customer.user.get_full_name }} ({{ order.customer.phone }})</p>
+                    <p class="mt-1 text-sm text-text-secondary">{{ order.customer.user.email }}</p>
+                </div>
+                <div>
+                    <h3 class="text-sm font-medium text-text-secondary">Shipping Address</h3>
+                    <p class="mt-1 text-lg font-semibold text-text-primary">{{ order.shipping_address|default:"No shipping address" }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 订单项目列表 -->
+        <div class="px-6 py-4">
+            <h3 class="text-lg font-medium text-text-primary mb-4">Order Items</h3>
+            
+            <!-- Desktop Table View (hidden on mobile) -->
+            <div class="hidden md:block overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">Control Number</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">Category</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">Model Number</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">Condition</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">Warranty Type</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">Warranty Period</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">Unit Price</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">Service Price</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for item in order_items %}
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-text-primary">
+                                {{ item.control_number }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-text-primary">
+                                {{ item.model_number.category.name }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-text-primary">
+                                {{ item.model_number.model_number }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-text-primary">
+                                {% if item.condition == 'BRAND_NEW' %}
+                                    Brand New - Factory Sealed
+                                {% elif item.condition == 'OPEN_BOX' %}
+                                    Open Box - Like New
+                                {% elif item.condition == 'SCRATCH_DENT' %}
+                                    Scratch & Dent - Minor Cosmetic Damage
+                                {% elif item.condition == 'USED_GOOD' %}
+                                    Used - Good Condition
+                                {% elif item.condition == 'USED_FAIR' %}
+                                    Used - Fair Condition
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-text-primary">
+                                {% if item.warranty_type == 'NONE' %}
+                                    No Warranty
+                                {% elif item.warranty_type == 'MANUFACTURER' %}
+                                    Manufacturer Warranty
+                                {% elif item.warranty_type == 'STORE' %}
+                                    Store Warranty
+                                {% elif item.warranty_type == 'THIRD_PARTY' %}
+                                    Third Party Warranty
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-text-primary">
+                                {% if item.warranty_period == '0' %}
+                                    0 Days
+                                {% elif item.warranty_period == '7' %}
+                                    7 Days
+                                {% elif item.warranty_period == '30' %}
+                                    30 Days
+                                {% elif item.warranty_period == '90' %}
+                                    90 Days
+                                {% elif item.warranty_period == '365' %}
+                                    365 Days
+                                {% elif item.warranty_period == '730' %}
+                                    2 Years
+                                {% elif item.warranty_period == '1095' %}
+                                    3 Years
+                                {% elif item.warranty_period == '1460' %}
+                                    4 Years
+                                {% elif item.warranty_period == '1825' %}
+                                    5 Years
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-text-primary">
+                                ${{ item.unit_price|floatformat:2 }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-text-primary">
+                                ${{ item.service_price|floatformat:2 }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Mobile Card View (hidden on desktop) -->
+            <div class="md:hidden space-y-4">
+                {% for item in order_items %}
+                <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <!-- Item Header with Image -->
+                    <div class="flex items-start mb-3">
+                        <!-- Item Image -->
+                        <div class="flex-shrink-0 mr-4">
+                            <div class="w-20 h-20 rounded-lg overflow-hidden">
+                                {% if item.item_images %}
+                                    <img src="{{ item.item_images.0.image.url }}" 
+                                         alt="{{ item.model_number.model_number }}"
+                                         class="w-full h-full object-cover">
+                                {% else %}
+                                    <div class="w-full h-full bg-gray-200 flex items-center justify-center">
+                                        <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                        </svg>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Item Info -->
+                        <div class="flex-1">
+                            <h4 class="font-semibold text-text-primary text-lg">{{ item.model_number.category.name }}</h4>
+                            <p class="text-sm text-text-secondary">{{ item.control_number }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Item Details -->
+                    <div class="space-y-2 mb-3">
+                        <div class="flex justify-between">
+                            <span class="text-sm text-text-secondary">Model Number:</span>
+                            <span class="text-sm font-medium text-text-primary">{{ item.model_number.model_number }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm text-text-secondary">Condition:</span>
+                            <span class="text-sm font-medium text-text-primary">
+                                {% if item.condition == 'BRAND_NEW' %}
+                                    Brand New
+                                {% elif item.condition == 'OPEN_BOX' %}
+                                    Open Box
+                                {% elif item.condition == 'SCRATCH_DENT' %}
+                                    Scratch & Dent
+                                {% elif item.condition == 'USED_GOOD' %}
+                                    Used - Good Condition
+                                {% elif item.condition == 'USED_FAIR' %}
+                                    Used - Fair Condition
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm text-text-secondary">Warranty Type:</span>
+                            <span class="text-sm font-medium text-text-primary">
+                                {% if item.warranty_type == 'NONE' %}
+                                    No Warranty
+                                {% elif item.warranty_type == 'MANUFACTURER' %}
+                                    Manufacturer Warranty
+                                {% elif item.warranty_type == 'STORE' %}
+                                    Store Warranty
+                                {% elif item.warranty_type == 'THIRD_PARTY' %}
+                                    Third Party Warranty
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm text-text-secondary">Warranty Period:</span>
+                            <span class="text-sm font-medium text-text-primary">
+                                {% if item.warranty_period == '0' %}
+                                    0 Days
+                                {% elif item.warranty_period == '7' %}
+                                    7 Days
+                                {% elif item.warranty_period == '30' %}
+                                    30 Days
+                                {% elif item.warranty_period == '90' %}
+                                    90 Days
+                                {% elif item.warranty_period == '365' %}
+                                    365 Days
+                                {% elif item.warranty_period == '730' %}
+                                    2 Years
+                                {% elif item.warranty_period == '1095' %}
+                                    3 Years
+                                {% elif item.warranty_period == '1460' %}
+                                    4 Years
+                                {% elif item.warranty_period == '1825' %}
+                                    5 Years
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Service Price -->
+                    <div class="border-t border-gray-200 pt-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-text-secondary">Unit Price:</span>
+                            <span class="text-lg font-semibold text-text-primary">${{ item.unit_price|floatformat:2 }}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-text-secondary">Service Price:</span>
+                            <span class="text-lg font-semibold text-text-primary">${{ item.service_price|floatformat:2 }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- 价格信息 -->
+        <div class="px-6 py-4 border-t border-gray-200">
+            <h3 class="text-lg font-medium text-text-primary mb-4">Price Information</h3>
+            
+            <!-- Desktop Table View (hidden on mobile) -->
+            <div class="hidden md:block overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-text-secondary uppercase tracking-wider">Shipping Amount</th>
+                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-text-secondary uppercase tracking-wider">Other Fee Amount</th>
+                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-text-secondary uppercase tracking-wider">Pre-Tax Amount</th>
+                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-text-secondary uppercase tracking-wider">Taxable Amount</th>
+                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-text-secondary uppercase tracking-wider">Non-Taxable Amount</th>
+                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-text-secondary uppercase tracking-wider">Tax Amount (Rate: {{ order.location.sales_tax_rate|percent }})</th>
+                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-text-secondary uppercase tracking-wider">Total Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-semibold text-text-primary">
+                                ${{ order.shipping_amount|floatformat:2 }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-semibold text-text-primary">
+                                ${{ order.other_fee_amount|floatformat:2 }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-semibold text-text-primary">
+                                ${{ pre_tax_amount|floatformat:2 }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-semibold text-text-primary">
+                                ${{ order.taxable_amount|floatformat:2 }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-semibold text-text-primary">
+                                ${{ order.non_taxable_amount|floatformat:2 }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center">
+                                <div class="text-sm font-semibold text-text-primary">{{ order.tax_amount|floatformat:2}}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-semibold text-text-primary">
+                                ${{ order.total_amount|floatformat:2 }}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Mobile Card View (hidden on desktop) -->
+            <div class="md:hidden space-y-4">
+                <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <div class="space-y-3">
+                        <div class="flex justify-between">
+                            <span class="text-sm text-text-secondary">Shipping Amount:</span>
+                            <span class="text-sm font-semibold text-text-primary">${{ order.shipping_amount|floatformat:2 }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm text-text-secondary">Other Fee Amount:</span>
+                            <span class="text-sm font-semibold text-text-primary">${{ order.other_fee_amount|floatformat:2 }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm text-text-secondary">Pre-Tax Amount:</span>
+                            <span class="text-sm font-semibold text-text-primary">${{ pre_tax_amount|floatformat:2 }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm text-text-secondary">Taxable Amount:</span>
+                            <span class="text-sm font-semibold text-text-primary">${{ order.taxable_amount|floatformat:2 }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm text-text-secondary">Non-Taxable Amount:</span>
+                            <span class="text-sm font-semibold text-text-primary">${{ order.non_taxable_amount|floatformat:2 }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm text-text-secondary">Tax Amount ({{ order.location.sales_tax_rate|percent }}):</span>
+                            <span class="text-sm font-semibold text-text-primary">${{ order.tax_amount|floatformat:2 }}</span>
+                        </div>
+                        <div class="border-t border-gray-200 pt-3">
+                            <div class="flex justify-between">
+                                <span class="text-lg font-bold text-text-primary">Total Amount:</span>
+                                <span class="text-xl font-bold text-text-primary">${{ order.total_amount|floatformat:2 }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Notes 单独显示 -->
+            <div class="mt-6">
+                <label class="block text-sm font-medium text-text-secondary mb-2">Notes</label>
+                <p class="text-sm text-text-primary bg-gray-50 p-3 rounded-md">{{ order.notes|default:"No notes" }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 替代联系人和地址信息 -->
+    <div class="bg-white rounded-lg shadow-sm mb-6">
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200 rounded-t-lg">
+            <!-- Desktop Title (hidden on mobile) -->
+            <h2 class="text-xl font-semibold text-text-primary hidden md:block">Alternative Contact Information</h2>
+            
+            <!-- Mobile Toggle Button (hidden on desktop) -->
+            <button id="alternativeContactToggle" class="md:hidden w-full text-left btn btn-secondary flex justify-between items-center">
+                <span class="text-sm font-semibold">Alternative Contact Information</span>
+                <div class="flex items-center">
+                    <svg id="alternativeContactIcon" class="w-4 h-4 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </div>
+            </button>
+        </div>
+        
+        <div class="px-6 py-4">
+            <form id="alternativeContactForm" class="space-y-4">
+                {% csrf_token %}
+                
+                <!-- Desktop Layout (hidden on mobile) -->
+                <div class="hidden md:grid md:grid-cols-3 md:gap-6">
+                    <div>
+                        <label for="alternative_receiver_name" class="block text-sm font-medium text-text-secondary mb-2">Alternative Receiver Name</label>
+                        <input type="text" 
+                               id="alternative_receiver_name" 
+                               name="alternative_receiver_name" 
+                               value="{{ order.alternative_receiver_name|default:'' }}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                               placeholder="Other receiver's name except yourself">
+                    </div>
+                    <div>
+                        <label for="alternative_receiver_phone" class="block text-sm font-medium text-text-secondary mb-2">Alternative Receiver Phone</label>
+                        <input type="tel" 
+                               id="alternative_receiver_phone" 
+                               name="alternative_receiver_phone" 
+                               value="{{ order.alternative_receiver_phone|default:'' }}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                               placeholder="Other phone number except yours">
+                    </div>
+                    <div>
+                        <label for="alternative_shipping_address" class="block text-sm font-medium text-text-secondary mb-2">Alternative Shipping Address</label>
+                        <input type="text" 
+                               id="alternative_shipping_address" 
+                               name="alternative_shipping_address" 
+                               value="{{ order.alternative_shipping_address|default:'' }}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent address-autocomplete"
+                               placeholder="Other address to help nevigate to your real address"
+                               autocomplete="off">
+                    </div>
+                </div>
+
+                <!-- Mobile Layout (hidden on desktop) -->
+                <div id="mobileAlternativeContact" class="md:hidden space-y-4 hidden">
+                    <div>
+                        <label for="mobile_alternative_receiver_name" class="block text-sm font-medium text-text-secondary mb-2">Alternative Receiver Name</label>
+                        <input type="text" 
+                               id="mobile_alternative_receiver_name" 
+                               name="alternative_receiver_name" 
+                               value="{{ order.alternative_receiver_name|default:'' }}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                               placeholder="Oher receiver's name except yourself">
+                    </div>
+                    <div>
+                        <label for="mobile_alternative_receiver_phone" class="block text-sm font-medium text-text-secondary mb-2">Alternative Receiver Phone</label>
+                        <input type="tel" 
+                               id="mobile_alternative_receiver_phone" 
+                               name="alternative_receiver_phone" 
+                               value="{{ order.alternative_receiver_phone|default:'' }}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                               placeholder="Other phone number except yours">
+                    </div>
+                    <div>
+                        <label for="mobile_alternative_shipping_address" class="block text-sm font-medium text-text-secondary mb-2">Alternative Shipping Address</label>
+                        <input type="text" 
+                               id="mobile_alternative_shipping_address" 
+                               name="alternative_shipping_address" 
+                               value="{{ order.alternative_shipping_address|default:'' }}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent address-autocomplete"
+                               placeholder="Other address to help nevigate to your real address"
+                               autocomplete="off">
+                    </div>
+                    
+                    <!-- Mobile Save Button -->
+                    <div class="flex justify-end pt-4">
+                        <button type="submit" 
+                                class="btn btn-secondary inline-flex items-center">
+                            Save
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Desktop Save Button (hidden on mobile) -->
+                <div class="hidden md:flex justify-end pt-4">
+                    <button type="submit" 
+                            class="btn btn-secondary inline-flex items-center">
+                        Save
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 交易记录 -->
+    <div class="bg-white rounded-lg shadow-sm">
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200 rounded-t-lg">
+            <!-- Desktop Title (hidden on mobile) -->
+            <h2 class="text-xl font-semibold text-text-primary hidden md:block">Transaction Records</h2>
+            
+            <!-- Mobile Toggle Button (hidden on desktop) -->
+            <button id="transactionToggle" class="md:hidden w-full text-left btn btn-secondary flex justify-between items-center">
+                <span class="text-sm font-semibold">Transaction Records</span>
+                <div class="flex items-center">
+                    <svg id="toggleIcon" class="w-4 h-4 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </div>
+            </button>
+        </div>
+        
+        <div class="px-6 py-4">
+            {% if transaction_records %}
+                <!-- 当前余额显示 -->
+                <div class="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-2 sm:space-y-0">
+                        <span class="text-sm font-medium text-blue-700">Customer Name: {{ order.customer.user.get_full_name }}</span>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-sm font-medium text-blue-700">Current Balance:</span>
+                            <span class="text-lg font-bold {% if current_balance >= 0 %}text-green-600{% else %}text-red-600{% endif %}">
+                                ${{ current_balance|floatformat:2 }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Desktop Table View (hidden on mobile) -->
+                <div class="hidden md:block overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">Date & Time</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">Type</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">Amount</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">Payment Method</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for transaction in transaction_records %}
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-text-primary">
+                                    {% timezone location_timezone %}
+                                        {{ transaction.created_at|date:"M d, Y H:i" }}
+                                    {% endtimezone %}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    {% transaction_type_badge transaction.transaction_type %}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                    {% transaction_amount_display transaction.amount transaction.transaction_type %}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-text-primary">
+                                    {% if transaction.payment_method %}
+                                        {% payment_method_badge transaction.payment_method %}
+                                    {% else %}
+                                        <span class="text-gray-400">-</span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4 text-sm text-text-primary">
+                                    {% if transaction.notes %}
+                                        {{ transaction.notes }}
+                                    {% else %}
+                                        <span class="text-gray-400">-</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Mobile Card View (hidden on desktop) -->
+                <div id="mobileTransactions" class="md:hidden space-y-4 hidden">
+                    {% for transaction in transaction_records %}
+                    <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                        <!-- Transaction Header -->
+                        <div class="flex justify-between items-start mb-3">
+                            <div class="flex-1">
+                                <div class="flex items-center space-x-2 mb-1">
+                                    {% transaction_type_badge transaction.transaction_type %}
+                                </div>
+                                <p class="text-sm text-text-secondary">
+                                    {% timezone location_timezone %}
+                                        {{ transaction.created_at|date:"M d, Y H:i" }}
+                                    {% endtimezone %}
+                                </p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-lg font-bold text-text-primary">
+                                    {% transaction_amount_display transaction.amount transaction.transaction_type %}
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Transaction Details -->
+                        <div class="space-y-2">
+                            {% if transaction.payment_method %}
+                            <div class="flex justify-between">
+                                <span class="text-sm text-text-secondary">Payment Method:</span>
+                                <span class="text-sm font-medium text-text-primary">
+                                    {% payment_method_badge transaction.payment_method %}
+                                </span>
+                            </div>
+                            {% endif %}
+                            {% if transaction.notes %}
+                            <div class="border-t border-gray-200 pt-2">
+                                <p class="text-sm text-text-secondary">Notes:</p>
+                                <p class="text-sm text-text-primary">{{ transaction.notes }}</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-8">
+                    <div class="text-gray-400">
+                        <svg class="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
+                        </svg>
+                        <p class="text-lg">No transaction records available</p>
+                        <p class="text-sm">Transaction records will appear here</p>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- 确认按钮区域 -->
+<div id="order-confirmation" class="container mx-auto px-4 py-6">
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+        <div class="px-6 py-4">
+            <div class="flex flex-col md:flex-row md:justify-between md:items-center space-y-4 md:space-y-0">
+                <div class="flex flex-col space-y-2">
+                    <h3 class="text-lg font-semibold text-text-primary">Order Confirmation</h3>
+                    <p class="text-sm text-text-secondary">
+                        {% if order.order_status == 'UPDATED' %}
+                            Your order has been updated and is ready for confirmation. Please review the terms and conditions before confirming.
+                        {% elif order.order_status == 'CONFIRMED' %}
+                            Your order has been confirmed and is being processed.
+                        {% else %}
+                            Order confirmation is only available when the order status is "Updated".
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
+                    {% if order.order_status == 'UPDATED' %}
+                        <button id="confirmOrderBtn" 
+                                class="btn btn-secondary inline-flex items-center justify-center px-6 py-3 text-base font-medium">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            Confirm Order
+                        </button>
+                    {% else %}
+                        <button disabled 
+                                class="btn btn-secondary inline-flex items-center justify-center px-6 py-3 text-base font-medium opacity-50 cursor-not-allowed">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            Confirm Order
+                        </button>
+                    {% endif %}
+                    <a href="{% url 'frontend:customer_dashboard' %}" 
+                       class="btn btn-secondary-outline inline-flex items-center justify-center px-6 py-3 text-base font-medium">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                        </svg>
+                        Back to Orders
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 初始化地址自动完成功能
+    function initializeAddressAutocomplete() {
+        // 获取所有地址输入框
+        const addressInputs = document.querySelectorAll('.address-autocomplete');
+        
+        addressInputs.forEach(function(input) {
+            // 创建建议容器
+            const suggestionsContainer = document.createElement('div');
+            suggestionsContainer.className = 'address-suggestions hidden absolute z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg mt-1';
+            suggestionsContainer.style.maxHeight = '200px';
+            suggestionsContainer.style.overflowY = 'auto';
+            input.parentNode.appendChild(suggestionsContainer);
+            
+            // 添加标志来跟踪是否已选择地址
+            let addressSelected = false;
+            
+            // 监听输入事件
+            let inputTimeout;
+            input.addEventListener('input', function() {
+                clearTimeout(inputTimeout);
+                const value = this.value.trim();
+                
+                // 检查是否已经选择了地址（通过data属性）
+                const isAddressSelected = this.getAttribute('data-address-selected') === 'true';
+                
+                // 如果已经选择了地址，重置标志
+                if (addressSelected) {
+                    addressSelected = false;
+                }
+                
+                // 如果通过data属性标记为已选择，清除标记并重置
+                if (isAddressSelected) {
+                    this.removeAttribute('data-address-selected');
+                }
+                
+                if (value.length < 3) {
+                    suggestionsContainer.classList.add('hidden');
+                    return;
+                }
+                
+                inputTimeout = setTimeout(() => {
+                    // 如果已经选择了地址，不显示建议
+                    if (addressSelected || this.getAttribute('data-address-selected') === 'true') {
+                        return;
+                    }
+                    
+                    // 使用后端API获取地址建议
+                    const formData = new FormData();
+                    formData.append('action', 'get_address_suggestions');
+                    formData.append('address', value);
+                    formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+                    
+                    fetch('{% url "frontend:customer_profile" %}', {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        // 如果已经选择了地址，不显示建议
+                        if (addressSelected || this.getAttribute('data-address-selected') === 'true') {
+                            return;
+                        }
+                        
+                        if (data.status === 'success' && data.suggestions.length > 0) {
+                            suggestionsContainer.innerHTML = data.suggestions.map(suggestion => {
+                                const address = suggestion.address;
+                                const fullAddress = `${address.street_address}, ${address.city}, ${address.state} ${address.zip_code}`;
+                                return `<div class="p-2 hover:bg-gray-100 cursor-pointer" data-place-id="${suggestion.place_id}" data-address="${fullAddress}">${fullAddress}</div>`;
+                            }).join('');
+                            suggestionsContainer.classList.remove('hidden');
+                        } else {
+                            suggestionsContainer.classList.add('hidden');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching address suggestions:', error);
+                        suggestionsContainer.classList.add('hidden');
+                    });
+                }, 300);
+            });
+            
+            // 监听建议点击事件
+            suggestionsContainer.addEventListener('click', async function(e) {
+                const suggestion = e.target.closest('[data-place-id]');
+                if (suggestion) {
+                    // 设置地址已选择标志
+                    addressSelected = true;
+                    
+                    const placeId = suggestion.dataset.placeId;
+                    const formData = new FormData();
+                    formData.append('action', 'get_address_details');
+                    formData.append('place_id', placeId);
+                    formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+                    
+                    try {
+                        const response = await fetch('{% url "frontend:customer_profile" %}', {
+                            method: 'POST',
+                            body: formData,
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        });
+                        const data = await response.json();
+                        if (data.status === 'success') {
+                            // 使用格式化地址
+                            const address = data.address;
+                            const fullAddress = `${address.street_address}, ${address.city}, ${address.state} ${address.zip_code}`;
+                            input.value = fullAddress;
+                            
+                            // 隐藏建议下拉菜单
+                            suggestionsContainer.classList.add('hidden');
+                            
+                            // 触发input事件以同步其他输入框
+                            input.dispatchEvent(new Event('input', { bubbles: true }));
+                            
+                            // 显示成功消息
+                            showAddressValidationMessage(input, 'Address validated successfully!', 'success');
+                        }
+                    } catch (error) {
+                        console.error('Error fetching address details:', error);
+                        showAddressValidationMessage(input, 'Failed to get address details.', 'error');
+                        // 如果出错，重置标志
+                        addressSelected = false;
+                    }
+                }
+            });
+            
+            // 监听失去焦点事件
+            input.addEventListener('blur', function() {
+                setTimeout(() => {
+                    suggestionsContainer.classList.add('hidden');
+                }, 200);
+            });
+            
+            // 监听获得焦点事件
+            input.addEventListener('focus', function() {
+                const value = this.value.trim();
+                // 只有在未选择地址且输入长度足够时才显示建议
+                if (!addressSelected && this.getAttribute('data-address-selected') !== 'true' && value.length >= 3) {
+                    // 重新显示建议
+                    const event = new Event('input');
+                    this.dispatchEvent(event);
+                }
+            });
+            
+            // 监听键盘事件，当用户开始编辑时重置标志
+            input.addEventListener('keydown', function(e) {
+                // 如果用户按下了删除键或退格键，重置标志
+                if (e.key === 'Backspace' || e.key === 'Delete') {
+                    addressSelected = false;
+                    // 同时清除data属性标记
+                    this.removeAttribute('data-address-selected');
+                }
+            });
+        });
+        
+        // 点击外部隐藏建议
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.address-autocomplete') && !e.target.closest('.address-suggestions')) {
+                document.querySelectorAll('.address-suggestions').forEach(container => {
+                    container.classList.add('hidden');
+                });
+            }
+        });
+    }
+
+    // 初始化地址自动完成功能
+    initializeAddressAutocomplete();
+
+    // 显示地址验证消息
+    function showAddressValidationMessage(input, message, type) {
+        // 清除之前的消息
+        clearAddressValidationMessage(input);
+        
+        // 创建消息元素
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `address-validation-message text-sm mt-1 px-2 py-1 rounded ${
+            type === 'success' ? 'bg-green-100 text-green-700' : 
+            type === 'warning' ? 'bg-yellow-100 text-yellow-700' : 
+            'bg-red-100 text-red-700'
+        }`;
+        messageDiv.textContent = message;
+        
+        // 插入到输入框后面
+        input.parentNode.appendChild(messageDiv);
+        
+        // 如果是成功消息，设置地址已选择标志来停止建议功能
+        if (type === 'success') {
+            // 为当前输入框设置地址已选择标志
+            input.setAttribute('data-address-selected', 'true');
+        }
+        
+        // 3秒后自动清除消息
+        setTimeout(() => {
+            if (messageDiv.parentNode) {
+                messageDiv.remove();
+            }
+        }, 3000);
+    }
+
+    // 清除地址验证消息
+    function clearAddressValidationMessage(input) {
+        const existingMessage = input.parentNode.querySelector('.address-validation-message');
+        if (existingMessage) {
+            existingMessage.remove();
+        }
+    }
+
+    // 交易记录折叠功能
+    const toggleButton = document.getElementById('transactionToggle');
+    const mobileTransactions = document.getElementById('mobileTransactions');
+    const toggleText = document.getElementById('toggleText');
+    const toggleIcon = document.getElementById('toggleIcon');
+    
+    if (toggleButton && mobileTransactions) {
+        toggleButton.addEventListener('click', function() {
+            const isHidden = mobileTransactions.classList.contains('hidden');
+            
+            if (isHidden) {
+                // Show transactions
+                mobileTransactions.classList.remove('hidden');
+                toggleText.textContent = 'Hide';
+                toggleIcon.classList.add('rotate-180');
+            } else {
+                // Hide transactions
+                mobileTransactions.classList.add('hidden');
+                toggleText.textContent = 'Show';
+                toggleIcon.classList.remove('rotate-180');
+            }
+        });
+    }
+
+    // 替代联系信息折叠功能
+    const alternativeContactToggle = document.getElementById('alternativeContactToggle');
+    const mobileAlternativeContact = document.getElementById('mobileAlternativeContact');
+    const alternativeContactIcon = document.getElementById('alternativeContactIcon');
+    
+    if (alternativeContactToggle && mobileAlternativeContact) {
+        alternativeContactToggle.addEventListener('click', function() {
+            const isHidden = mobileAlternativeContact.classList.contains('hidden');
+            
+            if (isHidden) {
+                // Show alternative contact form
+                mobileAlternativeContact.classList.remove('hidden');
+                alternativeContactIcon.classList.add('rotate-180');
+            } else {
+                // Hide alternative contact form
+                mobileAlternativeContact.classList.add('hidden');
+                alternativeContactIcon.classList.remove('rotate-180');
+            }
+        });
+    }
+
+    // 处理替代联系人和地址信息表单提交
+    const alternativeContactForm = document.getElementById('alternativeContactForm');
+    if (alternativeContactForm) {
+        alternativeContactForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // 获取表单数据
+            const formData = new FormData(this);
+            
+            // 检查是否所有字段都为空
+            const alternative_receiver_name = formData.get('alternative_receiver_name').trim();
+            const alternative_receiver_phone = formData.get('alternative_receiver_phone').trim();
+            const alternative_shipping_address = formData.get('alternative_shipping_address').trim();
+            
+            if (!alternative_receiver_name && !alternative_receiver_phone && !alternative_shipping_address) {
+                alert('Please fill in at least one field to save.');
+                return;
+            }
+            
+            // 显示加载状态
+            const submitButton = this.querySelector('button[type="submit"]');
+            const originalText = submitButton.innerHTML;
+            submitButton.innerHTML = '<svg class="w-4 h-4 mr-2 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>Saving...';
+            submitButton.disabled = true;
+            
+            // 发送AJAX请求
+            fetch(window.location.href, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // 显示成功消息
+                    alert(data.message);
+                    
+                    // 更新移动端输入框的值（如果存在）
+                    const mobileNameInput = document.getElementById('mobile_alternative_receiver_name');
+                    const mobilePhoneInput = document.getElementById('mobile_alternative_receiver_phone');
+                    const mobileAddressInput = document.getElementById('mobile_alternative_shipping_address');
+                    
+                    if (mobileNameInput) mobileNameInput.value = alternative_receiver_name;
+                    if (mobilePhoneInput) mobilePhoneInput.value = alternative_receiver_phone;
+                    if (mobileAddressInput) mobileAddressInput.value = alternative_shipping_address;
+                    
+                } else {
+                    // 显示错误消息
+                    alert('Error: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while saving. Please try again.');
+            })
+            .finally(() => {
+                // 恢复按钮状态
+                submitButton.innerHTML = originalText;
+                submitButton.disabled = false;
+            });
+        });
+    }
+
+    // 同步桌面端和移动端的输入框值
+    function syncInputValues() {
+        const desktopNameInput = document.getElementById('alternative_receiver_name');
+        const mobileNameInput = document.getElementById('mobile_alternative_receiver_name');
+        const desktopPhoneInput = document.getElementById('alternative_receiver_phone');
+        const mobilePhoneInput = document.getElementById('mobile_alternative_receiver_phone');
+        const desktopAddressInput = document.getElementById('alternative_shipping_address');
+        const mobileAddressInput = document.getElementById('mobile_alternative_shipping_address');
+        
+        // 同步姓名输入框
+        if (desktopNameInput && mobileNameInput) {
+            desktopNameInput.addEventListener('input', function() {
+                mobileNameInput.value = this.value;
+            });
+            mobileNameInput.addEventListener('input', function() {
+                desktopNameInput.value = this.value;
+            });
+        }
+        
+        // 同步电话输入框
+        if (desktopPhoneInput && mobilePhoneInput) {
+            desktopPhoneInput.addEventListener('input', function() {
+                mobilePhoneInput.value = this.value;
+            });
+            mobilePhoneInput.addEventListener('input', function() {
+                desktopPhoneInput.value = this.value;
+            });
+        }
+        
+        // 同步地址输入框
+        if (desktopAddressInput && mobileAddressInput) {
+            desktopAddressInput.addEventListener('input', function() {
+                mobileAddressInput.value = this.value;
+            });
+            mobileAddressInput.addEventListener('input', function() {
+                desktopAddressInput.value = this.value;
+            });
+        }
+    }
+    
+    // 初始化输入框同步
+    syncInputValues();
+
+    // 处理订单确认按钮点击事件
+    const confirmOrderBtn = document.getElementById('confirmOrderBtn');
+    if (confirmOrderBtn) {
+        confirmOrderBtn.addEventListener('click', function() {
+            // 显示确认模态框
+            showOrderConfirmationModal();
+        });
+    }
+
+    // 显示订单确认模态框
+    function showOrderConfirmationModal() {
+        // 创建模态框HTML
+        const modalHTML = `
+            <div id="orderConfirmationModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+                <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-2/3 lg:w-1/2 shadow-lg rounded-md bg-white">
+                    <div class="mt-3">
+                        <!-- 模态框头部 -->
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-medium text-gray-900">Order Confirmation</h3>
+                            <button id="closeModal" class="text-gray-400 hover:text-gray-600">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        </div>
+                        
+                        <!-- 模态框内容 -->
+                        <div class="mb-6">
+                            <p class="text-sm text-gray-600 mb-4">
+                                Before confirming your order, please ensure you have read and agreed to the following:
+                            </p>
+                            
+                            <!-- 保修政策检查 -->
+                            <div class="mb-4 p-4 border rounded-lg">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center">
+                                        <div id="warrantyStatus" class="w-6 h-6 rounded-full mr-3 flex items-center justify-center">
+                                            <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <h4 class="font-medium text-gray-900">Warranty Policy</h4>
+                                            <p class="text-sm text-gray-500">Read and agree to the warranty terms</p>
+                                        </div>
+                                    </div>
+                                    <div id="warrantyAction">
+                                        <!-- 动态内容将在这里插入 -->
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 条款和条件检查 -->
+                            <div class="mb-4 p-4 border rounded-lg">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center">
+                                        <div id="termsStatus" class="w-6 h-6 rounded-full mr-3 flex items-center justify-center">
+                                            <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <h4 class="font-medium text-gray-900">Terms & Conditions</h4>
+                                            <p class="text-sm text-gray-500">Read and agree to the terms and conditions</p>
+                                        </div>
+                                    </div>
+                                    <div id="termsAction">
+                                        <!-- 动态内容将在这里插入 -->
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 产品检查确认 -->
+                            <div class="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                                <div class="flex items-start">
+                                    <div class="flex-shrink-0">
+                                        <svg class="w-5 h-5 text-blue-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        </svg>
+                                    </div>
+                                    <div class="ml-3">
+                                        <h4 class="text-sm font-medium text-blue-800">Product Inspection</h4>
+                                        <p class="text-sm text-blue-700 mt-1">
+                                            Have you inspected the condition of the products you are purchasing and seen them in person? 
+                                            By clicking confirm, you acknowledge that you understand these terms and agree to the order amount, 
+                                            and have no objections to the products being sold as-is.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 模态框底部按钮 -->
+                        <div class="flex justify-end space-x-3">
+                            <button id="cancelConfirm" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                                Cancel
+                            </button>
+                            <button id="finalConfirm" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                                Confirm Order
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // 插入模态框到页面
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        
+        // 获取模态框元素
+        const modal = document.getElementById('orderConfirmationModal');
+        const closeBtn = document.getElementById('closeModal');
+        const cancelBtn = document.getElementById('cancelConfirm');
+        const finalConfirmBtn = document.getElementById('finalConfirm');
+        const warrantyStatus = document.getElementById('warrantyStatus');
+        const termsStatus = document.getElementById('termsStatus');
+        const warrantyAction = document.getElementById('warrantyAction');
+        const termsAction = document.getElementById('termsAction');
+        
+        // 检查同意状态并更新UI
+        updateAgreementStatus();
+        
+        // 关闭模态框事件
+        function closeModal() {
+            modal.remove();
+        }
+        
+        closeBtn.addEventListener('click', closeModal);
+        cancelBtn.addEventListener('click', closeModal);
+        
+        // 点击模态框外部关闭
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                closeModal();
+            }
+        });
+        
+        // 最终确认按钮事件
+        finalConfirmBtn.addEventListener('click', function() {
+            closeModal();
+            confirmOrder();
+        });
+        
+        // 更新同意状态函数
+        function updateAgreementStatus() {
+            // 获取当前同意状态（这些数据需要从后端传递）
+            const warrantyAgreed = {{ warranty_agreed|yesno:"true,false" }};
+            const termsAgreed = {{ terms_agreed|yesno:"true,false" }};
+            
+            // 更新保修政策状态
+            if (warrantyAgreed) {
+                warrantyStatus.className = 'w-6 h-6 rounded-full mr-3 flex items-center justify-center bg-green-500';
+                warrantyAction.innerHTML = '<span class="text-sm text-green-600 font-medium">✓ Agreed</span>';
+            } else {
+                warrantyStatus.className = 'w-6 h-6 rounded-full mr-3 flex items-center justify-center bg-red-500';
+                warrantyAction.innerHTML = '<a href="{% url "frontend:warranty_agreement" location.slug %}?source=order_confirm&order_number={{ order.order_number }}" class="text-sm text-blue-600 hover:text-blue-800 font-medium underline">Read & Agree</a>';
+            }
+            
+            // 更新条款和条件状态
+            if (termsAgreed) {
+                termsStatus.className = 'w-6 h-6 rounded-full mr-3 flex items-center justify-center bg-green-500';
+                termsAction.innerHTML = '<span class="text-sm text-green-600 font-medium">✓ Agreed</span>';
+            } else {
+                termsStatus.className = 'w-6 h-6 rounded-full mr-3 flex items-center justify-center bg-red-500';
+                termsAction.innerHTML = '<a href="{% url "frontend:terms_agreement" location.slug %}?source=order_confirm&order_number={{ order.order_number }}" class="text-sm text-blue-600 hover:text-blue-800 font-medium underline">Read & Agree</a>';
+            }
+            
+            // 更新最终确认按钮状态
+            if (warrantyAgreed && termsAgreed) {
+                finalConfirmBtn.disabled = false;
+                finalConfirmBtn.className = 'px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500';
+            } else {
+                finalConfirmBtn.disabled = true;
+                finalConfirmBtn.className = 'px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed';
+            }
+        }
+    }
+
+    // 确认订单的函数
+    function confirmOrder() {
+        // 显示加载状态
+        const confirmOrderBtn = document.getElementById('confirmOrderBtn');
+        const originalText = confirmOrderBtn.innerHTML;
+        confirmOrderBtn.innerHTML = '<svg class="w-5 h-5 mr-2 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>Confirming...';
+        confirmOrderBtn.disabled = true;
+        
+        // 发送确认请求
+        const formData = new FormData();
+        formData.append('action', 'confirm_order');
+        formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+        
+        fetch(window.location.href, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // 显示成功消息
+                alert(data.message);
+                
+                // 刷新页面以显示更新后的状态
+                window.location.reload();
+            } else {
+                // 显示错误消息
+                alert('Error: ' + data.error);
+                
+                // 恢复按钮状态
+                confirmOrderBtn.innerHTML = originalText;
+                confirmOrderBtn.disabled = false;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while confirming the order. Please try again.');
+            
+            // 恢复按钮状态
+            confirmOrderBtn.innerHTML = originalText;
+            confirmOrderBtn.disabled = false;
+        });
+    }
+});
+</script>
+{% endblock %}

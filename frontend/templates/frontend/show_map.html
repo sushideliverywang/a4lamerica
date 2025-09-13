@@ -1,0 +1,156 @@
+{% extends 'frontend/base_frontend.html' %}
+{% load static %}
+
+{% block title %}Address Map - NASMAHA{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <div class="flex justify-between items-center mb-4">
+            <div class="mb-4 p-4 bg-gray-50 rounded-lg">
+                <p class="text-text-secondary" id="address-info">
+                    {{ address.street_address }}, {{ address.city }}, {{ address.state }} {{ address.zip_code }}
+                </p>
+            </div>
+            <a href="{% url 'frontend:shopping_cart' %}" class="text-text-secondary hover:text-secondary">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </a>
+        </div>
+        <!-- 地图容器 -->
+        <div id="map" class="w-full h-[600px] rounded-lg"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let map;
+    let marker;
+
+    async function initMap() {
+        try {
+            // 等待Google Maps API加载完成
+            const { Map } = await google.maps.importLibrary("maps");
+            const { Marker } = await google.maps.importLibrary("marker");
+
+            // 初始化地图
+            map = new Map(document.getElementById('map'), {
+                zoom: 18,
+                center: { lat: 33.7490, lng: -84.3880 },
+                mapTypeControl: true,
+                streetViewControl: true,
+                fullscreenControl: true,
+                mapTypeId: google.maps.MapTypeId.ROADMAP,
+                styles: [
+                    {
+                        featureType: "poi",
+                        elementType: "labels",
+                        stylers: [{ visibility: "on" }]
+                    },
+                    {
+                        featureType: "poi.business",
+                        elementType: "labels",
+                        stylers: [{ visibility: "on" }]
+                    },
+                    {
+                        featureType: "poi.park",
+                        elementType: "labels",
+                        stylers: [{ visibility: "on" }]
+                    },
+                    {
+                        featureType: "poi.school",
+                        elementType: "labels",
+                        stylers: [{ visibility: "on" }]
+                    },
+                    {
+                        featureType: "poi.medical",
+                        elementType: "labels",
+                        stylers: [{ visibility: "on" }]
+                    }
+                ]
+            });
+
+            // 创建标记
+            marker = new Marker({
+                map: map,
+                draggable: false,
+                animation: google.maps.Animation.DROP,
+                position: { lat: 33.7490, lng: -84.3880 },
+                icon: {
+                    path: google.maps.SymbolPath.CIRCLE,
+                    scale: 10,
+                    fillColor: "#FD742D",
+                    fillOpacity: 1,
+                    strokeColor: "#FFFFFF",
+                    strokeWeight: 2
+                }
+            });
+
+            // 获取地址信息并显示在地图上
+            const addressId = new URLSearchParams(window.location.search).get('address_id');
+            if (addressId) {
+                showAddressOnMap(addressId);
+            }
+        } catch (error) {
+            document.getElementById('map').innerHTML = '<div class="text-center p-4 text-red-500">地图加载失败，请稍后重试</div>';
+        }
+    }
+
+    function showAddressOnMap(addressId) {
+        const formData = new FormData();
+        formData.append('address_id', addressId);
+        formData.append('csrfmiddlewaretoken', getCookie('csrftoken'));
+
+        fetch('{% url "frontend:geocode_address" %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => {
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                const location = data.location;
+                
+                // 更新地图中心点和标记位置
+                map.setCenter(location);
+                marker.setPosition(location);
+                
+                // 添加标记动画效果
+                marker.setAnimation(google.maps.Animation.BOUNCE);
+                setTimeout(() => {
+                    marker.setAnimation(null);
+                }, 1500);
+            } else {
+                document.getElementById('map').innerHTML = '<div class="text-center p-4 text-red-500">地址解析失败，请稍后重试</div>';
+            }
+        })
+        .catch(error => {
+            document.getElementById('map').innerHTML = '<div class="text-center p-4 text-red-500">地址解析服务暂时不可用，请稍后重试</div>';
+        });
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // 页面加载完成后初始化地图
+    window.addEventListener('load', initMap);
+</script>
+{% endblock %} 

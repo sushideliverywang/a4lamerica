@@ -1,0 +1,168 @@
+{% extends "frontend/base_frontend.html" %}
+{% load static %}
+{% load frontend_filters %}
+
+{% block body_class %}category-page{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-2 sm:px-4 py-8">
+    <!-- 面包屑导航 -->
+    <nav class="breadcrumb-nav mb-4 md:mb-6 mt-4">
+        <ol class="flex items-center space-x-2 text-sm">
+            {% for crumb in breadcrumbs %}
+                <li class="flex items-center">
+                    {% if not forloop.first %}
+                        <svg class="w-4 h-4 mx-2 text-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    {% endif %}
+                    {% if forloop.last %}
+                        <a href="{{ crumb.url }}" class="text-text-primary font-medium hover:text-primary transition-colors">{{ crumb.name }}</a>
+                    {% else %}
+                        <a href="{{ crumb.url }}" class="text-text-secondary hover:text-primary transition-colors">{{ crumb.name }}</a>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ol>
+    </nav>
+
+    <!-- 页面标题和store信息 -->
+    <div class="mb-6">
+        {% if is_store_mode %}
+            <h1 class="text-3xl font-bold text-text-primary mb-2">
+                {{ store.name }} - {{ category.name }}
+            </h1>
+        {% else %}
+            <h1 class="text-3xl font-bold text-text-primary mb-2">
+                {{ category.name }}
+            </h1>
+        {% endif %}
+    </div>
+
+    <!-- 显示当前类别的商品 -->
+    {% if current_category_items %}
+        <div class="mb-12">
+            <h2 class="text-2xl font-bold text-text-primary mb-4">
+                {{ category.name }}
+            </h2>
+            <p class="text-lg text-text-secondary mb-6">{{ current_category_items|length }} items</p>
+            
+            <div class="grid grid-cols-2 md:flex md:flex-wrap gap-3 md:gap-6 pr-2 md:pr-0">
+                {% for item in current_category_items %}
+                <a href="{% url 'frontend:item_detail' item|item_hash %}" class="block">
+                    <div class="product-card">
+                        {% if item.item_images %}
+                            <img src="{{ item.item_images.0.image.url }}" alt="{{ item.name }}">
+                        {% elif item.model_number.model_images %}
+                            <img src="{{ item.model_number.model_images.0.image.url }}" alt="{{ item.name }}">
+                        {% else %}
+                            <img src="{% static 'frontend/images/product-default.png' %}" alt="{{ item.name }}">
+                        {% endif %}
+                        <div class="product-info">
+                            <div class="brand-model">
+                                <div class="brand">{{ item.model_number.brand.name }}</div>
+                                <div class="model">{{ item.model_number.model_number }}</div>
+                            </div>
+                            <div class="price-info">
+                                <div class="flex justify-between items-center">
+                                    <div class="text-lg font-bold text-text-primary">${{ item.retail_price }}</div>
+                                    {% if item.model_number.msrp %}
+                                    <div class="text-xs text-text-secondary line-through">MSRP: ${{ item.model_number.msrp }}</div>
+                                    {% endif %}
+                                </div>
+                                {% if item.model_number.msrp %}
+                                <div class="text-xs text-success">Save ${{ item.savings|floatformat:2 }} ({{ item.savings_percentage|floatformat:0 }}%)</div>
+                                {% endif %}
+                            </div>
+                            <div class="store-info">
+                                <div class="store-name-container">
+                                    {% if item.location and item.location.image %}
+                                        <img src="{{ item.location.image.url }}" alt="{{ item.location.name }}">
+                                    {% else %}
+                                        <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                                        </svg>
+                                    {% endif %}
+                                    <span>{% if item.location %}{{ item.location.name }}{% else %}Store{% endif %}</span>
+                                </div>
+                                <div class="likes">
+                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"/>
+                                    </svg>
+                                    <span>{{ item.favorite_count }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+
+    {% if has_subcategories %}
+        <!-- 显示子类别的商品 -->
+        {% for subcategory, items in category_items.items %}
+            <div class="mb-12">
+                <h2 class="text-2xl font-bold text-text-primary mb-4">
+                    <a href="{% url 'frontend:category' subcategory.slug %}{% if is_store_mode %}?store={{ store.slug }}{% endif %}" class="hover:text-primary transition-colors">
+                        {{ subcategory.name }}
+                    </a>
+                </h2>
+                <p class="text-lg text-text-secondary mb-6">{{ items|length }} items</p>
+                
+                <div class="grid grid-cols-2 md:flex md:flex-wrap gap-3 md:gap-6 pr-2 md:pr-0">
+                    {% for item in items %}
+                    <a href="{% url 'frontend:item_detail' item|item_hash %}" class="block">
+                        <div class="product-card">
+                            {% if item.item_images %}
+                                <img src="{{ item.item_images.0.image.url }}" alt="{{ item.name }}">
+                            {% elif item.model_number.model_images %}
+                                <img src="{{ item.model_number.model_images.0.image.url }}" alt="{{ item.name }}">
+                            {% else %}
+                                <img src="{% static 'frontend/images/product-default.png' %}" alt="{{ item.name }}">
+                            {% endif %}
+                            <div class="product-info">
+                                <div class="brand-model">
+                                    <div class="brand">{{ item.model_number.brand.name }}</div>
+                                    <div class="model">{{ item.model_number.model_number }}</div>
+                                </div>
+                                <div class="price-info">
+                                    <div class="flex justify-between items-center">
+                                        <div class="text-lg font-bold text-text-primary">${{ item.retail_price }}</div>
+                                        {% if item.model_number.msrp %}
+                                        <div class="text-xs text-text-secondary line-through">MSRP: ${{ item.model_number.msrp }}</div>
+                                        {% endif %}
+                                    </div>
+                                    {% if item.model_number.msrp %}
+                                    <div class="text-xs text-success">Save ${{ item.savings|floatformat:2 }} ({{ item.savings_percentage|floatformat:0 }}%)</div>
+                                    {% endif %}
+                                </div>
+                                <div class="store-info">
+                                    <div class="store-name-container">
+                                        {% if item.location and item.location.image %}
+                                            <img src="{{ item.location.image.url }}" alt="{{ item.location.name }}">
+                                        {% else %}
+                                            <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                                            </svg>
+                                        {% endif %}
+                                        <span>{% if item.location %}{{ item.location.name }}{% else %}Store{% endif %}</span>
+                                    </div>
+                                    <div class="likes">
+                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"/>
+                                        </svg>
+                                        <span>{{ item.favorite_count }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endfor %}
+    {% endif %}
+</div>
+{% endblock %} 

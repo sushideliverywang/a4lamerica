@@ -1,0 +1,153 @@
+{% extends 'frontend/base_frontend.html' %}
+{% load order_status_tags %}
+{% load tz %}
+
+{% block title %}My Orders{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-16">
+    <!-- Welcome Section -->
+    <div class="mb-8">
+        <div class="bg-white rounded-lg shadow-sm p-6">
+            <h2 class="text-2xl font-bold text-text-primary mb-2">Welcome, {{ user.first_name }}!</h2>
+            <p class="text-text-secondary">Member since {{ user.date_joined|date:"F Y" }}</p>
+        </div>
+    </div>
+
+    <!-- Order History Section -->
+    <div class="mb-8">
+        <div class="bg-white rounded-lg shadow-sm p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-text-primary">Orders</h3>
+            </div>
+            
+            <!-- Desktop Table View (hidden on mobile) -->
+            <div class="hidden md:block overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr class="border-b border-gray-200">
+                            <th class="py-3 text-left font-medium text-text-primary">Order ID</th>
+                            <th class="py-3 text-left font-medium text-text-primary">Company & Location</th>
+                            <th class="py-3 text-left font-medium text-text-primary">Order Date</th>
+                            <th class="py-3 text-left font-medium text-text-primary">Total Amount</th>
+                            <th class="py-3 text-left font-medium text-text-primary">Paid Amount</th>
+                            <th class="py-3 text-left font-medium text-text-primary">Balance</th>
+                            <th class="py-3 text-left font-medium text-text-primary">Status</th>
+                            <th class="py-3 text-left font-medium text-text-primary">Payment Status</th>
+                            <th class="py-3 text-right font-medium text-text-primary">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in orders %}
+                        <tr class="border-b border-gray-100 hover:bg-gray-50">
+                            <td class="py-3 text-text-primary">{{ order.order_number }}</td>
+                            <td class="py-3 text-text-primary">{{ order.company.company_name }} - {{ order.location.name }}</td>
+                            <td class="py-3 text-text-secondary">
+                                {% timezone order.location.timezone %}
+                                    {{ order.created_at|date:"Y-m-d H:i" }}
+                                {% endtimezone %}
+                            </td>
+                            <td class="py-3 font-medium text-text-primary">${{ order.total_amount }}</td>
+                            <td class="py-3 font-medium text-text-primary">${{ order.paid_amount }}</td>
+                            <td class="py-3 font-medium {% if order.balance < 0 %}text-error{% elif order.balance > 0 %}text-success{% else %}text-text-primary{% endif %}">
+                                ${{ order.balance }}
+                            </td>
+                            <td class="py-3">
+                                {% order_status_badge order.order_status %}
+                            </td>
+                            <td class="py-3">
+                                {% payment_status_badge order.payment_status %}
+                            </td>
+                            <td class="py-3 text-right">
+                                <a href="{% url 'frontend:customer_order_detail' order.order_number %}" 
+                                   class="btn btn-secondary inline-flex items-center">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                    </svg>
+                                    View
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="9" class="py-8 text-center text-text-secondary">No orders found</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Mobile Card View (hidden on desktop) -->
+            <div class="md:hidden space-y-4">
+                {% for order in orders %}
+                <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <!-- Order Header -->
+                    <div class="flex justify-between items-start mb-3">
+                        <div class="flex-1">
+                            <h4 class="font-semibold text-text-primary text-lg">{{ order.order_number }}</h4>
+                            <p class="text-sm text-text-secondary">
+                                {% timezone order.location.timezone %}
+                                    {{ order.created_at|date:"M d, Y H:i" }}
+                                {% endtimezone %}
+                            </p>
+                        </div>
+                        <div class="flex flex-col items-end space-y-1">
+                            <div class="text-right">
+                                {% order_status_badge order.order_status %}
+                            </div>
+                            <div class="text-right">
+                                {% payment_status_badge order.payment_status %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Company & Location -->
+                    <div class="mb-3">
+                        <div class="flex items-center text-sm text-text-primary">
+                            <svg class="w-4 h-4 mr-2 text-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                            </svg>
+                            <span>{{ order.company.company_name }} - {{ order.location.name }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Financial Information -->
+                    <div class="grid grid-cols-3 gap-3 mb-4">
+                        <div class="text-center">
+                            <p class="text-xs text-text-secondary mb-1">Total Amount</p>
+                            <p class="font-semibold text-text-primary">${{ order.total_amount }}</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-xs text-text-secondary mb-1">Paid</p>
+                            <p class="font-semibold text-text-primary">${{ order.paid_amount }}</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-xs text-text-secondary mb-1">Balance</p>
+                            <p class="font-semibold {% if order.balance < 0 %}text-error{% elif order.balance > 0 %}text-success{% else %}text-text-primary{% endif %}">
+                                ${{ order.balance }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Action Button -->
+                    <div class="flex w-full justify-center">
+                        <a href="{% url 'frontend:customer_order_detail' order.order_number %}" 
+                           class="btn btn-secondary w-full">
+                            View Details
+                        </a>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-8">
+                    <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    <p class="text-text-secondary">No orders found</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
