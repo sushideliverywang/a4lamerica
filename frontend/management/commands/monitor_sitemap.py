@@ -93,7 +93,10 @@ class Command(BaseCommand):
                 
                 # 直接调用Django视图，避免HTTP请求和DNS解析
                 request = factory.get(f'/{url_path}')
-                request.META['HTTP_HOST'] = base_url.replace('https://', '').replace('http://', '')
+                # 使用正确的域名，避免ALLOWED_HOSTS错误
+                host = base_url.replace('https://', '').replace('http://', '')
+                request.META['HTTP_HOST'] = host
+                request.META['SERVER_NAME'] = host.split(':')[0]  # 去掉端口号
                 
                 if section:
                     response = sitemap(request, {section: sitemaps[section]})
@@ -103,10 +106,15 @@ class Command(BaseCommand):
                 response_time = time.time() - start_time
                 
                 if response.status_code == 200:
+                    # 确保response内容被渲染
+                    if hasattr(response, 'render'):
+                        response.render()
+                    content_size = len(response.content) if hasattr(response, 'content') else 0
+                    
                     results['sitemaps'][f'/{url_path}'] = {
                         'status': 'OK',
                         'response_time': round(response_time, 3),
-                        'size': len(response.content) if hasattr(response, 'content') else 0,
+                        'size': content_size,
                         'method': 'direct_django_view'
                     }
                 else:

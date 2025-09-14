@@ -94,7 +94,10 @@ class SitemapMonitor:
                 
                 # 直接调用Django视图，避免HTTP请求和DNS解析
                 request = factory.get(f'/{url_path}')
-                request.META['HTTP_HOST'] = self.base_url.replace('https://', '').replace('http://', '')
+                # 使用正确的域名，避免ALLOWED_HOSTS错误
+                host = self.base_url.replace('https://', '').replace('http://', '')
+                request.META['HTTP_HOST'] = host
+                request.META['SERVER_NAME'] = host.split(':')[0]  # 去掉端口号
                 
                 if section:
                     response = sitemap(request, {section: sitemaps[section]})
@@ -104,11 +107,16 @@ class SitemapMonitor:
                 response_time = time.time() - start_time
                 
                 if response.status_code == 200:
+                    # 确保response内容被渲染
+                    if hasattr(response, 'render'):
+                        response.render()
+                    content_length = len(response.content) if hasattr(response, 'content') else 0
+                    
                     availability_results[f'/{url_path}'] = {
                         'status': 'success',
                         'status_code': response.status_code,
                         'response_time': round(response_time, 3),
-                        'content_length': len(response.content) if hasattr(response, 'content') else 0,
+                        'content_length': content_length,
                         'method': 'direct_django_view'
                     }
                     self.logger.info(f"✓ {url_path} - 可用 ({response_time:.3f}s)")
@@ -150,6 +158,9 @@ class SitemapMonitor:
             response = sitemap(request, sitemaps)
             
             if response.status_code == 200:
+                # 确保response内容被渲染
+                if hasattr(response, 'render'):
+                    response.render()
                 content_results['main_sitemap'] = self.analyze_sitemap_content(response.content.decode('utf-8'), 'sitemapindex')
             else:
                 content_results['main_sitemap'] = {'error': f'HTTP {response.status_code}'}
@@ -161,10 +172,16 @@ class SitemapMonitor:
         for sitemap_type in sub_sitemaps:
             try:
                 request = factory.get(f'/sitemap-{sitemap_type}.xml')
-                request.META['HTTP_HOST'] = self.base_url.replace('https://', '').replace('http://', '')
+                # 使用正确的域名，避免ALLOWED_HOSTS错误
+                host = self.base_url.replace('https://', '').replace('http://', '')
+                request.META['HTTP_HOST'] = host
+                request.META['SERVER_NAME'] = host.split(':')[0]  # 去掉端口号
                 response = sitemap(request, {sitemap_type: sitemaps[sitemap_type]})
                 
                 if response.status_code == 200:
+                    # 确保response内容被渲染
+                    if hasattr(response, 'render'):
+                        response.render()
                     content_results[f'sitemap_{sitemap_type}'] = self.analyze_sitemap_content(response.content.decode('utf-8'), 'urlset')
                 else:
                     content_results[f'sitemap_{sitemap_type}'] = {'error': f'HTTP {response.status_code}'}
@@ -270,7 +287,10 @@ class SitemapMonitor:
                 
                 # 直接调用Django视图，避免HTTP请求和DNS解析
                 request = factory.get(f'/{url_path}')
-                request.META['HTTP_HOST'] = self.base_url.replace('https://', '').replace('http://', '')
+                # 使用正确的域名，避免ALLOWED_HOSTS错误
+                host = self.base_url.replace('https://', '').replace('http://', '')
+                request.META['HTTP_HOST'] = host
+                request.META['SERVER_NAME'] = host.split(':')[0]  # 去掉端口号
                 
                 if section:
                     response = sitemap(request, {section: sitemaps[section]})
@@ -279,6 +299,9 @@ class SitemapMonitor:
                 
                 end_time = time.time()
                 response_time = end_time - start_time
+                # 确保response内容被渲染
+                if hasattr(response, 'render'):
+                    response.render()
                 content_size = len(response.content) if hasattr(response, 'content') else 0
                 
                 performance_results[f'/{url_path}'] = {
