@@ -1,0 +1,14 @@
+# 服务器端Cron任务配置
+# 使用方法: crontab -e 然后添加以下行
+
+# 每天上午8点执行快速检查（生产环境）
+0 8 * * * /var/www/a4lamerica/scripts/server_monitor.sh
+
+# 每周一上午9点执行完整检查
+0 9 * * 1 cd /var/www/a4lamerica && source venv/bin/activate && python manage.py monitor_sitemap --check-type full --base-url https://a4lamerica.com --output both
+
+# 每月1号上午10点执行深度检查
+0 10 1 * * cd /var/www/a4lamerica && source venv/bin/activate && python scripts/sitemap_monitor.py --base-url https://a4lamerica.com --check all
+
+# 每天下午6点清理旧日志文件（保留30天）
+0 18 * * * find /var/www/a4lamerica/logs -name "sitemap_*" -mtime +30 -delete

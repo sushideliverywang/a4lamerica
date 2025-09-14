@@ -55,7 +55,7 @@ if DEBUG:
         'https://192.168.1.*:8000',  # 添加https支持
     ]
     # 根据请求动态设置SITE_URL
-    SITE_URL = 'http://192.168.1.70:8000'  # 使用开发机器的实际IP
+    SITE_URL = 'http://192.168.1.83:8000'  # 使用开发机器的实际IP
     PROTOCOL = 'http'
     
     # 开发环境日志配置
@@ -215,6 +215,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',  # 提供人性化的数据展示
+    'django.contrib.sitemaps',  # 网站地图支持
     
     # 第三方应用（最小化）
     'corsheaders',
@@ -362,7 +363,7 @@ ITEM_HASH_SECRET_KEY = os.getenv('ITEM_HASH_SECRET_KEY', 'default-secret-key')
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
     'http://127.0.0.1:8000',
-    'http://192.168.1.70:8000',
+    'http://192.168.1.203:8000',
     'https://a4lamerica.com',
     'https://www.a4lamerica.com',
 ]

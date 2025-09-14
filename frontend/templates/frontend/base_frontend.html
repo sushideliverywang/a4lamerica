@@ -4,13 +4,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>{% block title %}NASMAHA{% endblock %}</title>
+    <title>{% block title %}Appliances 4 Less Doraville  | Georgia's Best Appliance Store{% endblock %}</title>
     
     <!-- SEO Meta Tags -->
     <meta name="description" content="{% block meta_description %}Appliances 4 Less Doraville - Your trusted appliances store offering quality products with competitive prices and excellent customer service. Shop for the latest refrigerators, washers, dryers, stoves, dishwashers, and more.{% endblock %}">
-    <meta name="keywords" content="{% block meta_keywords %}refrigerators, washers, dryers, stoves, dishwashers, NASMAHA, online store, quality products{% endblock %}">
+    <meta name="keywords" content="{% block meta_keywords %}refrigerators, washers, dryers, stoves, dishwashers, Appliances 4 Less Doraville, online store, quality products{% endblock %}">
     <meta name="robots" content="{% block meta_robots %}index, follow{% endblock %}">
     <meta name="author" content="Appliances 4 Less Doraville">
+    
+    <!-- 地理位置信息 -->
+    <meta name="geo.region" content="US-GA">
+    <meta name="geo.placename" content="Doraville, Georgia">
+    <meta name="geo.position" content="33.9026;-84.2796">
+    <meta name="ICBM" content="33.9026, -84.2796">
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="{{ request.build_absolute_uri }}">
+
+    <!-- Hreflang for English -->
+    <link rel="alternate" hreflang="en-us" href="{{ request.build_absolute_uri }}">
+    <link rel="alternate" hreflang="x-default" href="{{ request.build_absolute_uri }}">
+
+    <!-- Robots -->
+    <link rel="robots" href="{% url 'frontend:robots_txt' %}">
     
     <!-- Open Graph Meta Tags for Social Media -->
     <meta property="og:title" content="{% block og_title %}Appliances 4 Less Doraville{% endblock %}">

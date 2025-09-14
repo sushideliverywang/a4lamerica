@@ -10,7 +10,9 @@ from .models_proxy import (
 from django.db import models
 from django.urls import reverse
 from django.views.generic import TemplateView, DetailView, View
-from django.http import Http404, JsonResponse
+from django.http import Http404, JsonResponse, HttpResponse
+from django.contrib.sitemaps import Sitemap
+from django.contrib.sitemaps.views import sitemap
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count
@@ -2198,4 +2200,162 @@ def agree_terms_conditions(request, location_slug):
     return JsonResponse({'success': True, 'message': 'Terms and conditions agreed successfully'})
 
 
+def robots_txt(request):
+    """
+    提供robots.txt文件
+    """
+    robots_content = """# Appliances 4 Less Doraville - 最优化 Robots.txt
+# 基于实际URL结构的精准配置
+
+User-agent: *
+
+# === 核心SEO页面 - 最高优先级 ===
+Allow: /
+Allow: /*/                          # 所有商店页面 (doraville-store/, atlanta-store/ 等)
+Allow: /category/
+Allow: /item/
+Allow: /search/
+
+# === 法律和政策页面 - SEO友好 ===
+Allow: /privacy-policy/
+Allow: /terms-of-service/
+Allow: /cookie-policy/
+
+# === 静态资源 - 必须允许 ===
+Allow: /static/
+Allow: /media/
+Allow: /favicon.ico
+
+# === 严格禁止的私密区域 ===
+Disallow: /customer/dashboard/       # 客户面板
+Disallow: /customer/profile/         # 个人资料
+Disallow: /customer/favorites/       # 收藏夹
+Disallow: /customer/order/           # 订单详情
+
+# === 购物流程页面 - 保护用户隐私 ===
+Disallow: /cart/                     # 购物车
+Disallow: /cart/add/                 # 添加到购物车
+Disallow: /cart/remove/              # 移除商品
+Disallow: /cart/calculate-distances/ # 距离计算
+
+# === API 接口 - 防止滥用 ===
+Disallow: /api/                      # 所有API
+Disallow: /api/search-suggestions/   # 搜索建议API
+Disallow: /api/addresses/            # 地址API
+Disallow: /api/geocode-address/      # 地理编码API
+Disallow: /api/orders/               # 订单API
+
+# === 功能性页面 - 无SEO价值 ===
+Disallow: /item/*/favorite/          # 收藏功能
+Disallow: /show-map/                 # 地图展示
+Disallow: /*/warranty/agree/         # 保修协议页面
+Disallow: /*/terms/agree/            # 条款协议页面
+
+# === 避免重复内容和无用参数 ===
+Disallow: /*?q=*&page=              # 搜索分页
+Disallow: /*?sort=*                 # 排序参数
+Disallow: /*?filter=*               # 过滤参数
+Disallow: /*?utm_*                  # 跟踪参数
+Disallow: /*?ref=*                  # 推荐参数
+Disallow: /*?debug=*                # 调试参数
+Disallow: /*&page=                  # 分页参数
+Disallow: /*?page=*&*               # 复杂分页参数
+
+# === 管理和后台 - 绝对禁止 ===
+Disallow: /admin/
+Disallow: /dashboard/
+Disallow: /accounts/
+Disallow: /staff/
+Disallow: /employee/
+
+# === Google专项优化 ===
+User-agent: Googlebot
+Allow: /
+Allow: /*/
+Allow: /category/
+Allow: /item/
+Allow: /search/
+Allow: /static/frontend/images/      # 产品图片
+Allow: /media/                       # 媒体图片
+Crawl-delay: 1
+
+# === Google图片搜索优化 ===
+User-agent: Googlebot-Image
+Allow: /static/frontend/images/
+Allow: /media/
+Disallow: /media/private/
+Disallow: /media/customer/
+
+# === Bing搜索引擎优化 ===
+User-agent: bingbot
+Allow: /
+Allow: /*/
+Allow: /category/
+Allow: /item/
+Crawl-delay: 1
+
+# === 购物比较网站 ===
+User-agent: Slurp
+Allow: /item/
+Allow: /category/
+Allow: /static/frontend/images/
+Crawl-delay: 2
+
+# === 屏蔽恶意爬虫 ===
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: dotbot
+Disallow: /
+
+# === XML网站地图 - 关键！ ===
+Sitemap: https://a4lamerica.com/sitemap.xml
+Sitemap: https://www.a4lamerica.com/sitemap.xml
+Sitemap: https://a4lamerica.com/sitemap-static.xml
+Sitemap: https://a4lamerica.com/sitemap-stores.xml
+Sitemap: https://a4lamerica.com/sitemap-categories.xml
+Sitemap: https://a4lamerica.com/sitemap-products.xml
+
+# === 全局爬取设置 ===
+Crawl-delay: 1"""
     
+    return HttpResponse(robots_content, content_type='text/plain')
+
+
+# 导入sitemap配置
+from .sitemaps import (
+    StaticViewSitemap, StoreSitemap, CategorySitemap, 
+    ProductSitemap, WarrantyPolicySitemap, TermsConditionsSitemap
+)
+
+# 网站地图配置字典
+sitemaps = {
+    'static': StaticViewSitemap,
+    'stores': StoreSitemap,
+    'categories': CategorySitemap,
+    'products': ProductSitemap,
+    'warranty': WarrantyPolicySitemap,
+    'terms': TermsConditionsSitemap,
+}
+
+# 网站地图视图
+def sitemap_view(request, section=None):
+    """
+    网站地图视图
+    支持单个sitemap和sitemap索引
+    """
+    if section:
+        # 单个sitemap
+        if section in sitemaps:
+            return sitemap(request, {section: sitemaps[section]})
+        else:
+            raise Http404("Sitemap section not found")
+    else:
+        # sitemap索引
+        return sitemap(request, sitemaps)

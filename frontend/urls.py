@@ -5,6 +5,7 @@ app_name = 'frontend'
 
 urlpatterns = [
     path('', views.HomeView.as_view(), name='home'),
+    path('robots.txt', views.robots_txt, name='robots_txt'),
     path('privacy-policy/', views.PrivacyPolicyView.as_view(), name='privacy_policy'),
     path('terms-of-service/', views.TermsOfServiceView.as_view(), name='terms_of_service'),
     path('cookie-policy/', views.CookiePolicyView.as_view(), name='cookie_policy'),
@@ -40,6 +41,10 @@ urlpatterns = [
     path('<slug:location_slug>/terms/', views.TermsAndConditionsView.as_view(), name='terms_conditions'),
     path('<slug:location_slug>/terms/agree/', views.TermsAgreementView.as_view(), name='terms_agreement'),
     path('<slug:location_slug>/terms/agree/submit/', views.agree_terms_conditions, name='agree_terms_conditions'),
+    
+    # 网站地图URL（必须在通配符路由之前）
+    path('sitemap.xml', views.sitemap_view, name='sitemap'),
+    path('sitemap-<str:section>.xml', views.sitemap_view, name='sitemap_section'),
     
     # 商店页面URL（注意：这个URL需要放在最后，避免与其他URL冲突）
     # 排除已知的系统路径，避免冲突
