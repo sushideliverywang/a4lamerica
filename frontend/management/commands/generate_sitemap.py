@@ -13,7 +13,7 @@ from urllib.parse import urljoin
 
 
 class Command(BaseCommand):
-    help = '生成和验证网站地图'
+    help = '生成和验证网站地图。在生产环境中会自动使用 settings.SITE_URL，开发环境可手动指定 --base-url 参数'
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -24,16 +24,22 @@ class Command(BaseCommand):
         parser.add_argument(
             '--base-url',
             type=str,
-            default='http://localhost:8000',
-            help='基础URL用于验证',
+            default=None,  # 默认从settings获取
+            help='基础URL用于验证（默认从settings.SITE_URL获取）',
         )
 
     def handle(self, *args, **options):
+        # 如果没有指定base_url，则从settings获取
         base_url = options['base_url']
+        if not base_url:
+            base_url = getattr(settings, 'SITE_URL', 'http://localhost:8000')
+        
         validate = options['validate']
         
+        # 显示当前环境信息
+        environment = "生产环境" if not settings.DEBUG else "开发环境"
         self.stdout.write(
-            self.style.SUCCESS('开始生成网站地图...')
+            self.style.SUCCESS(f'开始生成网站地图... ({environment}, 使用域名: {base_url})')
         )
         
         # 生成各个sitemap
