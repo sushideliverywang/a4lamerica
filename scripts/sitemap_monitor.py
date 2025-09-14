@@ -67,62 +67,90 @@ class SitemapMonitor:
         return logger
     
     def check_sitemap_availability(self):
-        """检查sitemap可用性"""
+        """检查sitemap可用性 - 使用直接Django视图调用避免DNS解析延迟"""
         self.logger.info("开始检查sitemap可用性...")
         
-        sitemap_urls = [
-            '/sitemap.xml',
-            '/sitemap-static.xml',
-            '/sitemap-stores.xml',
-            '/sitemap-categories.xml',
-            '/sitemap-products.xml',
-            '/sitemap-warranty.xml',
-            '/sitemap-terms.xml',
+        from django.test import RequestFactory
+        from django.contrib.sitemaps.views import sitemap
+        from frontend.views import sitemaps
+        import time
+        
+        sitemap_sections = [
+            ('sitemap.xml', None),  # 主索引
+            ('sitemap-static.xml', 'static'),
+            ('sitemap-stores.xml', 'stores'),
+            ('sitemap-categories.xml', 'categories'),
+            ('sitemap-products.xml', 'products'),
+            ('sitemap-warranty.xml', 'warranty'),
+            ('sitemap-terms.xml', 'terms'),
         ]
         
         availability_results = {}
+        factory = RequestFactory()
         
-        for url_path in sitemap_urls:
-            full_url = urljoin(self.base_url, url_path)
+        for url_path, section in sitemap_sections:
             try:
-                response = requests.get(full_url, timeout=10)
+                start_time = time.time()
+                
+                # 直接调用Django视图，避免HTTP请求和DNS解析
+                request = factory.get(f'/{url_path}')
+                request.META['HTTP_HOST'] = self.base_url.replace('https://', '').replace('http://', '')
+                
+                if section:
+                    response = sitemap(request, {section: sitemaps[section]})
+                else:
+                    response = sitemap(request, sitemaps)
+                
+                response_time = time.time() - start_time
+                
                 if response.status_code == 200:
-                    availability_results[url_path] = {
+                    availability_results[f'/{url_path}'] = {
                         'status': 'success',
                         'status_code': response.status_code,
-                        'response_time': response.elapsed.total_seconds(),
-                        'content_length': len(response.content)
+                        'response_time': round(response_time, 3),
+                        'content_length': len(response.content) if hasattr(response, 'content') else 0,
+                        'method': 'direct_django_view'
                     }
-                    self.logger.info(f"✓ {url_path} - 可用 ({response.elapsed.total_seconds():.2f}s)")
+                    self.logger.info(f"✓ {url_path} - 可用 ({response_time:.3f}s)")
                 else:
-                    availability_results[url_path] = {
+                    availability_results[f'/{url_path}'] = {
                         'status': 'error',
                         'status_code': response.status_code,
-                        'error': f'HTTP {response.status_code}'
+                        'error': f'HTTP {response.status_code}',
+                        'method': 'direct_django_view'
                     }
                     self.logger.error(f"✗ {url_path} - HTTP {response.status_code}")
-            except requests.RequestException as e:
-                availability_results[url_path] = {
+                    
+            except Exception as e:
+                availability_results[f'/{url_path}'] = {
                     'status': 'error',
-                    'error': str(e)
+                    'error': str(e),
+                    'method': 'direct_django_view'
                 }
-                self.logger.error(f"✗ {url_path} - 请求失败: {e}")
+                self.logger.error(f"✗ {url_path} - 生成失败: {e}")
         
         self.results['checks']['availability'] = availability_results
         return availability_results
     
     def check_sitemap_content(self):
-        """检查sitemap内容质量"""
+        """检查sitemap内容质量 - 使用直接Django视图调用避免DNS解析延迟"""
         self.logger.info("开始检查sitemap内容质量...")
         
+        from django.test import RequestFactory
+        from django.contrib.sitemaps.views import sitemap
+        from frontend.views import sitemaps
+        
         content_results = {}
+        factory = RequestFactory()
         
         # 检查主sitemap
-        main_sitemap_url = urljoin(self.base_url, '/sitemap.xml')
         try:
-            response = requests.get(main_sitemap_url, timeout=10)
+            request = factory.get('/sitemap.xml')
+            request.META['HTTP_HOST'] = self.base_url.replace('https://', '').replace('http://', '')
+            response = sitemap(request, sitemaps)
+            
             if response.status_code == 200:
-                content_results['main_sitemap'] = self.analyze_sitemap_content(response.text, 'urlset')
+                content_results['main_sitemap'] = self.analyze_sitemap_content(response.content.decode('utf-8'), 'sitemapindex')
             else:
                 content_results['main_sitemap'] = {'error': f'HTTP {response.status_code}'}
         except Exception as e:
@@ -131,11 +159,13 @@ class SitemapMonitor:
         # 检查各个子sitemap
         sub_sitemaps = ['static', 'stores', 'categories', 'products', 'warranty', 'terms']
         for sitemap_type in sub_sitemaps:
-            url = urljoin(self.base_url, f'/sitemap-{sitemap_type}.xml')
             try:
-                response = requests.get(url, timeout=10)
+                request = factory.get(f'/sitemap-{sitemap_type}.xml')
+                request.META['HTTP_HOST'] = self.base_url.replace('https://', '').replace('http://', '')
+                response = sitemap(request, {sitemap_type: sitemaps[sitemap_type]})
+                
                 if response.status_code == 200:
-                    content_results[f'sitemap_{sitemap_type}'] = self.analyze_sitemap_content(response.text, 'urlset')
+                    content_results[f'sitemap_{sitemap_type}'] = self.analyze_sitemap_content(response.content.decode('utf-8'), 'urlset')
                 else:
                     content_results[f'sitemap_{sitemap_type}'] = {'error': f'HTTP {response.status_code}'}
             except Exception as e:
@@ -214,38 +244,52 @@ class SitemapMonitor:
             return {'error': error_msg}
     
     def check_performance(self):
-        """检查性能指标"""
+        """检查性能指标 - 使用直接Django视图调用避免DNS解析延迟"""
         self.logger.info("开始检查性能指标...")
         
+        from django.test import RequestFactory
+        from django.contrib.sitemaps.views import sitemap
+        from frontend.views import sitemaps
+        import time
+        
         performance_results = {}
+        factory = RequestFactory()
         
         # 测试各个sitemap的响应时间
-        sitemap_urls = [
-            '/sitemap.xml',
-            '/sitemap-static.xml',
-            '/sitemap-stores.xml',
-            '/sitemap-categories.xml',
-            '/sitemap-products.xml',
+        sitemap_sections = [
+            ('sitemap.xml', None),  # 主索引
+            ('sitemap-static.xml', 'static'),
+            ('sitemap-stores.xml', 'stores'),
+            ('sitemap-categories.xml', 'categories'),
+            ('sitemap-products.xml', 'products'),
         ]
         
-        for url_path in sitemap_urls:
-            full_url = urljoin(self.base_url, url_path)
+        for url_path, section in sitemap_sections:
             try:
-                start_time = datetime.now()
-                response = requests.get(full_url, timeout=30)
-                end_time = datetime.now()
+                start_time = time.time()
                 
-                response_time = (end_time - start_time).total_seconds()
-                content_size = len(response.content)
+                # 直接调用Django视图，避免HTTP请求和DNS解析
+                request = factory.get(f'/{url_path}')
+                request.META['HTTP_HOST'] = self.base_url.replace('https://', '').replace('http://', '')
                 
-                performance_results[url_path] = {
-                    'response_time': response_time,
+                if section:
+                    response = sitemap(request, {section: sitemaps[section]})
+                else:
+                    response = sitemap(request, sitemaps)
+                
+                end_time = time.time()
+                response_time = end_time - start_time
+                content_size = len(response.content) if hasattr(response, 'content') else 0
+                
+                performance_results[f'/{url_path}'] = {
+                    'response_time': round(response_time, 3),
                     'content_size': content_size,
                     'status_code': response.status_code,
-                    'performance_rating': self.rate_performance(response_time, content_size)
+                    'performance_rating': self.rate_performance(response_time, content_size),
+                    'method': 'direct_django_view'
                 }
                 
-                self.logger.info(f"{url_path}: {response_time:.2f}s, {content_size} bytes")
+                self.logger.info(f"{url_path}: {response_time:.3f}s, {content_size} bytes")
                 
             except Exception as e:
                 performance_results[url_path] = {

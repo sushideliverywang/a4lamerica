@@ -55,7 +55,7 @@ class Command(BaseCommand):
         
         for url in sitemap_urls:
             try:
-                response = requests.get(url, timeout=10)
+                response = requests.get(url, timeout=30)
                 if response.status_code == 200:
                     self.stdout.write(
                         self.style.SUCCESS(f'✓ {url} - 成功生成')

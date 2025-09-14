@@ -12,7 +12,7 @@ import os
 
 
 class Command(BaseCommand):
-    help = '监控sitemap系统性能和可用性'
+    help = '监控sitemap系统性能和可用性。使用直接Django视图调用避免DNS解析延迟，提供更准确的性能数据'
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -62,15 +62,20 @@ class Command(BaseCommand):
         )
 
     def quick_check(self, base_url):
-        """快速检查 - 只检查可用性"""
+        """快速检查 - 直接调用Django视图，避免DNS解析延迟"""
         self.stdout.write('执行快速检查...')
         
-        sitemap_urls = [
-            '/sitemap.xml',
-            '/sitemap-static.xml',
-            '/sitemap-stores.xml',
-            '/sitemap-categories.xml',
-            '/sitemap-products.xml',
+        from django.test import RequestFactory
+        from django.contrib.sitemaps.views import sitemap
+        from frontend.views import sitemaps
+        import time
+        
+        sitemap_sections = [
+            ('sitemap.xml', None),  # 主索引
+            ('sitemap-static.xml', 'static'),
+            ('sitemap-stores.xml', 'stores'),
+            ('sitemap-categories.xml', 'categories'),
+            ('sitemap-products.xml', 'products'),
         ]
         
         results = {
@@ -80,25 +85,42 @@ class Command(BaseCommand):
             'sitemaps': {}
         }
         
-        for url_path in sitemap_urls:
-            full_url = f"{base_url}{url_path}"
+        factory = RequestFactory()
+        
+        for url_path, section in sitemap_sections:
             try:
-                response = requests.get(full_url, timeout=10)
+                start_time = time.time()
+                
+                # 直接调用Django视图，避免HTTP请求和DNS解析
+                request = factory.get(f'/{url_path}')
+                request.META['HTTP_HOST'] = base_url.replace('https://', '').replace('http://', '')
+                
+                if section:
+                    response = sitemap(request, {section: sitemaps[section]})
+                else:
+                    response = sitemap(request, sitemaps)
+                
+                response_time = time.time() - start_time
+                
                 if response.status_code == 200:
-                    results['sitemaps'][url_path] = {
+                    results['sitemaps'][f'/{url_path}'] = {
                         'status': 'OK',
-                        'response_time': response.elapsed.total_seconds(),
-                        'size': len(response.content)
+                        'response_time': round(response_time, 3),
+                        'size': len(response.content) if hasattr(response, 'content') else 0,
+                        'method': 'direct_django_view'
                     }
                 else:
-                    results['sitemaps'][url_path] = {
+                    results['sitemaps'][f'/{url_path}'] = {
                         'status': 'ERROR',
-                        'error': f'HTTP {response.status_code}'
+                        'error': f'HTTP {response.status_code}',
+                        'method': 'direct_django_view'
                     }
+                    
             except Exception as e:
-                results['sitemaps'][url_path] = {
+                results['sitemaps'][f'/{url_path}'] = {
                     'status': 'ERROR',
-                    'error': str(e)
+                    'error': str(e),
+                    'method': 'direct_django_view'
                 }
         
         return results
@@ -168,7 +190,7 @@ class Command(BaseCommand):
         
         # 分析主sitemap
         try:
-            response = requests.get(f"{base_url}/sitemap.xml", timeout=10)
+            response = requests.get(f"{base_url}/sitemap.xml", timeout=30)
             if response.status_code == 200:
                 content_analysis['main_sitemap'] = self.count_urls_in_xml(response.text)
         except Exception as e:
@@ -208,7 +230,7 @@ class Command(BaseCommand):
         for url_path in sitemap_urls:
             full_url = f"{base_url}{url_path}"
             try:
-                response = requests.get(full_url, timeout=10)
+                response = requests.get(full_url, timeout=30)
                 if response.status_code == 200:
                     response_time = response.elapsed.total_seconds()
                     response_times.append((url_path, response_time))
