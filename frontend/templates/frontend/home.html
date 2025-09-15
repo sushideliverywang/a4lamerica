@@ -20,6 +20,22 @@ appliances, refrigerators, washers, dryers, stoves, dishwashers, Appliances 4 Le
 {% block hero_section %}{% endblock %}
 
 {% block content %}
+<!-- 结构化数据 - 网站信息 -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "Appliances 4 Less Doraville",
+  "url": "{{ request.scheme }}://{{ request.get_host }}/",
+  "description": "Quality appliances store offering refrigerators, washers, dryers, stoves, dishwashers and more with competitive prices and excellent customer service.",
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": "{{ request.scheme }}://{{ request.get_host }}/search?q={search_term_string}",
+    "query-input": "required name=search_term_string"
+  }
+}
+</script>
+
 <!-- 结构化数据 - 本地商家信息 -->
 <script type="application/ld+json">
 [
@@ -30,7 +46,7 @@ appliances, refrigerators, washers, dryers, stoves, dishwashers, Appliances 4 Le
     "description": "Quality appliances store offering refrigerators, washers, dryers, stoves, dishwashers and more with competitive prices and excellent customer service.",
     "url": "{{ request.scheme }}://{{ request.get_host }}/",
     "logo": "{{ request.scheme }}://{{ request.get_host }}{% static 'frontend/images/logo.png' %}",
-    "foundingDate": "2018",
+    "foundingDate": "2020",
     "sameAs": [],
     "contactPoint": {
       "@type": "ContactPoint",
@@ -70,17 +86,17 @@ appliances, refrigerators, washers, dryers, stoves, dishwashers, Appliances 4 Le
       "addressRegion": "{{ store.address.state }}",
       "postalCode": "{{ store.address.zip_code }}",
       "addressCountry": "US"
-    }{% if store.address.latitude and store.address.longitude %},
+    },
     "geo": {
       "@type": "GeoCoordinates",
       "latitude": "{{ store.address.latitude }}",
       "longitude": "{{ store.address.longitude }}"
-    }{% endif %},
+    },
     "openingHoursSpecification": [
       {% for hours in store.business_hours.all %}
       {
         "@type": "OpeningHoursSpecification",
-        "dayOfWeek": "{{ hours.get_day_of_week_display }}",
+        "dayOfWeek": "https://schema.org/{{ hours.get_day_of_week_display }}",
         "opens": "{{ hours.open_time|time:'H:i' }}",
         "closes": "{{ hours.close_time|time:'H:i' }}"
       }{% if not forloop.last %},{% endif %}

@@ -8,6 +8,82 @@
 {% block body_class %}store-page{% endblock %}
 
 {% block content %}
+<!-- 结构化数据 - 店铺信息 -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "LocalBusiness",
+  "name": "{{ location.name }}",
+  "description": "{{ location.name }} - Quality appliances store offering refrigerators, washers, dryers, stoves, dishwashers and more.",
+  "url": "{{ request.scheme }}://{{ request.get_host }}{% url 'frontend:store' location.slug %}",
+  "image": "{% if location.image %}{{ request.scheme }}://{{ request.get_host }}{{ location.image.url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{% static 'frontend/images/store-default.png' %}{% endif %}",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "{{ location.address.street_number }} {{ location.address.street_name }}",
+    "addressLocality": "{{ location.address.city }}",
+    "addressRegion": "{{ location.address.state }}",
+    "postalCode": "{{ location.address.zip_code }}",
+    "addressCountry": "US"
+  },
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": "{{ location.address.latitude }}",
+    "longitude": "{{ location.address.longitude }}"
+  },
+  "openingHoursSpecification": [
+    {% for hours in location.business_hours.all %}
+    {
+      "@type": "OpeningHoursSpecification",
+      "dayOfWeek": "https://schema.org/{{ hours.get_day_of_week_display }}",
+      "opens": "{{ hours.open_time|time:'H:i' }}",
+      "closes": "{{ hours.close_time|time:'H:i' }}"
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+  ],
+  "hasOfferCatalog": {
+    "@type": "OfferCatalog",
+    "name": "{{ location.name }} Appliances Catalog",
+    "description": "Browse our selection of quality appliances including refrigerators, washers, dryers, stoves, dishwashers and more.",
+    "itemListElement": [
+      {% for category, items in category_items.items %}
+      {
+        "@type": "Offer",
+        "itemOffered": {
+          "@type": "Product",
+          "name": "{{ category.name }} Appliances",
+          "description": "{{ category.name }} appliances and accessories available at {{ location.name }}",
+          "category": "{{ category.name }}"
+        },
+        "url": "{{ request.scheme }}://{{ request.get_host }}{% url 'frontend:category' category.slug %}?store={{ location.slug }}"
+      }{% if not forloop.last %},{% endif %}
+      {% endfor %}
+    ]
+  }
+}
+</script>
+
+<!-- 面包屑导航结构化数据 -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": "{{ request.scheme }}://{{ request.get_host }}{% url 'frontend:home' %}"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "{{ location.name }}",
+      "item": "{{ request.build_absolute_uri }}"
+    }
+  ]
+}
+</script>
+
 <!-- 商店信息头部 -->
 <div class="bg-background-light mt-6">
     <div class="container mx-auto px-4 py-8">

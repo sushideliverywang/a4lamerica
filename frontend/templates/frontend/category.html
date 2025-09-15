@@ -5,6 +5,81 @@
 {% block body_class %}category-page{% endblock %}
 
 {% block content %}
+<!-- 结构化数据 - 分类页面信息 -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "name": "{% if is_store_mode %}{{ store.name }} - {{ category.name }}{% else %}{{ category.name }}{% endif %}",
+  "description": "Browse {{ category.name }} appliances and accessories{% if is_store_mode %} at {{ store.name }}{% endif %}",
+  "url": "{{ request.build_absolute_uri }}",
+  "mainEntity": {
+    "@type": "ItemList",
+    "name": "{{ category.name }} Products",
+    "description": "{{ category.name }} appliances and accessories",
+    "numberOfItems": "{{ current_category_items|length }}",
+    "itemListElement": [
+      {% for item in current_category_items %}
+      {
+        "@type": "Product",
+        "name": "{{ item.model_number.brand.name }} {{ item.model_number.model_number }}",
+        "description": "{% if item.item_description %}{{ item.item_description|escapejs }}{% elif item.model_number.description %}{{ item.model_number.description|striptags|escapejs }}{% else %}{{ item.model_number.brand.name }} {{ item.model_number.model_number }} - {{ item.model_number.category.name }}{% endif %}",
+        "brand": {
+          "@type": "Brand",
+          "name": "{{ item.model_number.brand.name }}"
+        },
+        "model": "{{ item.model_number.model_number }}",
+        "category": "{{ item.model_number.category.name }}",
+        "sku": "{{ item.control_number }}",
+        "condition": "{{ item.get_condition_display }}",
+        "url": "{{ request.scheme }}://{{ request.get_host }}{% url 'frontend:item_detail' item|item_hash %}",
+        "image": "{% if item.item_images %}{{ request.scheme }}://{{ request.get_host }}{{ item.item_images.0.image.url }}{% elif item.model_number.model_images %}{{ request.scheme }}://{{ request.get_host }}{{ item.model_number.model_images.0.image.url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{% static 'frontend/images/product-default.png' %}{% endif %}",
+        "offers": {
+          "@type": "Offer",
+          "price": "{{ item.retail_price }}",
+          "priceCurrency": "USD",
+          "availability": "https://schema.org/InStock",
+          "seller": {
+            "@type": "Organization",
+            "name": "{{ item.location.name }}",
+            "url": "{{ request.scheme }}://{{ request.get_host }}{% url 'frontend:store' item.location.slug %}"
+          }
+        }
+      }{% if not forloop.last %},{% endif %}
+      {% endfor %}
+    ]
+  }
+}
+</script>
+
+<!-- 面包屑导航结构化数据 -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": "{{ request.scheme }}://{{ request.get_host }}{% url 'frontend:home' %}"
+    }{% if is_store_mode %},
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "{{ store.name }}",
+      "item": "{{ request.scheme }}://{{ request.get_host }}{% url 'frontend:store' store.slug %}"
+    }{% endif %},
+    {
+      "@type": "ListItem",
+      "position": {% if is_store_mode %}3{% else %}2{% endif %},
+      "name": "{{ category.name }}",
+      "item": "{{ request.build_absolute_uri }}"
+    }
+  ]
+}
+</script>
+
 <div class="container mx-auto px-2 sm:px-4 py-8">
     <!-- 面包屑导航 -->
     <nav class="breadcrumb-nav mb-4 md:mb-6 mt-4">
