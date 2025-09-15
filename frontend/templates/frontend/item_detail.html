@@ -176,7 +176,7 @@
   ],
   "offers": {
     "@type": "Offer",
-    "price": "{{ item.retail_price }}",
+    "price": {{ item.retail_price }},
     "priceCurrency": "USD",
     "availability": "https://schema.org/InStock",
     "seller": {
@@ -186,7 +186,7 @@
       {% if item.location.address %}
       ,"address": {
         "@type": "PostalAddress",
-        "streetAddress": "{{ item.location.address.street_address }}",
+        "streetAddress": "{{ item.location.address.street_number }} {{ item.location.address.street_name }}",
         "addressLocality": "{{ item.location.address.city }}",
         "addressRegion": "{{ item.location.address.state }}",
         "postalCode": "{{ item.location.address.zip_code }}",
@@ -238,7 +238,7 @@
   {% if item.location.address %}
   ,"address": {
     "@type": "PostalAddress",
-    "streetAddress": "{{ item.location.address.street_address }}",
+    "streetAddress": "{{ item.location.address.street_number }} {{ item.location.address.street_name }}",
     "addressLocality": "{{ item.location.address.city }}",
     "addressRegion": "{{ item.location.address.state }}",
     "postalCode": "{{ item.location.address.zip_code }}",

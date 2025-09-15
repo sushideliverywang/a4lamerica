@@ -36,7 +36,7 @@
         "image": "{% if item.item_images %}{{ request.scheme }}://{{ request.get_host }}{{ item.item_images.0.image.url }}{% elif item.model_number.model_images %}{{ request.scheme }}://{{ request.get_host }}{{ item.model_number.model_images.0.image.url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{% static 'frontend/images/product-default.png' %}{% endif %}",
         "offers": {
           "@type": "Offer",
-          "price": "{{ item.retail_price }}",
+          "price": {{ item.retail_price }},
           "priceCurrency": "USD",
           "availability": "https://schema.org/InStock",
           "seller": {
