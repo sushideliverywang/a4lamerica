@@ -47,13 +47,10 @@
     "itemListElement": [
       {% for category, items in category_items.items %}
       {
-        "@type": "Offer",
-        "itemOffered": {
-          "@type": "Product",
-          "name": "{{ category.name }} Appliances",
-          "description": "{{ category.name }} appliances and accessories available at {{ location.name }}",
-          "category": "{{ category.name }}"
-        },
+        "@type": "ItemList",
+        "name": "{{ category.name }}",
+        "description": "{{ category.name }} appliances and installations available at {{ location.name }}",
+        "numberOfItems": "{{ items|length }}",
         "url": "{{ request.scheme }}://{{ request.get_host }}{% url 'frontend:category' category.slug %}?store={{ location.slug }}"
       }{% if not forloop.last %},{% endif %}
       {% endfor %}
@@ -190,23 +187,32 @@
     <div class="product-scroll-container">
         <div class="product-scroll-wrapper" id="scroll-wrapper-{{ category.id }}">
             {% for item in items %}
-            <a href="{% url 'frontend:item_detail' item|item_hash %}" class="block">
+            <a href="{% url 'frontend:item_detail' item|item_hash %}" class="block" itemprop="itemListElement" itemscope itemtype="https://schema.org/Product">
+                <meta itemprop="name" content="{{ item.model_number.brand.name }} {{ item.model_number.model_number }}">
                 <div class="product-card">
                     {% if item.item_images %}
-                        <img src="{{ item.item_images.0.image.url }}" alt="{{ item.name }}">
+                        <img src="{{ item.item_images.0.image.url }}" 
+                             alt="{{ item.model_number.brand.name }} {{ item.model_number.model_number }} - {{ item.model_number.category.name }} at {{ location.name }}"
+                             itemprop="image">
                     {% elif item.model_number.model_images %}
-                        <img src="{{ item.model_number.model_images.0.image.url }}" alt="{{ item.name }}">
+                        <img src="{{ item.model_number.model_images.0.image.url }}" 
+                             alt="{{ item.model_number.brand.name }} {{ item.model_number.model_number }} - {{ item.model_number.category.name }} at {{ location.name }}"
+                             itemprop="image">
                     {% else %}
-                        <img src="{% static 'frontend/images/product-default.png' %}" alt="{{ item.name }}">
+                        <img src="{% static 'frontend/images/product-default.png' %}" 
+                             alt="{{ item.model_number.brand.name }} {{ item.model_number.model_number }} - {{ item.model_number.category.name }} at {{ location.name }}"
+                             itemprop="image">
                     {% endif %}
                     <div class="product-info">
                         <div class="brand-model">
-                            <div class="brand">{{ item.model_number.brand.name }}</div>
-                            <div class="model">{{ item.model_number.model_number }}</div>
+                            <div class="brand" itemprop="brand" itemscope itemtype="https://schema.org/Brand">
+                                <span itemprop="name">{{ item.model_number.brand.name }}</span>
+                            </div>
+                            <div class="model" itemprop="model">{{ item.model_number.model_number }}</div>
                         </div>
-                        <div class="price-info">
+                        <div class="price-info" itemprop="offers" itemscope itemtype="https://schema.org/Offer">
                             <div class="flex justify-between items-center">
-                                <div class="text-lg font-bold text-text-primary">${{ item.retail_price }}</div>
+                                <div class="text-lg font-bold text-text-primary" itemprop="price">${{ item.retail_price }}</div>
                                 {% if item.model_number.msrp %}
                                 <div class="text-xs text-text-secondary line-through">MSRP: ${{ item.model_number.msrp }}</div>
                                 {% endif %}
@@ -214,6 +220,10 @@
                             {% if item.model_number.msrp %}
                             <div class="text-xs text-success">Save ${{ item.savings|floatformat:2 }} ({{ item.savings_percentage|floatformat:0 }}%)</div>
                             {% endif %}
+                            <meta itemprop="priceCurrency" content="USD">
+                            <meta itemprop="availability" content="https://schema.org/InStock">
+                            <meta itemprop="seller" itemscope itemtype="https://schema.org/Organization">
+                                <meta itemprop="name" content="{{ location.name }}">
                         </div>
                         <div class="store-info">
                             <span class="flex-1">{{ location.name }}</span>

@@ -203,7 +203,7 @@ appliances, refrigerators, washers, dryers, stoves, dishwashers, Appliances 4 Le
     <div class="product-scroll-container">
         <div class="product-scroll-wrapper" id="scroll-wrapper-{{ category.id }}">
             {% for item in items %}
-            <a href="{% url 'frontend:item_detail' item|item_hash %}" class="block" itemprop="itemListElement" itemscope itemtype="https://schema.org/Offer">
+            <a href="{% url 'frontend:item_detail' item|item_hash %}" class="block" itemprop="itemListElement" itemscope itemtype="https://schema.org/Product">
                 <meta itemprop="name" content="{{ item.model_number.brand.name }} {{ item.model_number.model_number }}">
                 <div class="product-card">
                     {% if item.item_images %}
@@ -219,15 +219,14 @@ appliances, refrigerators, washers, dryers, stoves, dishwashers, Appliances 4 Le
                              alt="{{ item.model_number.brand.name }} {{ item.model_number.model_number }} - {{ item.model_number.category.name }} at {{ item.location.name }}"
                              itemprop="image">
                     {% endif %}
-                    <div class="product-info" itemprop="itemOffered" itemscope itemtype="https://schema.org/Product">
-                        <meta itemprop="name" content="{{ item.model_number.brand.name }} {{ item.model_number.model_number }}">
+                    <div class="product-info">
                         <div class="brand-model">
                             <div class="brand" itemprop="brand" itemscope itemtype="https://schema.org/Brand">
                                 <span itemprop="name">{{ item.model_number.brand.name }}</span>
                             </div>
                             <div class="model" itemprop="model">{{ item.model_number.model_number }}</div>
                         </div>
-                        <div class="price-info">
+                        <div class="price-info" itemprop="offers" itemscope itemtype="https://schema.org/Offer">
                             <div class="flex justify-between items-center">
                                 <div class="text-lg font-bold text-text-primary" itemprop="price">${{ item.retail_price }}</div>
                                 {% if item.model_number.msrp %}
@@ -239,6 +238,8 @@ appliances, refrigerators, washers, dryers, stoves, dishwashers, Appliances 4 Le
                             {% endif %}
                             <meta itemprop="priceCurrency" content="USD">
                             <meta itemprop="availability" content="https://schema.org/InStock">
+                            <meta itemprop="seller" itemscope itemtype="https://schema.org/Organization">
+                                <meta itemprop="name" content="{% if item.location %}{{ item.location.name }}{% else %}Appliances 4 Less{% endif %}">
                         </div>
                         <div class="store-info">
                             {% if item.location and item.location.image %}
