@@ -189,6 +189,7 @@
             {% for item in items %}
             <a href="{% url 'frontend:item_detail' item|item_hash %}" class="block" itemprop="itemListElement" itemscope itemtype="https://schema.org/Product">
                 <meta itemprop="name" content="{{ item.model_number.brand.name }} {{ item.model_number.model_number }}">
+                <meta itemprop="description" content="{% if item.model_number.description %}{{ item.model_number.description|striptags|escapejs }}{% else %}{{ item.model_number.brand.name }} {{ item.model_number.model_number }} - {{ item.model_number.category.name }} at {{ location.name }}{% endif %}">
                 <div class="product-card">
                     {% if item.item_images %}
                         <img src="{{ item.item_images.0.image.url }}" 
@@ -212,7 +213,7 @@
                         </div>
                         <div class="price-info" itemprop="offers" itemscope itemtype="https://schema.org/Offer">
                             <div class="flex justify-between items-center">
-                                <div class="text-lg font-bold text-text-primary" itemprop="price">${{ item.retail_price }}</div>
+                                <div class="text-lg font-bold text-text-primary" itemprop="price" content="{{ item.retail_price }}">${{ item.retail_price }}</div>
                                 {% if item.model_number.msrp %}
                                 <div class="text-xs text-text-secondary line-through">MSRP: ${{ item.model_number.msrp }}</div>
                                 {% endif %}
@@ -222,6 +223,25 @@
                             {% endif %}
                             <meta itemprop="priceCurrency" content="USD">
                             <meta itemprop="availability" content="https://schema.org/InStock">
+                            <meta itemprop="shippingDetails" itemscope itemtype="https://schema.org/OfferShippingDetails">
+                                <meta itemprop="shippingRate" itemscope itemtype="https://schema.org/MonetaryAmount">
+                                    <meta itemprop="value" content="0">
+                                    <meta itemprop="currency" content="USD">
+                                <meta itemprop="shippingDestination" itemscope itemtype="https://schema.org/DefinedRegion">
+                                    <meta itemprop="addressCountry" content="US">
+                                    <meta itemprop="geoRadius" content="16093.4">
+                                <meta itemprop="shippingLabel" content="Free delivery within 10 miles">
+                                <meta itemprop="deliveryTime" itemscope itemtype="https://schema.org/ShippingDeliveryTime">
+                                    <meta itemprop="businessDays" itemscope itemtype="https://schema.org/OpeningHoursSpecification">
+                                        <meta itemprop="dayOfWeek" content="Monday,Tuesday,Wednesday,Thursday,Friday,Saturday">
+                                    <meta itemprop="handlingTime" itemscope itemtype="https://schema.org/QuantitativeValue">
+                                        <meta itemprop="minValue" content="1">
+                                        <meta itemprop="maxValue" content="3">
+                                        <meta itemprop="unitCode" content="DAY">
+                            <meta itemprop="hasMerchantReturnPolicy" itemscope itemtype="https://schema.org/MerchantReturnPolicy">
+                                <meta itemprop="returnPolicyCategory" content="https://schema.org/MerchantReturnNotPermitted">
+                                <meta itemprop="customerRemorseReturnFees" content="https://schema.org/ReturnFeesCustomerResponsibility">
+                                <meta itemprop="returnPolicyCountry" content="US">
                             <meta itemprop="seller" itemscope itemtype="https://schema.org/Organization">
                                 <meta itemprop="name" content="{{ location.name }}">
                         </div>
