@@ -380,11 +380,9 @@ class ItemDetailView(DetailViewMixin, DetailView):
         else:
             item.warranty_display = "No Warranty"
         
-        # 初始化默认值
+        # 获取收藏总数 - 对所有用户显示
         context.update({
-            'is_favorited': False,
-            'favorite_count': 0,
-            'is_in_cart': False,
+            'favorite_count': CustomerFavorite.objects.filter(item=item).count(),
             'breadcrumbs': [
                 {'name': 'Home', 'url': reverse('frontend:home')},
                 {'name': item.model_number.category.name, 'url': reverse('frontend:category', args=[item.model_number.category.slug])},
@@ -392,7 +390,7 @@ class ItemDetailView(DetailViewMixin, DetailView):
             ]
         })
         
-        # 如果用户已登录，获取收藏和购物车状态
+        # 如果用户已登录，获取个人收藏和购物车状态
         if self.request.user.is_authenticated:
             try:
                 customer = self.request.user.customer
@@ -403,9 +401,6 @@ class ItemDetailView(DetailViewMixin, DetailView):
                     item=item
                 ).exists()
                 
-                # 获取收藏总数
-                context['favorite_count'] = CustomerFavorite.objects.filter(item=item).count()
-                
                 # 检查是否在购物车中
                 context['is_in_cart'] = ShoppingCart.objects.filter(
                     customer=customer,
@@ -414,7 +409,16 @@ class ItemDetailView(DetailViewMixin, DetailView):
                 
             except Exception:
                 # 如果获取用户信息失败，保持默认值
-                pass
+                context.update({
+                    'is_favorited': False,
+                    'is_in_cart': False
+                })
+        else:
+            # 未登录用户设置默认值
+            context.update({
+                'is_favorited': False,
+                'is_in_cart': False
+            })
         
         return context
 
