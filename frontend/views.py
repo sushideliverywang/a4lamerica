@@ -33,7 +33,8 @@ from decimal import Decimal
 from django.utils.decorators import method_decorator
 import pytz
 import re
-from .utils import decode_item_id, get_item_hash, generate_order_number
+from .utils import decode_item_id, get_item_hash, get_seo_data
+from .config.seo_keywords import CITIES, SERVICE_TYPES
 from django.views.decorators.csrf import csrf_exempt
 import logging
 
@@ -183,9 +184,19 @@ class HomeView(BaseFrontendMixin, TemplateView):
                 
                 category_items[category] = items
         
+        # 为首页创建简化的城市数据，只包含必要的字段
+        minimal_cities = {}
+        for city_key, city_info in CITIES.items():
+            minimal_cities[city_key] = {
+                'name': city_info['name'],
+                'image_desktop': city_info['image_desktop'],
+                'image_mobile': city_info.get('image_mobile', city_info['image_desktop'])
+            }
+
         context.update({
             'stores': stores,
-            'category_items': category_items
+            'category_items': category_items,
+            'cities': minimal_cities
         })
         return context
 
@@ -1468,8 +1479,8 @@ def create_order(request):
         
         # 步骤1：创建订单
         # 使用order app中的订单编号生成函数
-        order_number = generate_order_number(location)
-        
+        # order_number = generate_order_number(location)
+        order_number = None
         # 获取配送地址
         shipping_address = None
         shipping_miles = 0
@@ -1486,7 +1497,7 @@ def create_order(request):
                 pass
         
         order = Order.objects.create(
-            order_number=order_number,
+            order_number=order_number if order_number else None,
             company_id=company_id,
             customer=request.user.customer,
             location_id=location_id,
@@ -2219,6 +2230,7 @@ Allow: /*/                          # 所有商店页面 (doraville-store/, atla
 Allow: /category/
 Allow: /item/
 Allow: /search/
+Allow: /services/                    # SEO服务页面
 
 # === 法律和政策页面 - SEO友好 ===
 Allow: /privacy-policy/
@@ -2279,6 +2291,7 @@ Allow: /*/
 Allow: /category/
 Allow: /item/
 Allow: /search/
+Allow: /services/                    # SEO服务页面
 Allow: /static/frontend/images/      # 产品图片
 Allow: /media/                       # 媒体图片
 Crawl-delay: 1
@@ -2296,12 +2309,14 @@ Allow: /
 Allow: /*/
 Allow: /category/
 Allow: /item/
+Allow: /services/                    # SEO服务页面
 Crawl-delay: 1
 
 # === 购物比较网站 ===
 User-agent: Slurp
 Allow: /item/
 Allow: /category/
+Allow: /services/                    # SEO服务页面
 Allow: /static/frontend/images/
 Crawl-delay: 2
 
@@ -2325,6 +2340,7 @@ Sitemap: https://a4lamerica.com/sitemap-static.xml
 Sitemap: https://a4lamerica.com/sitemap-stores.xml
 Sitemap: https://a4lamerica.com/sitemap-categories.xml
 Sitemap: https://a4lamerica.com/sitemap-products.xml
+Sitemap: https://a4lamerica.com/sitemap-seo_services.xml
 
 # === 全局爬取设置 ===
 Crawl-delay: 1"""
@@ -2335,7 +2351,8 @@ Crawl-delay: 1"""
 # 导入sitemap配置
 from .sitemaps import (
     StaticViewSitemap, StoreSitemap, CategorySitemap, 
-    ProductSitemap, WarrantyPolicySitemap, TermsConditionsSitemap
+    ProductSitemap, WarrantyPolicySitemap, TermsConditionsSitemap,
+    SEOServiceListSitemap
 )
 
 # 网站地图配置字典
@@ -2346,6 +2363,7 @@ sitemaps = {
     'products': ProductSitemap,
     'warranty': WarrantyPolicySitemap,
     'terms': TermsConditionsSitemap,
+    'seo_services': SEOServiceListSitemap,
 }
 
 # 网站地图视图
@@ -2363,3 +2381,56 @@ def sitemap_view(request, section=None):
     else:
         # sitemap索引
         return sitemap(request, sitemaps)
+
+
+# === SEO页面视图 ===
+
+
+class SEOServiceListView(TemplateView):
+    """
+    服务类型列表页面
+    显示特定城市的所有服务，或者显示所有服务（当没有指定城市时）
+    """
+    template_name = 'frontend/seo_service_list.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        city_key = kwargs.get('city_key')
+        
+        # 为服务添加key字段
+        services_with_keys = {}
+        for service_key, service_info in SERVICE_TYPES.items():
+            service_with_key = service_info.copy()
+            service_with_key['key'] = service_key
+            services_with_keys[service_key] = service_with_key
+        
+        context['services'] = services_with_keys
+        
+        # 如果提供了city_key，则显示城市信息
+        if city_key:
+            # 验证城市是否存在
+            if city_key not in CITIES:
+                raise Http404("城市不存在")
+            
+            city = CITIES[city_key].copy()  # 创建副本避免修改原始数据
+            city['key'] = city_key  # 添加key字段
+            
+            # 获取附近城市的详细信息
+            nearby_cities = []
+            for nearby_city_name in city['nearby_cities']:
+                # 查找对应的城市键名
+                for key, city_data in CITIES.items():
+                    if city_data['name'] == nearby_city_name:
+                        nearby_city_info = city_data.copy()
+                        nearby_city_info['key'] = key
+                        nearby_cities.append(nearby_city_info)
+                        break
+            
+            city['nearby_cities'] = nearby_cities
+            context['city'] = city
+        else:
+            # 没有指定城市时，不显示城市信息
+            context['city'] = None
+        
+        return context

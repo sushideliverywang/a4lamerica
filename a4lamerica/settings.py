@@ -321,7 +321,6 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
-    BASE_DIR / 'static',
     BASE_DIR / 'frontend' / 'static',  # 只保留 frontend 的静态文件
 ]
 STATIC_ROOT = BASE_DIR / 'staticfiles'

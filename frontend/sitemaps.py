@@ -6,6 +6,7 @@ from django.contrib.sitemaps import Sitemap
 from django.urls import reverse
 from django.utils import timezone
 from .models_proxy import Location, Category, InventoryItem
+from .config.seo_keywords import CITIES
 from django.conf import settings
 import logging
 
@@ -186,3 +187,54 @@ class TermsConditionsSitemap(Sitemap):
     
     def lastmod(self, obj):
         return obj.updated_at if hasattr(obj, 'updated_at') else timezone.now()
+
+
+class SEOServiceListSitemap(Sitemap):
+    """
+    SEO服务列表页面网站地图
+    包括通用服务页面和所有城市特定的服务页面
+    """
+    priority = 0.8
+    changefreq = 'weekly'
+    protocol = 'https' if not settings.DEBUG else 'http'
+    
+    def items(self):
+        # 返回所有城市键名，包括通用服务页面
+        items = []
+        
+        # 添加通用服务页面（无城市参数）
+        items.append({
+            'type': 'general',
+            'city_key': None,
+            'city_name': 'Services',
+            'lastmod': timezone.now()
+        })
+        
+        # 添加所有城市特定的服务页面
+        for city_key, city_info in CITIES.items():
+            items.append({
+                'type': 'city',
+                'city_key': city_key,
+                'city_name': city_info['name'],
+                'lastmod': timezone.now()
+            })
+        
+        return items
+    
+    def location(self, obj):
+        if obj['type'] == 'general':
+            # 通用服务页面
+            return reverse('frontend:seo_service_list')
+        else:
+            # 城市特定服务页面
+            return reverse('frontend:seo_service_list', kwargs={'city_key': obj['city_key']})
+    
+    def lastmod(self, obj):
+        return obj['lastmod']
+    
+    def priority(self, obj):
+        # 通用服务页面优先级更高
+        if obj['type'] == 'general':
+            return 0.9
+        else:
+            return 0.8

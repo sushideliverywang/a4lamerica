@@ -148,46 +148,8 @@ const components = {
     // 产品展示组件
     productDisplay: {
         init(container) {
-            const wrapper = container.querySelector('.product-scroll-wrapper');
-            const prevButton = container.querySelector('.scroll-button.prev');
-            const nextButton = container.querySelector('.scroll-button.next');
-            
-            function scrollProducts(direction) {
-                const scrollAmount = 320; // 卡片宽度 + 间距
-                
-                if (direction === 'next') {
-                    wrapper.scrollBy({
-                        left: scrollAmount,
-                        behavior: 'smooth'
-                    });
-                } else {
-                    wrapper.scrollBy({
-                        left: -scrollAmount,
-                        behavior: 'smooth'
-                    });
-                }
-            }
-
-            function updateScrollButtons() {
-                if (prevButton) {
-                    prevButton.style.display = wrapper.scrollLeft > 0 ? 'flex' : 'none';
-                }
-                if (nextButton) {
-                    nextButton.style.display = 
-                        wrapper.scrollLeft < wrapper.scrollWidth - wrapper.clientWidth ? 'flex' : 'none';
-                }
-            }
-            
-            if (prevButton) {
-                prevButton.addEventListener('click', () => scrollProducts('prev'));
-            }
-            if (nextButton) {
-                nextButton.addEventListener('click', () => scrollProducts('next'));
-            }
-            
-            wrapper.addEventListener('scroll', updateScrollButtons);
-            window.addEventListener('resize', updateScrollButtons);
-            updateScrollButtons();
+            // 产品展示组件已简化，不再需要滚动按钮功能
+            // 因为home页面每行正好显示6个产品，无需滚动
         }
     }
 };

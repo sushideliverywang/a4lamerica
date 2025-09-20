@@ -1,0 +1,137 @@
+{% extends "frontend/base_frontend.html" %}
+{% load static %}
+
+{% block title %}{% if city %}{{ city.name }} Appliance Service - Appliances 4 Less{% else %}Appliance Services - Appliances 4 Less{% endif %}{% endblock %}
+
+{% block meta_description %}{% if city %}Professional appliance service in {{ city.name }}, including delivery, installation, and haul away.{% else %}Professional appliance services including delivery, installation, and haul away.{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <!-- 面包屑导航 -->
+    <nav aria-label="breadcrumb" class="mb-8">
+        <ol class="flex items-center space-x-2 text-sm">
+            <li><a href="{% url 'frontend:home' %}" class="text-primary hover:text-secondary">Home</a></li>
+            <li class="text-gray-400">/</li>
+            <li class="text-gray-600" aria-current="page">{% if city %}{{ city.name }}{% else %}Services{% endif %}</li>
+        </ol>
+    </nav>
+
+    <!-- 服务列表 -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {% for service_key, service_info in services.items %}
+            <div class="service-card">
+                <div class="service-info">
+                    <h3 class="service-title">{{ service_info.name }}</h3>
+                    <p class="service-description">{{ service_info.description|truncatewords:35 }}</p>
+                    
+                    <div class="service-details">
+                        <div class="price-info">
+                            <span class="price-label">Price</span>
+                            <span class="price-value">{{ service_info.price_range }}</span>
+                        </div>
+                        <div class="duration-info">
+                            <span class="duration-label">Duration</span>
+                            <span class="duration-value">{{ service_info.duration }}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="service-features">
+                        <h6 class="features-title">Service Features</h6>
+                        <ul class="features-list">
+                            {% for feature in service_info.features|slice:":4" %}
+                                <li><i class="fas fa-check"></i>{{ feature }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    {% if city %}
+    <!-- 城市介绍区域 -->
+    <div class="mt-16 mb-12">
+        <div class="bg-gradient-to-r from-primary/5 to-secondary/5 rounded-2xl p-8 md:p-12">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+                <!-- 左侧内容 -->
+                <div class="space-y-6">
+                    <div>
+                        <h1 class="text-4xl md:text-5xl font-bold text-primary mb-4">
+                            About {{ city.name }}
+                        </h1>
+                        <p class="text-lg text-text-secondary leading-relaxed">
+                            {{ city.description }}
+                        </p>
+                    </div>
+                    
+                    <!-- 城市统计信息 -->
+                    <div class="grid grid-cols-2 gap-6">
+                        <div class="bg-white/50 rounded-xl p-4 text-center">
+                            <div class="text-2xl font-bold text-primary mb-1">{{ city.population }}</div>
+                            <div class="text-sm text-text-secondary">Population</div>
+                        </div>
+                        <div class="bg-white/50 rounded-xl p-4 text-center">
+                            <div class="text-2xl font-bold text-primary mb-1">{{ city.area }}</div>
+                            <div class="text-sm text-text-secondary">Area</div>
+                        </div>
+                    </div>
+                    
+                    <!-- 城市亮点 -->
+                    <div>
+                        <h3 class="text-xl font-semibold text-primary mb-4">City Highlights</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {% for highlight in city.highlights %}
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-2 h-2 bg-secondary rounded-full flex-shrink-0"></div>
+                                    <span class="text-text-secondary">{{ highlight }}</span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 右侧图片 -->
+                <div class="relative">
+                    <div class="relative overflow-hidden rounded-2xl shadow-2xl">
+                        <picture>
+                            <source media="(max-width: 768px)" srcset="{{ city.image_mobile }}">
+                            <img src="{{ city.image_desktop }}" 
+                                 alt="{{ city.name }}" 
+                                 class="w-full h-64 md:h-80 lg:h-96 object-cover">
+                        </picture>
+                        <!-- 图片覆盖层 -->
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+                    </div>
+                    <!-- 装饰性元素 -->
+                    <div class="absolute -top-4 -right-4 w-24 h-24 bg-secondary/20 rounded-full blur-xl"></div>
+                    <div class="absolute -bottom-4 -left-4 w-32 h-32 bg-primary/20 rounded-full blur-xl"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    {% if city %}
+    <!-- 附近城市 -->
+    <div class="mt-12">
+        <h2 class="text-2xl font-bold text-text-primary mb-6 text-center">Nearby City Services</h2>
+        <div class="city-grid">
+            {% for nearby_city in city.nearby_cities %}
+                <a href="{% url 'frontend:seo_service_list' city_key=nearby_city.key %}" class="city-card-link">
+                    <div class="city-card">
+                        <div class="city-image-container">
+                            <picture>
+                                <source media="(max-width: 767px)" srcset="{{ nearby_city.image_mobile }}">
+                                <img src="{{ nearby_city.image_desktop }}" alt="{{ nearby_city.name }}">
+                            </picture>
+                            <div class="city-name-overlay">
+                                <h3>{{ nearby_city.name }}</h3>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

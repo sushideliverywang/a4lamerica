@@ -46,6 +46,10 @@ urlpatterns = [
     path('sitemap.xml', views.sitemap_view, name='sitemap'),
     path('sitemap-<str:section>.xml', views.sitemap_view, name='sitemap_section'),
     
+    # SEO页面URL
+    path('services/', views.SEOServiceListView.as_view(), name='seo_service_list'),
+    path('services/<str:city_key>/', views.SEOServiceListView.as_view(), name='seo_service_list'),
+    
     # 商店页面URL（注意：这个URL需要放在最后，避免与其他URL冲突）
     # 排除已知的系统路径，避免冲突
     path('<slug:location_slug>/', views.StoreView.as_view(), name='store'),
