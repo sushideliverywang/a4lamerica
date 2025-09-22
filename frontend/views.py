@@ -497,6 +497,15 @@ class CategoryView(BaseFrontendMixin, TemplateView):
         # 合并两个查询集
         current_category_items = list(items_with_images) + list(items_without_images)
         
+        # 为当前类别的商品计算节省金额
+        for item in current_category_items:
+            if item.model_number.msrp:
+                item.savings = item.model_number.msrp - item.retail_price
+                item.savings_percentage = (item.savings / item.model_number.msrp) * 100
+            else:
+                item.savings = 0
+                item.savings_percentage = 0
+        
         if has_subcategories:
             # 如果有子类别，获取所有子类别
             subcategories = Category.objects.filter(parent_category_id=category.id)
