@@ -70,7 +70,7 @@ PRODUCT_SEO_PAGES = {
         'title': 'Bespoke Kitchen Appliance Sets Near Chamblee GA',
         'meta_description': 'Complete bespoke kitchen appliance packages in Chamblee. Matching refrigerator, stove, dishwasher sets. Professional installation available.',
         'h1_title': 'Bespoke Kitchen Appliance Sets in Chamblee',
-        'short_title': 'Appliance Sets',
+        'short_title': 'Bespoke Kitchen Sets',
         'city_key': 'chamblee',
         'show_on_homepage': True,
         'homepage_priority': 2,
@@ -110,7 +110,7 @@ PRODUCT_SEO_PAGES = {
             'Same brand coordination options'
         ],
 
-        'featured_image': '/static/frontend/images/products/bespoke-kitchen-appliance-set.jpg',
+        'featured_image': '/static/frontend/images/products/bespoke-kitchen-appliance-set.webp',
         'background_image': '/static/frontend/images/city/Desktop-Chamblee.webp',
         'icon': 'appliance-set',
     },
