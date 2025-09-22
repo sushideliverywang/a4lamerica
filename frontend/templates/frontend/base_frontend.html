@@ -13,7 +13,7 @@
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>{% block title %}Appliances 4 Less Doraville  | Georgia's Best Appliance Store{% endblock %}</title>
+    <title>{% block title %}Appliances 4 Less Doraville  | Georgia's Best DiscountAppliance Store{% endblock %}</title>
     
     <!-- SEO Meta Tags -->
     <meta name="description" content="{% block meta_description %}Appliances 4 Less Doraville - Your trusted appliances store offering quality products with competitive prices and excellent customer service. Shop for the latest refrigerators, washers, dryers, stoves, dishwashers, and more.{% endblock %}">
@@ -175,7 +175,7 @@
                     <!-- Logo -->
                     <div class="flex-shrink-0">
                         <a href="{% url 'frontend:home' %}" class="flex items-center">
-                            <img src="{% static 'frontend/images/logo.png' %}" alt="Logo" class="h-12 w-36">
+                            <img src="{% static 'frontend/images/logo.webp' %}" alt="Logo" class="h-9 w-36">
                         </a>
                     </div>
 
@@ -288,7 +288,7 @@
                 <div class="flex items-center justify-between">
                     <!-- Logo -->
                     <a href="{% url 'frontend:home' %}" class="flex items-center">
-                        <img src="{% static 'frontend/images/logo.png' %}" alt="Logo" class="h-12 w-36">
+                        <img src="{% static 'frontend/images/logo.webp' %}" alt="Logo" class="h-9 w-36">
                     </a>
                     <!-- 搜索栏 -->
                     <div id="mobile-search-container" class="flex-1 ml-4">
@@ -350,7 +350,8 @@
 
     <!-- Footer -->
     <footer class="footer">
-        <div class="container text-center">
+        <div class="container mx-auto px-4">
+            <div class="max-w-6xl mx-auto text-center">
             <!-- 社交媒体链接 -->
             <div class="mb-4">
                 <h3 class="text-lg font-semibold text-white mb-3">Follow Us</h3>
@@ -394,17 +395,6 @@
                         <span class="ml-1 text-sm">Instagram</span>
                     </a>
                     
-                    <!-- 小红书 链接 -->
-                    <a href="https://xhslink.com/m/57P2yHaDvY2" 
-                       target="_blank" 
-                       rel="noopener noreferrer"
-                       class="social-link xiaohongshu-link"
-                       title="Follow us on 小红书">
-                        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                        </svg>
-                        <span class="ml-1 text-sm">小红书</span>
-                    </a>
                 </div>
             </div>
             
@@ -415,6 +405,7 @@
                 <a href="{% url 'frontend:terms_of_service' %}" class="underline text-xs md:text-sm">Terms of Service</a>
                 <span class="mx-2">|</span>
                 <a href="{% url 'frontend:cookie_policy' %}" class="underline text-xs md:text-sm">Cookie Policy</a>
+            </div>
             </div>
         </div>
         <!-- 移动端底部间距 -->
