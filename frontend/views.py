@@ -2395,7 +2395,7 @@ def sitemap_view(request, section=None):
 # === SEO页面视图 ===
 
 
-class SEOServiceListView(TemplateView):
+class SEOServiceListView(BaseFrontendMixin, TemplateView):
     """
     服务类型列表页面
     显示特定城市的所有服务，或者显示所有服务（当没有指定城市时）
