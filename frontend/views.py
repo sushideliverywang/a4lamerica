@@ -35,6 +35,9 @@ import pytz
 import re
 from .utils import decode_item_id, get_item_hash, get_seo_data
 from .config.seo_keywords import CITIES, SERVICE_TYPES
+from .config.product_seo_pages import (
+    PRODUCT_SEO_PAGES, get_seo_page_config, build_product_filters, get_homepage_seo_pages
+)
 from django.views.decorators.csrf import csrf_exempt
 import logging
 
@@ -193,10 +196,36 @@ class HomeView(BaseFrontendMixin, TemplateView):
                 'image_mobile': city_info.get('image_mobile', city_info['image_desktop'])
             }
 
+        # 获取首页显示的SEO页面
+        homepage_seo_pages = get_homepage_seo_pages()
+
+        # 为每个SEO页面添加库存数量
+        seo_pages_with_counts = []
+        for seo_page in homepage_seo_pages:
+            page_config = seo_page['config']
+            try:
+                # 构建筛选条件并查询库存数量
+                filters = build_product_filters(page_config)
+                item_count = self.get_company_filtered_inventory_items().filter(filters).count()
+
+                # 只有满足最小库存要求的页面才显示
+                min_inventory = page_config.get('min_inventory', 1)
+                if item_count >= min_inventory:
+                    seo_pages_with_counts.append({
+                        'key': seo_page['key'],
+                        'config': page_config,
+                        'item_count': item_count
+                    })
+            except Exception as e:
+                # 如果查询失败，记录错误但不影响页面加载
+                logging.error(f"Failed to get item count for SEO page {seo_page['key']}: {e}")
+                continue
+
         context.update({
             'stores': stores,
             'category_items': category_items,
-            'cities': minimal_cities
+            'cities': minimal_cities,
+            'homepage_seo_pages': seo_pages_with_counts
         })
         return context
 
@@ -2240,6 +2269,7 @@ Allow: /category/
 Allow: /item/
 Allow: /search/
 Allow: /services/                    # SEO服务页面
+Allow: /products/                    # 产品SEO页面
 
 # === 法律和政策页面 - SEO友好 ===
 Allow: /privacy-policy/
@@ -2350,6 +2380,9 @@ Sitemap: https://a4lamerica.com/sitemap-stores.xml
 Sitemap: https://a4lamerica.com/sitemap-categories.xml
 Sitemap: https://a4lamerica.com/sitemap-products.xml
 Sitemap: https://a4lamerica.com/sitemap-seo_services.xml
+Sitemap: https://a4lamerica.com/sitemap-warranty.xml
+Sitemap: https://a4lamerica.com/sitemap-terms.xml
+Sitemap: https://a4lamerica.com/sitemap-seo_products.xml
 
 # === 全局爬取设置 ===
 Crawl-delay: 1"""
@@ -2359,9 +2392,9 @@ Crawl-delay: 1"""
 
 # 导入sitemap配置
 from .sitemaps import (
-    StaticViewSitemap, StoreSitemap, CategorySitemap, 
+    StaticViewSitemap, StoreSitemap, CategorySitemap,
     ProductSitemap, WarrantyPolicySitemap, TermsConditionsSitemap,
-    SEOServiceListSitemap
+    SEOServiceListSitemap, ProductSEOPageSitemap
 )
 
 # 网站地图配置字典
@@ -2373,6 +2406,7 @@ sitemaps = {
     'warranty': WarrantyPolicySitemap,
     'terms': TermsConditionsSitemap,
     'seo_services': SEOServiceListSitemap,
+    'seo_products': ProductSEOPageSitemap,  # 动态产品SEO页面
 }
 
 # 网站地图视图
@@ -2441,5 +2475,138 @@ class SEOServiceListView(BaseFrontendMixin, TemplateView):
         else:
             # 没有指定城市时，不显示城市信息
             context['city'] = None
-        
+
         return context
+
+
+# === 动态产品SEO页面视图 ===
+
+class DynamicProductSEOView(BaseFrontendMixin, TemplateView):
+    """
+    动态产品SEO页面视图
+    根据配置文件自动生成产品页面，支持基于库存的自动管理
+    """
+    template_name = 'frontend/product_seo_page.html'
+
+    def get(self, request, seo_page_key, *args, **kwargs):
+        # 获取SEO页面配置
+        page_config = get_seo_page_config(seo_page_key)
+
+        if not page_config:
+            raise Http404("SEO page not found or disabled")
+
+        # 构建产品筛选条件
+        try:
+            filters = build_product_filters(page_config)
+        except Exception as e:
+            logging.error(f"Failed to build product filters: {e}")
+            raise Http404("Page configuration error")
+
+        # 查询符合条件的库存商品
+        inventory_items = InventoryItem.objects.filter(filters).select_related(
+            'model_number',
+            'model_number__category',
+            'model_number__brand',
+            'current_state'
+        ).prefetch_related('images')
+
+        # 检查库存数量是否满足要求
+        item_count = inventory_items.count()
+        min_inventory = page_config.get('min_inventory', 1)
+
+        if item_count < min_inventory:
+            # 库存不足，返回404或者友好的无库存页面
+            raise Http404("Insufficient inventory available")
+
+        # 准备上下文数据
+        context = self.get_context_data(**kwargs)
+        context.update({
+            'seo_page_key': seo_page_key,
+            'page_config': page_config,
+            'inventory_items': inventory_items,
+            'item_count': item_count,
+            'city_info': self._get_city_info(page_config.get('city_key')),
+            'seo_data': self._build_seo_data(page_config, item_count),
+        })
+
+        return self.render_to_response(context)
+
+    def _get_city_info(self, city_key):
+        """获取城市信息"""
+        if not city_key or city_key not in CITIES:
+            return None
+
+        city_info = CITIES[city_key].copy()
+        city_info['key'] = city_key
+
+        # 获取附近城市信息
+        nearby_cities = []
+        for nearby_city_name in city_info.get('nearby_cities', []):
+            for key, city_data in CITIES.items():
+                if city_data['name'] == nearby_city_name:
+                    nearby_city_info = city_data.copy()
+                    nearby_city_info['key'] = key
+                    nearby_cities.append(nearby_city_info)
+                    break
+
+        city_info['nearby_cities'] = nearby_cities
+        return city_info
+
+    def _build_seo_data(self, page_config, item_count):
+        """构建SEO数据"""
+        return {
+            'title': page_config.get('title', ''),
+            'meta_description': page_config.get('meta_description', ''),
+            'keywords': ', '.join(page_config.get('keywords', [])),
+            'h1_title': page_config.get('h1_title', page_config.get('title', '')),
+            'canonical_url': self.request.build_absolute_uri(),
+            'og_title': page_config.get('title', ''),
+            'og_description': page_config.get('meta_description', ''),
+            'og_image': page_config.get('featured_image', ''),
+            'structured_data': self._build_structured_data(page_config, item_count),
+        }
+
+    def _build_structured_data(self, page_config, item_count):
+        """构建结构化数据（JSON-LD）"""
+        city_info = self._get_city_info(page_config.get('city_key'))
+
+        structured_data = {
+            "@context": "https://schema.org",
+            "@type": "WebPage",
+            "name": page_config.get('title', ''),
+            "description": page_config.get('meta_description', ''),
+            "url": self.request.build_absolute_uri(),
+            "mainEntity": {
+                "@type": "ItemList",
+                "name": page_config.get('h1_title', ''),
+                "description": page_config.get('content_description', ''),
+                "numberOfItems": item_count,
+            }
+        }
+
+        # 添加本地商业信息
+        if city_info:
+            structured_data["mainEntity"]["areaServed"] = {
+                "@type": "City",
+                "name": city_info['name'],
+                "addressRegion": city_info['state'],
+                "addressCountry": "US"
+            }
+
+        # 添加产品类别信息
+        category_filters = page_config.get('filters', {}).get('category', {})
+        if 'names' in category_filters:
+            structured_data["mainEntity"]["itemListElement"] = []
+            for category_name in category_filters['names']:
+                structured_data["mainEntity"]["itemListElement"].append({
+                    "@type": "Product",
+                    "category": category_name,
+                    "brand": "Various",
+                    "offers": {
+                        "@type": "AggregateOffer",
+                        "availability": "https://schema.org/InStock",
+                        "itemCondition": "https://schema.org/NewCondition"
+                    }
+                })
+
+        return structured_data

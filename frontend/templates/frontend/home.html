@@ -232,6 +232,103 @@ appliances, refrigerators, washers, dryers, stoves, dishwashers, Appliances 4 Le
     </div>
 </div>
 
+<!-- 热门产品分类区域 -->
+{% if homepage_seo_pages %}
+<section class="bg-surface py-12">
+    <div class="container mx-auto px-4">
+        <div class="max-w-6xl mx-auto">
+            <!-- 区域标题 -->
+            <div class="text-center mb-10">
+                <h2 class="text-3xl md:text-4xl font-bold text-text-primary mb-4">
+                    Popular Product
+                </h2>
+            </div>
+
+            <!-- SEO页面网格 -->
+            <div class="grid grid-cols-1 md:grid-cols-2 {% if homepage_seo_pages|length >= 3 %}lg:grid-cols-3{% endif %} {% if homepage_seo_pages|length >= 4 %}xl:grid-cols-4{% endif %} gap-6 mb-8">
+                {% for seo_page in homepage_seo_pages %}
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                    <!-- 特色图片区域 -->
+                    <div class="relative h-48 bg-gradient-to-br from-primary/10 to-secondary/10 overflow-hidden">
+                        {% if seo_page.config.featured_image %}
+                            <img src="{{ seo_page.config.featured_image }}"
+                                 alt="{{ seo_page.config.short_title }}"
+                                 class="w-full h-full object-cover">
+                        {% else %}
+                            <div class="w-full h-full flex items-center justify-center">
+                                {% if seo_page.config.icon == 'refrigerator' %}
+                                    <svg class="w-16 h-16 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16v12H4V6zm4-2v2m4-2v2m4-2v2M8 10h8"/>
+                                    </svg>
+                                {% elif seo_page.config.icon == 'appliance-set' %}
+                                    <svg class="w-16 h-16 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 4h16v16H4V4zm4 4h8m-8 4h8m-8 4h4"/>
+                                    </svg>
+                                {% elif seo_page.config.icon == 'washing-machine' %}
+                                    <svg class="w-16 h-16 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 4h16v16H4V4zm8 4a4 4 0 100 8 4 4 0 000-8z"/>
+                                    </svg>
+                                {% elif seo_page.config.icon == 'discount' %}
+                                    <svg class="w-16 h-16 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
+                                    </svg>
+                                {% else %}
+                                    <svg class="w-16 h-16 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                                    </svg>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+
+                        <!-- 商品数量标签 -->
+                        <div class="absolute top-4 right-4">
+                            <span class="bg-white/90 backdrop-blur-sm text-text-primary text-sm font-semibold px-3 py-1 rounded-full">
+                                {{ seo_page.item_count }} items
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- 内容区域 -->
+                    <div class="p-6">
+                        <!-- 标题 -->
+                        <h3 class="text-xl font-bold text-text-primary mb-3 line-clamp-2">
+                            {{ seo_page.config.short_title }}
+                        </h3>
+
+                        <!-- 描述 -->
+                        {% if seo_page.config.content_description %}
+                        <p class="text-text-secondary text-sm mb-4 line-clamp-2">
+                            {{ seo_page.config.content_description|truncatewords:15 }}
+                        </p>
+                        {% endif %}
+
+                        <!-- 城市信息 -->
+                        {% for city_key, city_info in cities.items %}
+                            {% if city_key == seo_page.config.city_key %}
+                            <div class="flex items-center text-text-secondary text-sm mb-4">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                </svg>
+                                <span>{{ city_info.name }}</span>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+
+                        <!-- 查看详情按钮 -->
+                        <a href="{% url 'frontend:product_seo_page' seo_page.key %}"
+                           class="block w-full bg-primary text-white text-center py-3 px-4 rounded-lg font-medium hover:bg-primary-dark transition-colors">
+                            Explore {{ seo_page.config.short_title }}
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endif %}
+
 <!-- 分类商品展示区域 -->
 {% for category, items in category_items.items %}
 <section id="category-{{ category.id }}" class="bg-white category-section">

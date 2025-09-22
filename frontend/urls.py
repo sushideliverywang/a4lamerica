@@ -49,6 +49,9 @@ urlpatterns = [
     # SEO页面URL
     path('services/', views.SEOServiceListView.as_view(), name='seo_service_list'),
     path('services/<str:city_key>/', views.SEOServiceListView.as_view(), name='seo_service_list'),
+
+    # 动态产品SEO页面URL
+    path('products/<str:seo_page_key>/', views.DynamicProductSEOView.as_view(), name='product_seo_page'),
     
     # 商店页面URL（注意：这个URL需要放在最后，避免与其他URL冲突）
     # 排除已知的系统路径，避免冲突

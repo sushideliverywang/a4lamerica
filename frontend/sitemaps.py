@@ -7,6 +7,7 @@ from django.urls import reverse
 from django.utils import timezone
 from .models_proxy import Location, Category, InventoryItem
 from .config.seo_keywords import CITIES
+from .config.product_seo_pages import get_active_seo_pages, build_product_filters
 from django.conf import settings
 import logging
 
@@ -238,3 +239,81 @@ class SEOServiceListSitemap(Sitemap):
             return 0.9
         else:
             return 0.8
+
+
+class ProductSEOPageSitemap(Sitemap):
+    """
+    动态产品SEO页面网站地图
+    包括所有配置且有足够库存的SEO页面
+    """
+    priority = 0.9  # 高优先级，因为这些是重要的SEO页面
+    changefreq = 'daily'  # 日更新，因为库存可能变化
+    protocol = 'https' if not settings.DEBUG else 'http'
+
+    def items(self):
+        """获取所有有效的SEO页面"""
+        seo_pages = []
+        active_pages = get_active_seo_pages()
+
+        for page_key, page_config in active_pages.items():
+            try:
+                # 检查库存数量是否满足要求
+                filters = build_product_filters(page_config)
+                item_count = InventoryItem.objects.filter(filters).count()
+                min_inventory = page_config.get('min_inventory', 1)
+
+                # 只有满足最小库存要求的页面才加入sitemap
+                if item_count >= min_inventory:
+                    seo_pages.append({
+                        'page_key': page_key,
+                        'config': page_config,
+                        'item_count': item_count,
+                        'lastmod': timezone.now()  # 使用当前时间，实际项目中可考虑基于库存更新时间
+                    })
+
+            except Exception as e:
+                # 如果查询失败，记录错误但不影响其他页面
+                logger.error(f"Failed to check inventory for SEO page {page_key}: {e}")
+                continue
+
+        # 按优先级排序（首页显示的页面优先级更高）
+        seo_pages.sort(key=lambda x: x['config'].get('homepage_priority', 999))
+
+        return seo_pages
+
+    def location(self, obj):
+        """生成SEO页面的URL"""
+        return reverse('frontend:product_seo_page', kwargs={'seo_page_key': obj['page_key']})
+
+    def lastmod(self, obj):
+        """返回页面最后修改时间"""
+        return obj['lastmod']
+
+    def priority(self, obj):
+        """根据页面配置动态调整优先级"""
+        config = obj['config']
+
+        # 首页显示的页面优先级更高
+        if config.get('show_on_homepage', False):
+            return 0.95
+
+        # 根据库存数量调整优先级
+        item_count = obj['item_count']
+        if item_count >= 10:
+            return 0.9
+        elif item_count >= 5:
+            return 0.85
+        else:
+            return 0.8
+
+    def changefreq(self, obj):
+        """根据库存情况动态调整更新频率"""
+        item_count = obj['item_count']
+
+        # 库存较多的页面更新频率高
+        if item_count >= 10:
+            return 'daily'
+        elif item_count >= 5:
+            return 'weekly'
+        else:
+            return 'monthly'
