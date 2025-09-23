@@ -330,6 +330,11 @@ appliances, refrigerators, washers, dryers, stoves, dishwashers, Appliances 4 Le
 {% endif %}
 
 <!-- 分类商品展示区域 -->
+{% if category_items %}
+<h2 class="text-2xl font-bold text-text-primary mb-4">
+    View real-time inventory by category
+</h2>
+{% endif %}
 {% for category, items in category_items.items %}
 <section id="category-{{ category.id }}" class="bg-white category-section">
     <div class="container mx-auto px-4 pt-2 pb-4" itemscope itemtype="https://schema.org/OfferCatalog">

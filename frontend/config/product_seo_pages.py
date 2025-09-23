@@ -282,7 +282,7 @@ PRODUCT_SEO_PAGES = {
             # 产品模型筛选（推荐使用）
             'product_model': {
                 # 按型号筛选（推荐）- 支持逗号分隔多个型号
-                'model_number__icontains': 'SHE78CC5UC, SHP9PCM5N',
+                'model_number__icontains': 'SHX78CC5UC, SHP9PCM5N',
                 # 例如：'WF45T6000AW, WF45T6200AW, WF50T8500AV'
 
                 # 或者按描述筛选（可选）
@@ -332,6 +332,113 @@ PRODUCT_SEO_PAGES = {
         # 例如：'/static/frontend/images/city/Desktop-Atlanta.webp'
 
         'icon': 'dishwasher',
+        # 图标标识符，用于显示SVG图标（如果没有图片时）
+        # 可选值：'refrigerator', 'washing-machine', 'appliance-set', 'discount' 等
+    },
+
+    'all-in-one-washer-dryer-sandy-springs': {
+
+        # === 基础SEO信息 ===
+        'title': 'Best All-in-One Washer Dryer in Sandy Springs GA - Appliances 4 Less',
+        # 页面标题，显示在浏览器标签栏和搜索结果中，建议60字符以内
+        # 例如：'Best Washing Machines in Atlanta GA - Appliances 4 Less'
+
+        'meta_description': 'Shop premium All-in-One washer dryer in Sandy Springs, GA. Apartment friendly. Same-day delivery available.',
+        # 页面描述，显示在搜索结果中，建议150-160字符以内
+        # 例如：'Shop premium washing machines in Atlanta, GA. Energy efficient models with smart features. Same-day delivery available.'
+
+        'h1_title': 'All-in-One Washer Dryer in Sandy Springs, Georgia',
+        # 页面主标题，显示在页面顶部
+        # 例如：'Washing Machines in Atlanta, Georgia'
+
+        'short_title': 'All-in-One Washer Dryer',
+        # 简短标题，用于导航和卡片显示
+        # 例如：'Washing Machines'
+
+        # === 地理位置信息 ===
+        'city_key': 'sandy-springs',
+        # 城市标识符，必须与CITIES配置中的key匹配
+        # 例如：'atlanta', 'doraville', 'chamblee'
+
+        # === 首页显示设置 ===
+        'show_on_homepage': True,
+        # 是否在首页显示此SEO页面，True或False
+
+        'homepage_priority': 4,
+        # 首页显示优先级，数字越小优先级越高（1最高）
+
+        'active': True,
+        # 页面是否激活，False则不会显示此页面
+
+        # === 产品筛选条件 ===
+        'filters': {
+            # 基础筛选（必须包含）
+            'basic': {
+                'published': True,              # 只显示已发布的产品
+                'order__isnull': True,          # 只显示未售出的产品
+                'company_id': 'from_settings'   # 自动从settings获取公司ID
+            },
+
+            # 类别筛选（可选）- 二选一使用
+             'category': {
+                 'names': ['Washer/Dryer Combo'],  # 按类别名称筛选
+                 # 或者使用slug筛选：
+                 # 'slugs': ['category-slug-1', 'category-slug-2'],
+            },
+
+            # 产品模型筛选（推荐使用）
+            #'product_model': {
+                # 按型号筛选（推荐）- 支持逗号分隔多个型号
+                #'model_number__icontains': 'MODEL1, MODEL2, MODEL3',
+                # 例如：'WF45T6000AW, WF45T6200AW, WF50T8500AV'
+
+                # 或者按描述筛选（可选）
+                # 'description__icontains': 'keyword in description',
+            #},
+
+            # 库存条件筛选（可选）
+            # 'inventory': {
+            #     'condition__in': ['BRAND_NEW', 'OPEN_BOX'],  # 只显示特定条件的产品
+            # }
+        },
+
+        # 最少库存数量，低于此数量页面自动隐藏
+        'min_inventory': 1,
+
+        # === SEO关键词 ===
+        'keywords': [
+            'all-in-one washer dryer sandy springs',      # 主关键词
+            'all-in-one washer dryer sandy springs georgia',   # 带州名的关键词
+            'mega capacity lets you fit more in every load',        # 特定功能关键词
+            'lg and samsung all-in-one washer dryer',            # 品牌相关关键词
+            'sandy springs apartment friendly'            # 本地服务关键词
+        ],
+        # 例如：['washing machines atlanta', 'washers atlanta ga', 'front load washers', 'samsung lg washers', 'washer delivery atlanta']
+
+        # === 页面内容 ===
+        'content_description': 'Discover the perfect All-in-One washer dryer for your Sandy Springs home. Our selection features ventless design, inverter heatpump technology, mega capacity lets you fit more in every load.',
+        # 页面内容描述，显示在页面中
+        # 例如：'Discover the perfect washing machine for your Atlanta home. Our selection features energy-efficient models with smart technology and large capacity.'
+
+        'features': [
+            'ventless design',           # 产品特色1
+            'inverter heatpump technology',           # 产品特色2
+            'mega capacity 5.0+ cu.ft. lets you fit more in every load',           # 产品特色3
+            'lg and samsung all-in-one washer dryer',           # 产品特色4
+            'sandy springs apartment friendly'        # 本地服务特色
+        ],
+        # 例如：['Energy Star certified models', 'Smart WiFi connectivity', 'Large capacity options', 'Quiet operation technology', 'Same-day delivery in Atlanta']
+
+        # === 页面展示素材 ===
+        'featured_image': '/static/frontend/images/products/all-in-one-washer-dryer.jpg',
+        # 产品特色图片路径，显示在首页卡片中
+        # 建议尺寸：600x400px，例如：'/static/frontend/images/products/washing-machines.jpg'
+
+        'background_image': '/static/frontend/images/city/Desktop-SandySprings.webp',
+        # 城市背景图片路径，显示在产品页面中
+        # 例如：'/static/frontend/images/city/Desktop-Atlanta.webp'
+
+        'icon': 'washing-machine',
         # 图标标识符，用于显示SVG图标（如果没有图片时）
         # 可选值：'refrigerator', 'washing-machine', 'appliance-set', 'discount' 等
     },
