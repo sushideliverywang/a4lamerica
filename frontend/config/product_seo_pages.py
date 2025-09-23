@@ -6,7 +6,121 @@
 from django.db.models import Q
 from django.conf import settings
 
-# 产品SEO页面配置
+# ==================== 产品SEO页面通用模板 ====================
+# 复制此模板来创建新的SEO页面，根据注释修改相应内容
+
+PRODUCT_SEO_PAGE_TEMPLATE = {
+    # 页面标识符：使用产品类型-城市名称的格式，全小写，用连字符分隔
+    # 例如：'washing-machines-atlanta', 'kitchen-appliances-duluth'
+    'product-category-city-name': {
+
+        # === 基础SEO信息 ===
+        'title': 'Best [Product Category] in [City Name] GA - Appliances 4 Less',
+        # 页面标题，显示在浏览器标签栏和搜索结果中，建议60字符以内
+        # 例如：'Best Washing Machines in Atlanta GA - Appliances 4 Less'
+
+        'meta_description': 'Shop premium [product category] in [City], GA. [Key features]. Same-day delivery available.',
+        # 页面描述，显示在搜索结果中，建议150-160字符以内
+        # 例如：'Shop premium washing machines in Atlanta, GA. Energy efficient models with smart features. Same-day delivery available.'
+
+        'h1_title': '[Product Category] in [City Name], Georgia',
+        # 页面主标题，显示在页面顶部
+        # 例如：'Washing Machines in Atlanta, Georgia'
+
+        'short_title': '[Product Category]',
+        # 简短标题，用于导航和卡片显示
+        # 例如：'Washing Machines'
+
+        # === 地理位置信息 ===
+        'city_key': 'city_name',
+        # 城市标识符，必须与CITIES配置中的key匹配
+        # 例如：'atlanta', 'doraville', 'chamblee'
+
+        # === 首页显示设置 ===
+        'show_on_homepage': True,
+        # 是否在首页显示此SEO页面，True或False
+
+        'homepage_priority': 1,
+        # 首页显示优先级，数字越小优先级越高（1最高）
+
+        'active': True,
+        # 页面是否激活，False则不会显示此页面
+
+        # === 产品筛选条件 ===
+        'filters': {
+            # 基础筛选（必须包含）
+            'basic': {
+                'published': True,              # 只显示已发布的产品
+                'order__isnull': True,          # 只显示未售出的产品
+                'company_id': 'from_settings'   # 自动从settings获取公司ID
+            },
+
+            # 类别筛选（可选）- 二选一使用
+            # 'category': {
+            #     'names': ['Category Name 1', 'Category Name 2'],  # 按类别名称筛选
+            #     # 或者使用slug筛选：
+            #     # 'slugs': ['category-slug-1', 'category-slug-2'],
+            # },
+
+            # 产品模型筛选（推荐使用）
+            'product_model': {
+                # 按型号筛选（推荐）- 支持逗号分隔多个型号
+                'model_number__icontains': 'MODEL1, MODEL2, MODEL3',
+                # 例如：'WF45T6000AW, WF45T6200AW, WF50T8500AV'
+
+                # 或者按描述筛选（可选）
+                # 'description__icontains': 'keyword in description',
+            },
+
+            # 库存条件筛选（可选）
+            # 'inventory': {
+            #     'condition__in': ['BRAND_NEW', 'OPEN_BOX'],  # 只显示特定条件的产品
+            # }
+        },
+
+        # 最少库存数量，低于此数量页面自动隐藏
+        'min_inventory': 1,
+
+        # === SEO关键词 ===
+        'keywords': [
+            'product category city name',      # 主关键词
+            'product category city name ga',   # 带州名的关键词
+            'specific feature keyword',        # 特定功能关键词
+            'brand related keyword',           # 品牌相关关键词
+            'local service keyword'            # 本地服务关键词
+        ],
+        # 例如：['washing machines atlanta', 'washers atlanta ga', 'front load washers', 'samsung lg washers', 'washer delivery atlanta']
+
+        # === 页面内容 ===
+        'content_description': 'Discover the perfect [product category] for your [city] home. Our selection features [key features and benefits].',
+        # 页面内容描述，显示在页面中
+        # 例如：'Discover the perfect washing machine for your Atlanta home. Our selection features energy-efficient models with smart technology and large capacity.'
+
+        'features': [
+            'Feature 1 description',           # 产品特色1
+            'Feature 2 description',           # 产品特色2
+            'Feature 3 description',           # 产品特色3
+            'Feature 4 description',           # 产品特色4
+            'Local service description'        # 本地服务特色
+        ],
+        # 例如：['Energy Star certified models', 'Smart WiFi connectivity', 'Large capacity options', 'Quiet operation technology', 'Same-day delivery in Atlanta']
+
+        # === 页面展示素材 ===
+        'featured_image': '/static/frontend/images/products/product-category-image.jpg',
+        # 产品特色图片路径，显示在首页卡片中
+        # 建议尺寸：600x400px，例如：'/static/frontend/images/products/washing-machines.jpg'
+
+        'background_image': '/static/frontend/images/city/Desktop-CityName.webp',
+        # 城市背景图片路径，显示在产品页面中
+        # 例如：'/static/frontend/images/city/Desktop-Atlanta.webp'
+
+        'icon': 'icon-name',
+        # 图标标识符，用于显示SVG图标（如果没有图片时）
+        # 可选值：'refrigerator', 'washing-machine', 'appliance-set', 'discount' 等
+    },
+}
+
+# ==================== 实际使用的SEO页面配置 ====================
 PRODUCT_SEO_PAGES = {
     'door-in-door-refrigerators-doraville': {
         'title': 'Best Door in Door Refrigerators in Doraville GA - Appliances 4 Less',
@@ -113,6 +227,113 @@ PRODUCT_SEO_PAGES = {
         'featured_image': '/static/frontend/images/products/bespoke-kitchen-appliance-set.webp',
         'background_image': '/static/frontend/images/city/Desktop-Chamblee.webp',
         'icon': 'appliance-set',
+    },
+        
+    'bosch-800-series-dishwashers-duluth': {
+
+        # === 基础SEO信息 ===
+        'title': 'Most Quiet Dishwashers in Duluth GA - Appliances 4 Less',
+        # 页面标题，显示在浏览器标签栏和搜索结果中，建议60字符以内
+        # 例如：'Best Washing Machines in Atlanta GA - Appliances 4 Less'
+
+        'meta_description': 'Shop premium Bosch 800 series dishwashers in Duluth, GA. 42dB noise level. Same-day delivery available.',
+        # 页面描述，显示在搜索结果中，建议150-160字符以内
+        # 例如：'Shop premium washing machines in Atlanta, GA. Energy efficient models with smart features. Same-day delivery available.'
+
+        'h1_title': 'Bosch 800 series Dishwashers in Duluth, Georgia',
+        # 页面主标题，显示在页面顶部
+        # 例如：'Washing Machines in Atlanta, Georgia'
+
+        'short_title': 'Bosch 800 series Dishwashers',
+        # 简短标题，用于导航和卡片显示
+        # 例如：'Washing Machines'
+
+        # === 地理位置信息 ===
+        'city_key': 'duluth',
+        # 城市标识符，必须与CITIES配置中的key匹配
+        # 例如：'atlanta', 'doraville', 'chamblee'
+
+        # === 首页显示设置 ===
+        'show_on_homepage': True,
+        # 是否在首页显示此SEO页面，True或False
+
+        'homepage_priority': 3,
+        # 首页显示优先级，数字越小优先级越高（1最高）
+
+        'active': True,
+        # 页面是否激活，False则不会显示此页面
+
+        # === 产品筛选条件 ===
+        'filters': {
+            # 基础筛选（必须包含）
+            'basic': {
+                'published': True,              # 只显示已发布的产品
+                'order__isnull': True,          # 只显示未售出的产品
+                'company_id': 'from_settings'   # 自动从settings获取公司ID
+            },
+
+            # 类别筛选（可选）- 二选一使用
+            # 'category': {
+            #     'names': ['Category Name 1', 'Category Name 2'],  # 按类别名称筛选
+            #     # 或者使用slug筛选：
+            #     # 'slugs': ['category-slug-1', 'category-slug-2'],
+            # },
+
+            # 产品模型筛选（推荐使用）
+            'product_model': {
+                # 按型号筛选（推荐）- 支持逗号分隔多个型号
+                'model_number__icontains': 'SHE78CC5UC, SHP9PCM5N',
+                # 例如：'WF45T6000AW, WF45T6200AW, WF50T8500AV'
+
+                # 或者按描述筛选（可选）
+                # 'description__icontains': 'keyword in description',
+            },
+
+            # 库存条件筛选（可选）
+            # 'inventory': {
+            #     'condition__in': ['BRAND_NEW', 'OPEN_BOX'],  # 只显示特定条件的产品
+            # }
+        },
+
+        # 最少库存数量，低于此数量页面自动隐藏
+        'min_inventory': 1,
+
+        # === SEO关键词 ===
+        'keywords': [
+            'bosch 800 series dishwashers duluth',      # 主关键词
+            'bosch 800 series dishwasher duluth ga',   # 带州名的关键词
+            'quiet dishwasher duluth ga',        # 特定功能关键词
+            'energy star dishwasher duluth ga',           # 品牌相关关键词
+            'dishwasher installation duluth ga'            # 本地服务关键词
+        ],
+        # 例如：['washing machines atlanta', 'washers atlanta ga', 'front load washers', 'samsung lg washers', 'washer delivery atlanta']
+
+        # === 页面内容 ===
+        'content_description': 'Discover the perfect Bosch 800 series dishwasher for your Duluth home. Our selection features energy-efficient models with quiet operation technology.',
+        # 页面内容描述，显示在页面中
+        # 例如：'Discover the perfect washing machine for your Atlanta home. Our selection features energy-efficient models with smart technology and large capacity.'
+
+        'features': [
+            'The deepest clean from PrecisionWash® with PowerControl',           # 产品特色1
+            'The ultimate dry with CrystalDry',           # 产品特色2
+            'Newly redesigned EasyGlide rack system for a smooth glide on all three racks',           # 产品特色3
+            'Enhance your cleaning experience with Wi-Fi enabled Home Connect',           # 产品特色4
+            'FREE delivery in Duluth area'        # 本地服务特色
+        ],
+        # 例如：['Energy Star certified models', 'Smart WiFi connectivity', 'Large capacity options', 'Quiet operation technology', 'Same-day delivery in Atlanta']
+
+        # === 页面展示素材 ===
+        'featured_image': '/static/frontend/images/products/bosch-800-series-dishwasher.webp',
+        # 产品特色图片路径，显示在首页卡片中
+        # 建议尺寸：600x400px，例如：'/static/frontend/images/products/washing-machines.jpg'
+
+        'background_image': '/static/frontend/images/city/Desktop-Duluth.webp',
+        # 城市背景图片路径，显示在产品页面中
+        # 例如：'/static/frontend/images/city/Desktop-Atlanta.webp'
+
+        'icon': 'dishwasher',
+        # 图标标识符，用于显示SVG图标（如果没有图片时）
+        # 可选值：'refrigerator', 'washing-machine', 'appliance-set', 'discount' 等
     },
 }
 
@@ -241,3 +462,64 @@ def build_product_filters(config):
 
 # SEO页面的URL slug到配置的映射
 SEO_PAGE_SLUGS = {key: key for key in PRODUCT_SEO_PAGES.keys()}
+
+# ==================== 使用说明 ====================
+"""
+如何添加新的SEO页面：
+
+1. 复制 PRODUCT_SEO_PAGE_TEMPLATE 中的模板内容
+2. 粘贴到 PRODUCT_SEO_PAGES 字典中
+3. 修改页面标识符（key）为实际的产品-城市组合
+4. 根据注释修改各个字段的内容
+5. 准备相应的产品图片放到 /static/frontend/images/products/ 目录
+6. 确保城市背景图片存在于 /static/frontend/images/city/ 目录
+
+示例添加洗衣机页面：
+
+'washing-machines-atlanta': {
+    'title': 'Best Washing Machines in Atlanta GA - Appliances 4 Less',
+    'meta_description': 'Shop premium washing machines in Atlanta, GA. Energy efficient front load and top load models. Same-day delivery available.',
+    'h1_title': 'Washing Machines in Atlanta, Georgia',
+    'short_title': 'Washing Machines',
+    'city_key': 'atlanta',
+    'show_on_homepage': True,
+    'homepage_priority': 3,
+    'active': True,
+    'filters': {
+        'basic': {
+            'published': True,
+            'order__isnull': True,
+            'company_id': 'from_settings'
+        },
+        'product_model': {
+            'model_number__icontains': 'WF45T6000AW, WF45T6200AW, WF50T8500AV',
+        }
+    },
+    'min_inventory': 1,
+    'keywords': [
+        'washing machines atlanta',
+        'washers atlanta ga',
+        'front load washing machines',
+        'energy star washers',
+        'washer delivery atlanta'
+    ],
+    'content_description': 'Discover the perfect washing machine for your Atlanta home. Our selection features energy-efficient models with smart technology and large capacity.',
+    'features': [
+        'Energy Star certified models',
+        'Smart WiFi connectivity available',
+        'Large capacity options',
+        'Quiet operation technology',
+        'Same-day delivery in Atlanta area'
+    ],
+    'featured_image': '/static/frontend/images/products/washing-machines.jpg',
+    'background_image': '/static/frontend/images/city/Desktop-Atlanta.webp',
+    'icon': 'washing-machine',
+},
+
+注意事项：
+- 页面标识符必须唯一且使用小写字母和连字符
+- city_key 必须在 CITIES 配置中存在
+- 产品型号需要存在于数据库中
+- 图片文件需要实际存在于指定路径
+- 建议先设置 active: False 测试，确认无误后再激活
+"""

@@ -2503,12 +2503,21 @@ class DynamicProductSEOView(BaseFrontendMixin, TemplateView):
             raise Http404("Page configuration error")
 
         # 查询符合条件的库存商品
-        inventory_items = InventoryItem.objects.filter(filters).select_related(
+        inventory_items = self.get_company_filtered_inventory_items().filter(filters).select_related(
             'model_number',
             'model_number__category',
             'model_number__brand',
             'current_state'
         ).prefetch_related('images')
+
+        # 为每个商品计算节省金额
+        for item in inventory_items:
+            if item.model_number.msrp:
+                item.savings = item.model_number.msrp - item.retail_price
+                item.savings_percentage = (item.savings / item.model_number.msrp) * 100
+            else:
+                item.savings = 0
+                item.savings_percentage = 0
 
         # 检查库存数量是否满足要求
         item_count = inventory_items.count()

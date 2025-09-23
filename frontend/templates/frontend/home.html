@@ -234,7 +234,7 @@ appliances, refrigerators, washers, dryers, stoves, dishwashers, Appliances 4 Le
 
 <!-- 热门产品分类区域 -->
 {% if homepage_seo_pages %}
-<section class="bg-surface py-12">
+<section class="bg-white py-12">
     <div class="container mx-auto px-4">
         <div class="max-w-6xl mx-auto">
             <!-- 区域标题 -->
@@ -247,7 +247,7 @@ appliances, refrigerators, washers, dryers, stoves, dishwashers, Appliances 4 Le
             <!-- SEO页面网格 -->
             <div class="grid grid-cols-1 md:grid-cols-2 {% if homepage_seo_pages|length >= 3 %}lg:grid-cols-3{% endif %} {% if homepage_seo_pages|length >= 4 %}xl:grid-cols-4{% endif %} gap-6 mb-8">
                 {% for seo_page in homepage_seo_pages %}
-                <div class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                <div class="bg-gray-50 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
                     <!-- 特色图片区域 -->
                     <div class="relative h-48 bg-gradient-to-br from-primary/10 to-secondary/10 overflow-hidden">
                         {% if seo_page.config.featured_image %}
@@ -317,7 +317,7 @@ appliances, refrigerators, washers, dryers, stoves, dishwashers, Appliances 4 Le
 
                         <!-- 查看详情按钮 -->
                         <a href="{% url 'frontend:product_seo_page' seo_page.key %}"
-                           class="block w-full bg-primary text-white text-center py-3 px-4 rounded-lg font-medium hover:bg-primary-dark transition-colors">
+                           class="block w-full border-2 border-secondary text-secondary text-center py-3 px-4 rounded-lg font-medium hover:bg-secondary hover:text-white transition-colors">
                             Explore {{ seo_page.config.short_title }}
                         </a>
                     </div>
