@@ -356,7 +356,7 @@ PRODUCT_SEO_PAGES = {
         # 例如：'Washing Machines'
 
         # === 地理位置信息 ===
-        'city_key': 'sandy-springs',
+        'city_key': 'sandy_springs',
         # 城市标识符，必须与CITIES配置中的key匹配
         # 例如：'atlanta', 'doraville', 'chamblee'
 
