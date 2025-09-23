@@ -2695,19 +2695,25 @@ class ImageResizeView(View):
             with Image.open(original_path) as img:
                 # 处理EXIF方向信息（修正手机拍照旋转问题）
                 try:
-                    from PIL.ExifTags import ORIENTATION
-                    exif = img._getexif()
-                    if exif is not None:
-                        orientation = exif.get(ORIENTATION)
-                        if orientation == 3:
-                            img = img.rotate(180, expand=True)
-                        elif orientation == 6:
-                            img = img.rotate(270, expand=True)
-                        elif orientation == 8:
-                            img = img.rotate(90, expand=True)
-                except (AttributeError, KeyError, TypeError):
-                    # 没有EXIF信息或处理失败，继续正常流程
-                    pass
+                    from PIL import ImageOps
+                    # 使用ImageOps.exif_transpose自动修正方向
+                    img = ImageOps.exif_transpose(img)
+                except (AttributeError, ImportError):
+                    # 如果不支持exif_transpose，使用手动方法
+                    try:
+                        exif = img._getexif()
+                        if exif is not None:
+                            # EXIF方向标签的值是274
+                            orientation = exif.get(274)
+                            if orientation == 3:
+                                img = img.rotate(180, expand=True)
+                            elif orientation == 6:
+                                img = img.rotate(270, expand=True)
+                            elif orientation == 8:
+                                img = img.rotate(90, expand=True)
+                    except (AttributeError, KeyError, TypeError):
+                        # 没有EXIF信息或处理失败，继续正常流程
+                        pass
 
                 # 转换为RGB模式（WebP需要）
                 if img.mode in ('RGBA', 'LA', 'P'):
