@@ -367,13 +367,13 @@ appliances, refrigerators, washers, dryers, stoves, dishwashers, Appliances 4 Le
                 <meta itemprop="description" content="{% if item.model_number.description %}{{ item.model_number.description|striptags|escapejs }}{% else %}{{ item.model_number.brand.name }} {{ item.model_number.model_number }} - {{ item.model_number.category.name }} at {{ item.location.name }}{% endif %}">
                 <div class="product-card">
                     {% if item.item_images %}
-                        <img src="{{ item.item_images.0.image.url }}"
+                        <img src="/media/resize/300x400{{ item.item_images.0.image.url|slice:'6:' }}"
                              alt="{{ item.model_number.brand.name }} {{ item.model_number.model_number }} - {{ item.model_number.category.name }} at {{ item.location.name }}"
                              itemprop="image"
                              loading="{% if forloop.parentloop.counter0 == 0 and forloop.counter0 < 4 %}eager{% else %}lazy{% endif %}"
                              class="product-image">
                     {% elif item.model_number.model_images %}
-                        <img src="{{ item.model_number.model_images.0.image.url }}"
+                        <img src="/media/resize/300x400{{ item.model_number.model_images.0.image.url|slice:'6:' }}"
                              alt="{{ item.model_number.brand.name }} {{ item.model_number.model_number }} - {{ item.model_number.category.name }} at {{ item.location.name }}"
                              itemprop="image"
                              loading="{% if forloop.parentloop.counter0 == 0 and forloop.counter0 < 4 %}eager{% else %}lazy{% endif %}"
@@ -586,7 +586,7 @@ appliances, refrigerators, washers, dryers, stoves, dishwashers, Appliances 4 Le
 
             <!-- Google评论链接 -->
             <div class="text-center">
-                <a href="https://www.google.com/maps/place/Appliances+4+Less+Doraville"
+                <a href="https://maps.app.goo.gl/swRcCfFezVzu4ZoH7"
                    target="_blank"
                    class="inline-flex items-center text-primary hover:text-primary-dark font-medium transition-colors">
                     <span>View all reviews on Google</span>

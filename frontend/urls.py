@@ -52,7 +52,10 @@ urlpatterns = [
 
     # 动态产品SEO页面URL
     path('products/<str:seo_page_key>/', views.DynamicProductSEOView.as_view(), name='product_seo_page'),
-    
+
+    # 图片缩放服务URL
+    path('media/resize/<int:width>x<int:height>/<path:image_path>', views.ImageResizeView.as_view(), name='image_resize'),
+
     # 商店页面URL（注意：这个URL需要放在最后，避免与其他URL冲突）
     # 排除已知的系统路径，避免冲突
     path('<slug:location_slug>/', views.StoreView.as_view(), name='store'),

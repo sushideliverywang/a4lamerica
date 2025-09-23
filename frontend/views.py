@@ -2625,3 +2625,132 @@ class DynamicProductSEOView(BaseFrontendMixin, TemplateView):
                 })
 
         return structured_data
+
+
+# 图片处理和缩放视图
+import os
+from PIL import Image
+from django.http import FileResponse, Http404
+from django.core.cache import cache
+import hashlib
+import logging
+
+logger = logging.getLogger(__name__)
+
+class ImageResizeView(View):
+    """
+    动态图片缩放视图
+    URL格式：/media/resize/{width}x{height}/{image_path}
+    """
+
+    def get(self, request, width, height, image_path):
+        """处理图片缩放请求"""
+        try:
+            # 验证尺寸参数
+            width = int(width)
+            height = int(height)
+
+            # 限制缩略图最大尺寸防止滥用（原图可以任意大小）
+            if width > 1200 or height > 1200:
+                return Http404("Requested thumbnail size too large")
+
+            # 构建原图路径
+            original_path = os.path.join(settings.MEDIA_ROOT, image_path)
+
+            # 检查原图是否存在
+            if not os.path.exists(original_path):
+                raise Http404("Original image not found")
+
+            # 构建缓存路径
+            cache_dir = os.path.join(settings.MEDIA_ROOT, 'cache', f'{width}x{height}')
+            os.makedirs(cache_dir, exist_ok=True)
+
+            # 生成缓存文件名（WebP格式）
+            cache_filename = self._get_cache_filename(image_path, width, height)
+            cache_path = os.path.join(cache_dir, cache_filename)
+
+            # 如果缓存存在且比原图新，直接返回
+            if os.path.exists(cache_path) and os.path.getmtime(cache_path) >= os.path.getmtime(original_path):
+                return self._serve_image(cache_path)
+
+            # 缓存不存在或过期，生成新的缩略图
+            resized_path = self._create_resized_image(original_path, cache_path, width, height)
+
+            return self._serve_image(resized_path)
+
+        except (ValueError, OSError) as e:
+            logger.error(f"Error processing image resize request: {e}")
+            raise Http404("Invalid request")
+
+    def _get_cache_filename(self, image_path, width, height):
+        """生成缓存文件名"""
+        # 使用原文件名和尺寸生成唯一的缓存文件名
+        base_name = os.path.splitext(os.path.basename(image_path))[0]
+        return f"{base_name}_{width}x{height}.webp"
+
+    def _create_resized_image(self, original_path, cache_path, width, height):
+        """创建缩放后的图片"""
+        try:
+            # 打开原图
+            with Image.open(original_path) as img:
+                # 转换为RGB模式（WebP需要）
+                if img.mode in ('RGBA', 'LA', 'P'):
+                    img = img.convert('RGB')
+
+                # 计算缩放比例，保持宽高比
+                img_ratio = img.width / img.height
+                target_ratio = width / height
+
+                if img_ratio > target_ratio:
+                    # 图片更宽，按高度缩放
+                    new_height = height
+                    new_width = int(height * img_ratio)
+                else:
+                    # 图片更高，按宽度缩放
+                    new_width = width
+                    new_height = int(width / img_ratio)
+
+                # 缩放图片
+                img_resized = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
+
+                # 如果尺寸不完全匹配，进行居中裁剪
+                if new_width != width or new_height != height:
+                    left = (new_width - width) // 2
+                    top = (new_height - height) // 2
+                    right = left + width
+                    bottom = top + height
+                    img_resized = img_resized.crop((left, top, right, bottom))
+
+                # 保存为WebP格式，优化压缩
+                img_resized.save(
+                    cache_path,
+                    'WEBP',
+                    quality=85,
+                    optimize=True,
+                    method=6  # 最佳压缩
+                )
+
+                logger.info(f"Created resized image: {cache_path}")
+                return cache_path
+
+        except Exception as e:
+            logger.error(f"Error creating resized image: {e}")
+            raise
+
+    def _serve_image(self, image_path):
+        """提供图片文件响应"""
+        try:
+            response = FileResponse(
+                open(image_path, 'rb'),
+                content_type='image/webp'
+            )
+
+            # 设置缓存头
+            response['Cache-Control'] = 'public, max-age=31536000'  # 1年缓存
+            response['Expires'] = 'Thu, 31 Dec 2025 23:59:59 GMT'
+
+            return response
+
+        except Exception as e:
+            logger.error(f"Error serving image: {e}")
+            raise Http404("Image not available")
