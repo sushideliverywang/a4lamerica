@@ -367,17 +367,23 @@ appliances, refrigerators, washers, dryers, stoves, dishwashers, Appliances 4 Le
                 <meta itemprop="description" content="{% if item.model_number.description %}{{ item.model_number.description|striptags|escapejs }}{% else %}{{ item.model_number.brand.name }} {{ item.model_number.model_number }} - {{ item.model_number.category.name }} at {{ item.location.name }}{% endif %}">
                 <div class="product-card">
                     {% if item.item_images %}
-                        <img src="{{ item.item_images.0.image.url }}" 
+                        <img src="{{ item.item_images.0.image.url }}"
                              alt="{{ item.model_number.brand.name }} {{ item.model_number.model_number }} - {{ item.model_number.category.name }} at {{ item.location.name }}"
-                             itemprop="image">
+                             itemprop="image"
+                             loading="{% if forloop.parentloop.counter0 == 0 and forloop.counter0 < 4 %}eager{% else %}lazy{% endif %}"
+                             class="product-image">
                     {% elif item.model_number.model_images %}
-                        <img src="{{ item.model_number.model_images.0.image.url }}" 
+                        <img src="{{ item.model_number.model_images.0.image.url }}"
                              alt="{{ item.model_number.brand.name }} {{ item.model_number.model_number }} - {{ item.model_number.category.name }} at {{ item.location.name }}"
-                             itemprop="image">
+                             itemprop="image"
+                             loading="{% if forloop.parentloop.counter0 == 0 and forloop.counter0 < 4 %}eager{% else %}lazy{% endif %}"
+                             class="product-image">
                     {% else %}
-                        <img src="{% static 'frontend/images/product-default.png' %}" 
+                        <img src="{% static 'frontend/images/product-default.png' %}"
                              alt="{{ item.model_number.brand.name }} {{ item.model_number.model_number }} - {{ item.model_number.category.name }} at {{ item.location.name }}"
-                             itemprop="image">
+                             itemprop="image"
+                             loading="{% if forloop.parentloop.counter0 == 0 and forloop.counter0 < 4 %}eager{% else %}lazy{% endif %}"
+                             class="product-image">
                     {% endif %}
                     <div class="product-info">
                         <div class="brand-model">
@@ -651,4 +657,34 @@ appliances, refrigerators, washers, dryers, stoves, dishwashers, Appliances 4 Le
     </div>
 </div>
 
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// 懒加载图片优化
+document.addEventListener('DOMContentLoaded', function() {
+    const lazyImages = document.querySelectorAll('.product-image[loading="lazy"]');
+
+    // 为懒加载图片添加加载完成事件
+    lazyImages.forEach(img => {
+        if (img.complete && img.naturalWidth !== 0) {
+            img.classList.add('loaded');
+        } else {
+            img.addEventListener('load', function() {
+                this.classList.add('loaded');
+            });
+            img.addEventListener('error', function() {
+                // 图片加载失败，移除动画
+                this.classList.add('loaded');
+            });
+        }
+    });
+
+    // 为即时加载的图片也添加loaded类
+    const eagerImages = document.querySelectorAll('.product-image[loading="eager"]');
+    eagerImages.forEach(img => {
+        img.classList.add('loaded');
+    });
+});
+</script>
 {% endblock %}

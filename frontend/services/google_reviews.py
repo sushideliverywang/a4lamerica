@@ -31,15 +31,6 @@ class GoogleReviewsService:
         Returns:
             dict: 包含评论数据和评分信息
         """
-        # 临时调试信息
-        print(f"DEBUG: Google Reviews - API Key exists: {bool(self.api_key)}, Place ID exists: {bool(self.place_id)}")
-        if self.api_key:
-            print(f"DEBUG: API Key starts with: {self.api_key[:10]}...")
-        if self.place_id:
-            print(f"DEBUG: Place ID: {self.place_id}")
-        else:
-            print("DEBUG: Place ID is None or empty")
-
         if not self.api_key or not self.place_id:
             logger.warning("Google Places API key or Place ID not configured")
             return None
