@@ -370,3 +370,5 @@ CORS_ALLOWED_ORIGINS = [
 # 公司过滤配置
 # 这个项目只显示特定公司的数据，而不是所有公司的数据
 COMPANY_ID = int(os.getenv('COMPANY_ID'))  # 默认使用公司ID 58
+
+GOOGLE_PLACE_ID = os.getenv('GOOGLE_PLACE_ID')

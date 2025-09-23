@@ -38,6 +38,7 @@ from .config.seo_keywords import CITIES, SERVICE_TYPES
 from .config.product_seo_pages import (
     PRODUCT_SEO_PAGES, get_seo_page_config, build_product_filters, get_homepage_seo_pages
 )
+from .services.google_reviews import GoogleReviewsService
 from django.views.decorators.csrf import csrf_exempt
 import logging
 
@@ -221,11 +222,16 @@ class HomeView(BaseFrontendMixin, TemplateView):
                 logging.error(f"Failed to get item count for SEO page {seo_page['key']}: {e}")
                 continue
 
+        # 获取Google评论 (只显示5星好评)
+        google_service = GoogleReviewsService()
+        google_reviews = google_service.get_reviews(max_reviews=6, min_rating=5)
+
         context.update({
             'stores': stores,
             'category_items': category_items,
             'cities': minimal_cities,
-            'homepage_seo_pages': seo_pages_with_counts
+            'homepage_seo_pages': seo_pages_with_counts,
+            'google_reviews': google_reviews,
         })
         return context
 

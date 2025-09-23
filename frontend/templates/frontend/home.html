@@ -503,6 +503,97 @@ appliances, refrigerators, washers, dryers, stoves, dishwashers, Appliances 4 Le
 </div>
 
 
+<!-- Google评论区域 -->
+{% if google_reviews %}
+<section class="bg-gray-50 py-12">
+    <div class="container mx-auto px-4">
+        <div class="max-w-6xl mx-auto">
+            <!-- 区域标题 -->
+            <div class="text-center mb-10">
+                <h2 class="text-3xl md:text-4xl font-bold text-text-primary mb-4">
+                    What Our Customers Say
+                </h2>
+                <div class="flex items-center justify-center space-x-2 mb-2">
+                    <div class="flex text-yellow-400">
+                        {% for i in "12345" %}
+                            {% if google_reviews.rating >= i|add:0 %}
+                                <svg class="w-6 h-6 fill-current" viewBox="0 0 20 20">
+                                    <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                                </svg>
+                            {% else %}
+                                <svg class="w-6 h-6 text-gray-300 fill-current" viewBox="0 0 20 20">
+                                    <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                                </svg>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    <span class="text-lg font-semibold text-text-primary">{{ google_reviews.rating }}/5</span>
+                </div>
+                <p class="text-text-secondary">
+                    {% if google_reviews.min_rating_filter %}
+                        From {{ google_reviews.total_ratings }} total Google reviews
+                    {% else %}
+                        Based on {{ google_reviews.total_ratings }} Google reviews
+                    {% endif %}
+                </p>
+            </div>
+
+            <!-- 评论网格 -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                {% for review in google_reviews.reviews %}
+                <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+                    <!-- 评论头部 -->
+                    <div class="flex items-center mb-4">
+                        <img src="{{ review.profile_photo_url|default:'/static/frontend/images/default-avatar.png' }}"
+                             alt="{{ review.author_name }}"
+                             class="w-12 h-12 rounded-full object-cover mr-4">
+                        <div>
+                            <h4 class="font-semibold text-text-primary">{{ review.author_name }}</h4>
+                            <div class="flex text-yellow-400 text-sm">
+                                {% for i in "12345" %}
+                                    {% if review.rating >= i|add:0 %}
+                                        <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20">
+                                            <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                                        </svg>
+                                    {% else %}
+                                        <svg class="w-4 h-4 text-gray-300 fill-current" viewBox="0 0 20 20">
+                                            <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                                        </svg>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 评论内容 -->
+                    <p class="text-text-secondary text-sm leading-relaxed mb-4 line-clamp-4">
+                        {{ review.text }}
+                    </p>
+
+                    <!-- 评论时间 -->
+                    <div class="text-xs text-text-secondary">
+                        {{ review.time|timesince }} ago
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Google评论链接 -->
+            <div class="text-center">
+                <a href="https://www.google.com/maps/place/Appliances+4+Less+Doraville"
+                   target="_blank"
+                   class="inline-flex items-center text-primary hover:text-primary-dark font-medium transition-colors">
+                    <span>View all reviews on Google</span>
+                    <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endif %}
+
 <!-- SEO内容区域 -->
 <div class="bg-white py-8">
     <div class="container mx-auto px-4">
