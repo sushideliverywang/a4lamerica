@@ -26,4 +26,6 @@ urlpatterns = [
 ]
 
 # 添加媒体文件的URL配置（开发和生产环境都生效）
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# 注意：静态媒体文件路由要放在最后，避免覆盖动态路由
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
