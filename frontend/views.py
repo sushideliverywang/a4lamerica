@@ -4,7 +4,7 @@ from .models_proxy import (
     InventoryItem, ItemImage, ItemState, Category, ProductModel, ProductImage,
     CustomerFavorite, ShoppingCart, CustomerWarrantyPolicy, CustomerTermsAgreement,
     Order, OrderStatusHistory, TransactionRecord, CustomerAddress, StateTransition,
-    InventoryStateHistory,
+    InventoryStateHistory, LoadManifest,
     Company
 )
 from django.db import models
@@ -226,14 +226,43 @@ class HomeView(BaseFrontendMixin, TemplateView):
         google_service = GoogleReviewsService()
         google_reviews = google_service.get_reviews(max_reviews=6, min_rating=5)
 
+        # 检查是否有即将到货的库存
+        has_incoming_inventory = self._check_incoming_inventory()
+
         context.update({
             'stores': stores,
             'category_items': category_items,
             'cities': minimal_cities,
             'homepage_seo_pages': seo_pages_with_counts,
             'google_reviews': google_reviews,
+            'has_incoming_inventory': has_incoming_inventory,
         })
         return context
+
+    def _check_incoming_inventory(self):
+        """
+        检查是否有即将到货的库存
+        使用与IncomingInventoryView相同的逻辑
+        """
+        # 使用与IncomingInventoryView相同的过滤逻辑
+        tracking_states = [1, 2, 3]  # 追踪的状态ID
+
+        # 获取状态为CONVERTING的LoadManifest，使用配置中的公司ID
+        load_manifests = LoadManifest.objects.filter(
+            status=LoadManifest.Status.CONVERTING,
+            company_id=settings.COMPANY_ID
+        )
+
+        # 检查是否有任何批次包含即将到货的商品
+        for manifest in load_manifests:
+            inventory_items = InventoryItem.objects.filter(
+                load_number=manifest,
+                current_state_id__in=tracking_states
+            )
+            if inventory_items.exists():
+                return True
+        
+        return False
 
 
 class StoreView(BaseFrontendMixin, TemplateView):
@@ -2261,15 +2290,42 @@ def agree_terms_conditions(request, location_slug):
 
 def robots_txt(request):
     """
-    提供robots.txt文件
+    动态生成robots.txt文件
+    基于实际sitemap配置和环境设置自动生成
     """
-    robots_content = """# Appliances 4 Less Doraville - 最优化 Robots.txt
-# 基于实际URL结构的精准配置
+    # 动态获取协议和域名
+    protocol = 'https' if not settings.DEBUG else 'http'
+    domain = request.get_host()
+    base_url = f"{protocol}://{domain}"
+
+    # 动态生成sitemap列表
+    sitemap_lines = []
+    sitemap_lines.append(f"Sitemap: {base_url}/sitemap.xml")
+
+    # 如果不是www域名，添加www版本的主sitemap
+    if 'www.' not in domain:
+        sitemap_lines.append(f"Sitemap: {protocol}://www.{domain}/sitemap.xml")
+
+    # 根据实际sitemap配置字典自动生成子sitemap列表
+    for section_name in sitemaps.keys():
+        sitemap_lines.append(f"Sitemap: {base_url}/sitemap-{section_name}.xml")
+
+    # 生成sitemap部分的内容
+    sitemaps_section = "\n".join(sitemap_lines)
+
+    # 环境信息（用于调试）
+    env_info = f"DEBUG={settings.DEBUG}, DOMAIN={domain}, PROTOCOL={protocol}"
+    sitemap_keys = ", ".join(sitemaps.keys())
+
+    robots_content = f"""# Appliances 4 Less Doraville - 动态生成 Robots.txt
+# 环境信息: {env_info}
+# 配置的Sitemap: {sitemap_keys}
 
 User-agent: *
 
 # === 核心SEO页面 - 最高优先级 ===
 Allow: /
+Allow: /incoming-inventory/          # 即将到货页面
 Allow: /*/                          # 所有商店页面 (doraville-store/, atlanta-store/ 等)
 Allow: /category/
 Allow: /item/
@@ -2278,9 +2334,11 @@ Allow: /services/                    # SEO服务页面
 Allow: /products/                    # 产品SEO页面
 
 # === 法律和政策页面 - SEO友好 ===
-Allow: /privacy-policy/
-Allow: /terms-of-service/
-Allow: /cookie-policy/
+Allow: /privacy-policy/              # 网站级政策（合规必需，SEO价值低）
+Allow: /terms-of-service/            # 网站级政策（合规必需，SEO价值低）
+Allow: /cookie-policy/               # 网站级政策（合规必需，SEO价值低）
+Allow: /*/warranty/                  # 店铺级保修政策（本地SEO重要）
+Allow: /*/terms/                     # 店铺级条款条件（本地SEO重要）
 
 # === 静态资源 - 必须允许 ===
 Allow: /static/
@@ -2332,11 +2390,13 @@ Disallow: /employee/
 # === Google专项优化 ===
 User-agent: Googlebot
 Allow: /
+Allow: /incoming-inventory/          # 即将到货页面
 Allow: /*/
 Allow: /category/
 Allow: /item/
 Allow: /search/
 Allow: /services/                    # SEO服务页面
+Allow: /products/                    # 产品SEO页面
 Allow: /static/frontend/images/      # 产品图片
 Allow: /media/                       # 媒体图片
 Crawl-delay: 1
@@ -2351,10 +2411,13 @@ Disallow: /media/customer/
 # === Bing搜索引擎优化 ===
 User-agent: bingbot
 Allow: /
+Allow: /incoming-inventory/          # 即将到货页面
 Allow: /*/
 Allow: /category/
 Allow: /item/
+Allow: /search/
 Allow: /services/                    # SEO服务页面
+Allow: /products/                    # 产品SEO页面
 Crawl-delay: 1
 
 # === 购物比较网站 ===
@@ -2362,6 +2425,7 @@ User-agent: Slurp
 Allow: /item/
 Allow: /category/
 Allow: /services/                    # SEO服务页面
+Allow: /products/                    # 产品SEO页面
 Allow: /static/frontend/images/
 Crawl-delay: 2
 
@@ -2378,27 +2442,18 @@ Disallow: /
 User-agent: dotbot
 Disallow: /
 
-# === XML网站地图 - 关键！ ===
-Sitemap: https://a4lamerica.com/sitemap.xml
-Sitemap: https://www.a4lamerica.com/sitemap.xml
-Sitemap: https://a4lamerica.com/sitemap-static.xml
-Sitemap: https://a4lamerica.com/sitemap-stores.xml
-Sitemap: https://a4lamerica.com/sitemap-categories.xml
-Sitemap: https://a4lamerica.com/sitemap-products.xml
-Sitemap: https://a4lamerica.com/sitemap-seo_services.xml
-Sitemap: https://a4lamerica.com/sitemap-warranty.xml
-Sitemap: https://a4lamerica.com/sitemap-terms.xml
-Sitemap: https://a4lamerica.com/sitemap-seo_products.xml
+# === XML网站地图 - 动态生成 ===
+{sitemaps_section}
 
 # === 全局爬取设置 ===
 Crawl-delay: 1"""
-    
-    return HttpResponse(robots_content, content_type='text/plain')
+
+    return HttpResponse(robots_content, content_type='text/plain; charset=utf-8')
 
 
 # 导入sitemap配置
 from .sitemaps import (
-    StaticViewSitemap, StoreSitemap, CategorySitemap,
+    StaticViewSitemap, IncomingInventorySitemap, StoreSitemap, CategorySitemap,
     ProductSitemap, WarrantyPolicySitemap, TermsConditionsSitemap,
     SEOServiceListSitemap, ProductSEOPageSitemap
 )
@@ -2406,6 +2461,7 @@ from .sitemaps import (
 # 网站地图配置字典
 sitemaps = {
     'static': StaticViewSitemap,
+    'incoming': IncomingInventorySitemap,
     'stores': StoreSitemap,
     'categories': CategorySitemap,
     'products': ProductSitemap,
@@ -2776,3 +2832,72 @@ class ImageResizeView(View):
         except Exception as e:
             logger.error(f"Error serving image: {e}")
             raise Http404("Image not available")
+
+
+class IncomingInventoryView(BaseFrontendMixin, TemplateView):
+    """即将到货的库存页面"""
+    template_name = 'frontend/incoming_inventory.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # 使用与nasmaha相同的过滤逻辑
+        tracking_states = [1, 2, 3]  # 追踪的状态ID
+
+        # 获取状态为CONVERTING的LoadManifest，使用配置中的公司ID
+        load_manifests = LoadManifest.objects.select_related(
+            'location',
+        ).filter(
+            status=LoadManifest.Status.CONVERTING,
+            company_id=settings.COMPANY_ID  # 使用配置中的公司ID
+        ).order_by('-purchase_date', '-created_at')
+
+        # 获取状态为CONVERTING的LoadManifest及其商品
+        load_manifests = LoadManifest.objects.select_related(
+            'location',
+            'location__address'
+        ).filter(
+            status=LoadManifest.Status.CONVERTING,
+            company_id=settings.COMPANY_ID
+        ).order_by('location__name', '-purchase_date', '-created_at')
+
+        loads_with_items = []
+        for manifest in load_manifests:
+            # 获取该批次中的库存商品
+            inventory_items = InventoryItem.objects.select_related(
+                'model_number__brand',
+                'model_number__category',
+                'location'
+            ).prefetch_related(
+                models.Prefetch(
+                    'model_number__images',
+                    queryset=ProductImage.objects.only('image').order_by('id')[:1],
+                    to_attr='model_images'
+                )
+            ).filter(
+                load_number=manifest,
+                current_state_id__in=tracking_states
+            )
+
+            if inventory_items.exists():
+                # 按类别分组该批次的商品
+                from collections import defaultdict
+                category_items = defaultdict(list)
+
+                for item in inventory_items:
+                    category = item.model_number.category
+                    category_items[category].append(item)
+
+                load_info = {
+                    'manifest': manifest,
+                    'location': manifest.location,
+                    'category_items': dict(category_items),
+                    'total_items': inventory_items.count()
+                }
+                loads_with_items.append(load_info)
+
+        context.update({
+            'loads_with_items': loads_with_items,
+        })
+
+        return context

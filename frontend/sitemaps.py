@@ -38,6 +38,85 @@ class StaticViewSitemap(Sitemap):
         # 静态页面使用当前时间作为最后修改时间
         return timezone.now()
 
+    def priority(self, item):
+        """根据页面类型设置不同的优先级"""
+        if item == 'frontend:home':
+            return 1.0  # 首页最高优先级
+        else:
+            return 0.3  # 网站级政策页面很低优先级（法律合规但SEO价值低）
+
+    def changefreq(self, item):
+        """根据页面类型设置不同的更新频率"""
+        if item == 'frontend:home':
+            return 'daily'  # 首页每日更新
+        else:
+            return 'yearly'  # 网站级政策页面年更新（很少变化）
+
+
+class IncomingInventorySitemap(Sitemap):
+    """
+    即将到货页面网站地图
+    基于LoadManifest数据的动态页面
+    """
+    priority = 0.8  # 高优先级功能页面
+    changefreq = 'weekly'  # 每周更新频率，符合货物到达频率
+    protocol = 'https' if not settings.DEBUG else 'http'
+
+    def items(self):
+        # 返回单一页面标识符
+        return ['incoming_inventory']
+
+    def location(self, item):
+        return reverse('frontend:incoming_inventory')
+
+    def lastmod(self, item):
+        """
+        基于最新LoadManifest的更新时间
+        这样能准确反映页面内容的实际变化
+        """
+        try:
+            from .models_proxy import LoadManifest
+            company_id = getattr(settings, 'COMPANY_ID')
+            latest_manifest = LoadManifest.objects.filter(
+                status=LoadManifest.Status.CONVERTING,
+                company_id=company_id
+            ).order_by('-updated_at').first()
+
+            if latest_manifest and hasattr(latest_manifest, 'updated_at'):
+                return latest_manifest.updated_at
+            else:
+                return timezone.now()
+        except Exception as e:
+            logger.error(f"Error getting incoming inventory lastmod: {e}")
+            return timezone.now()
+
+    def changefreq(self, item):
+        """
+        根据实际LoadManifest数据动态调整更新频率
+        """
+        try:
+            from .models_proxy import LoadManifest
+            from datetime import timedelta
+
+            company_id = getattr(settings, 'COMPANY_ID')
+            recent_manifests = LoadManifest.objects.filter(
+                status=LoadManifest.Status.CONVERTING,
+                company_id=company_id,
+                updated_at__gte=timezone.now() - timedelta(days=30)
+            ).count()
+
+            # 根据最近30天的更新频率动态调整
+            if recent_manifests >= 8:  # 每周都有更新
+                return 'daily'
+            elif recent_manifests >= 4:  # 每两周有更新
+                return 'weekly'
+            else:  # 更新较少
+                return 'monthly'
+
+        except Exception as e:
+            logger.error(f"Error calculating incoming inventory changefreq: {e}")
+            return 'weekly'  # 默认值
+
 
 class StoreSitemap(Sitemap):
     """
@@ -99,7 +178,7 @@ class ProductSitemap(Sitemap):
     产品页面网站地图
     包括所有产品详情页面
     """
-    priority = 0.7
+    priority = 0.9
     changefreq = 'daily'
     protocol = 'https' if not settings.DEBUG else 'http'
     
@@ -139,9 +218,9 @@ class ProductSitemap(Sitemap):
 class WarrantyPolicySitemap(Sitemap):
     """
     保修政策页面网站地图
-    每个商店都有保修政策页面
+    每个商店都有保修政策页面 - 本地SEO重要
     """
-    priority = 0.6
+    priority = 0.7  # 提高优先级，有本地SEO价值
     changefreq = 'monthly'
     protocol = 'https' if not settings.DEBUG else 'http'
     
@@ -166,9 +245,9 @@ class WarrantyPolicySitemap(Sitemap):
 class TermsConditionsSitemap(Sitemap):
     """
     条款和条件页面网站地图
-    每个商店都有条款和条件页面
+    每个商店都有条款和条件页面 - 本地SEO重要
     """
-    priority = 0.6
+    priority = 0.7  # 提高优先级，有本地SEO价值
     changefreq = 'monthly'
     protocol = 'https' if not settings.DEBUG else 'http'
     

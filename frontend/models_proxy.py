@@ -1469,7 +1469,6 @@ class LoadManifest(models.Model):
         verbose_name="Company", 
         help_text="Company that purchased this load"
     )
-    vendor = models.CharField(max_length=255, null=True, blank=True, verbose_name="Vendor", help_text="Supplier of this load")
     location = models.ForeignKey(Location, on_delete=models.CASCADE, null=True, blank=True, verbose_name="Location", help_text="Location where this load is stored")
     load_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Load Cost", help_text="Total cost of the goods")
     shipping_fee = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Shipping Fee", help_text="Cost of shipping")

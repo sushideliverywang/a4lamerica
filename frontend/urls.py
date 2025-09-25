@@ -31,7 +31,10 @@ urlpatterns = [
     path('show-map/', views.ShowMapView.as_view(), name='show_map'),
     path('api/orders/create/', views.create_order, name='create_order'),
     path('customer/order/<str:order_number>/', views.CustomerOrderDetailView.as_view(), name='customer_order_detail'),
-    
+
+    # 即将到货页面URL
+    path('incoming-inventory/', views.IncomingInventoryView.as_view(), name='incoming_inventory'),
+
     # 保修政策相关URL
     path('<slug:location_slug>/warranty/', views.WarrantyPolicyView.as_view(), name='warranty_policy'),
     path('<slug:location_slug>/warranty/agree/', views.WarrantyAgreementView.as_view(), name='warranty_agreement'),

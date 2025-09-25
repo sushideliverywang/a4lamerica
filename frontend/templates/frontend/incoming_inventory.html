@@ -1,0 +1,155 @@
+{% extends "frontend/base_frontend.html" %}
+{% load static %}
+{% load frontend_filters %}
+
+{% block title %}Upcoming Arrivals - Preview Incoming Inventory | Appliances 4 Less{% endblock %}
+
+{% block meta_description %}
+Preview upcoming appliances arriving soon at Appliances 4 Less. Add items to favorites to get notified when they're available in stock!
+{% endblock %}
+
+{% block body_class %}incoming-inventory-page{% endblock %}
+
+{% block content %}
+<!-- 页面标题区域 -->
+<div class="bg-white text-center py-8">
+    <div class="container mx-auto px-4">
+        <div class="max-w-6xl mx-auto">
+            <h1 class="text-3xl md:text-4xl font-bold text-text-primary mb-4">
+                Upcoming Arrivals
+            </h1>
+            <div class="mt-6 p-4 bg-gray-50 rounded-lg">
+                <p class="text-sm text-text-secondary">
+                    💡 <strong>Preview Mode:</strong> These items are currently being processed and will be available for purchase soon!
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 按Store和LoadManifest显示即将到货商品 -->
+{% if loads_with_items %}
+    {% for load in loads_with_items %}
+    <section class="bg-white border-b border-gray-100">
+        <div class="container mx-auto px-4 py-6">
+            <div class="max-w-6xl mx-auto">
+                <!-- Store信息标题 -->
+                <div class="mb-6">
+                    <h2 class="text-2xl font-bold text-text-primary mb-2">
+                        {{ load.location.name }}
+                    </h2>
+                    <div class="text-text-secondary">
+                        <div class="flex items-center gap-1 mb-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                            <span>{{ load.location.address.get_full_address }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 按类别显示商品 -->
+                {% for category, items in load.category_items.items %}
+                <div class="mb-8">
+                    <h3 class="text-xl font-semibold text-text-primary mb-4">{{ category.name }}</h3>
+
+                    <!-- 商品网格 -->
+                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                        {% for item in items %}
+                        <div class="incoming-product-card" itemscope itemtype="https://schema.org/Product">
+                            <meta itemprop="name" content="{{ item.model_number.brand.name }} {{ item.model_number.model_number }}">
+                            <meta itemprop="description" content="Coming Soon - {{ item.model_number.brand.name }} {{ item.model_number.model_number }} - {{ item.model_number.category.name }}">
+
+                            <!-- 商品图片 -->
+                            <div class="product-image-container">
+                                {% if item.model_number.model_images %}
+                                    <img src="/resize/300x400{{ item.model_number.model_images.0.image.url|slice:'6:' }}"
+                                         alt="{{ item.model_number.brand.name }} {{ item.model_number.model_number }} - Coming Soon"
+                                         itemprop="image"
+                                         loading="lazy"
+                                         class="product-image">
+                                {% else %}
+                                    <img src="{% static 'frontend/images/product-default.png' %}"
+                                         alt="{{ item.model_number.brand.name }} {{ item.model_number.model_number }} - Coming Soon"
+                                         itemprop="image"
+                                         loading="lazy"
+                                         class="product-image">
+                                {% endif %}
+
+                                <!-- Coming Soon 标签 -->
+                                <div class="absolute top-2 right-2 bg-warning text-white px-2 py-1 rounded text-xs font-medium">
+                                    Coming Soon
+                                </div>
+                            </div>
+
+                            <!-- 商品信息 -->
+                            <div class="product-info">
+                                <div class="brand-model">
+                                    <div class="brand" itemprop="brand" itemscope itemtype="https://schema.org/Brand">
+                                        <span itemprop="name">{{ item.model_number.brand.name }}</span>
+                                    </div>
+                                    <div class="model" itemprop="model">{{ item.model_number.model_number }}</div>
+                                </div>
+
+                                <!-- 价格信息 -->
+                                <div class="price-info" itemprop="offers" itemscope itemtype="https://schema.org/Offer">
+                                    <div class="flex justify-between items-center">
+                                        <div class="text-lg font-bold text-text-primary">
+                                            Price TBD
+                                        </div>
+                                        {% if item.model_number.msrp %}
+                                        <div class="text-xs text-text-secondary">
+                                            <div>MSRP:</div>
+                                            <div class="line-through">${{ item.model_number.msrp }}</div>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    <meta itemprop="priceCurrency" content="USD">
+                                    <meta itemprop="availability" content="https://schema.org/PreOrder">
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+    {% endfor %}
+{% else %}
+    <!-- 无数据状态 -->
+    <div class="bg-white text-center py-16">
+        <div class="container mx-auto px-4">
+            <div class="max-w-2xl mx-auto">
+                <svg class="w-24 h-24 mx-auto text-gray-300 mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                </svg>
+                <h2 class="text-2xl font-bold text-text-primary mb-4">No Incoming Shipments</h2>
+                <p class="text-text-secondary mb-6">
+                    There are currently no new shipments on the way. Check back soon for upcoming arrivals!
+                </p>
+                <a href="{% url 'frontend:home' %}"
+                   class="inline-flex items-center px-6 py-3 bg-secondary text-white rounded-lg hover:bg-opacity-90 transition-colors">
+                    View Current Inventory
+                </a>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+<!-- 返回首页链接 -->
+<div class="bg-gray-50 text-center py-8">
+    <div class="container mx-auto px-4">
+        <a href="{% url 'frontend:home' %}"
+           class="inline-flex items-center text-text-primary hover:text-secondary transition-colors">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+            </svg>
+            Back to Home
+        </a>
+    </div>
+</div>
+
+{% endblock %}
