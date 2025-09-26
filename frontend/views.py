@@ -2313,6 +2313,29 @@ def robots_txt(request):
     # 生成sitemap部分的内容
     sitemaps_section = "\n".join(sitemap_lines)
 
+    # 动态获取所有活跃店面
+    from .models import Location
+    active_stores = Location.objects.filter(
+        location_type='STORE',
+        is_active=True
+    ).exclude(slug__isnull=True).exclude(slug__exact='')
+
+    # 生成店面Allow规则
+    store_allows = []
+    store_warranty_allows = []
+    store_terms_allows = []
+    store_names = []
+    for store in active_stores:
+        store_allows.append(f"Allow: /{store.slug}/")
+        store_warranty_allows.append(f"Allow: /{store.slug}/warranty/")
+        store_terms_allows.append(f"Allow: /{store.slug}/terms/")
+        store_names.append(store.slug)
+
+    store_allows_section = "\n".join(store_allows) if store_allows else "# No active stores found"
+    store_warranty_section = "\n".join(store_warranty_allows) if store_warranty_allows else ""
+    store_terms_section = "\n".join(store_terms_allows) if store_terms_allows else ""
+    store_list = ", ".join(store_names) if store_names else "none"
+
     # 环境信息（用于调试）
     env_info = f"DEBUG={settings.DEBUG}, DOMAIN={domain}, PROTOCOL={protocol}"
     sitemap_keys = ", ".join(sitemaps.keys())
@@ -2320,13 +2343,14 @@ def robots_txt(request):
     robots_content = f"""# Appliances 4 Less Doraville - 动态生成 Robots.txt
 # 环境信息: {env_info}
 # 配置的Sitemap: {sitemap_keys}
+# 活跃店面: {store_list}
 
 User-agent: *
 
 # === 核心SEO页面 - 最高优先级 ===
 Allow: /
 Allow: /incoming-inventory/          # 即将到货页面
-Allow: /*/                          # 所有商店页面 (doraville-store/, atlanta-store/ 等)
+{store_allows_section}              # 具体店面页面（从数据库动态获取）
 Allow: /category/
 Allow: /item/
 Allow: /search/
@@ -2337,8 +2361,9 @@ Allow: /products/                    # 产品SEO页面
 Allow: /privacy-policy/              # 网站级政策（合规必需，SEO价值低）
 Allow: /terms-of-service/            # 网站级政策（合规必需，SEO价值低）
 Allow: /cookie-policy/               # 网站级政策（合规必需，SEO价值低）
-Allow: /*/warranty/                  # 店铺级保修政策（本地SEO重要）
-Allow: /*/terms/                     # 店铺级条款条件（本地SEO重要）
+# 店铺级保修和条款页面（基于具体店面）
+{store_warranty_section}          # 保修政策页面
+{store_terms_section}          # 条款条件页面
 
 # === 静态资源 - 必须允许 ===
 Allow: /static/
@@ -2391,7 +2416,7 @@ Disallow: /employee/
 User-agent: Googlebot
 Allow: /
 Allow: /incoming-inventory/          # 即将到货页面
-Allow: /*/
+{store_allows_section}              # 具体店面页面
 Allow: /category/
 Allow: /item/
 Allow: /search/
@@ -2412,7 +2437,7 @@ Disallow: /media/customer/
 User-agent: bingbot
 Allow: /
 Allow: /incoming-inventory/          # 即将到货页面
-Allow: /*/
+{store_allows_section}              # 具体店面页面
 Allow: /category/
 Allow: /item/
 Allow: /search/
