@@ -84,6 +84,8 @@ class BaseFrontendMixin(BaseCompanyMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['categories'] = Category.objects.filter(parent_category_id__isnull=True)
+        # 为所有页面提供stores数据，用于优化图片预加载
+        context['stores'] = self.get_company_filtered_locations().filter(location_type='STORE')
         return context
 
 
@@ -92,6 +94,8 @@ class DetailViewMixin(BaseCompanyMixin):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['categories'] = Category.objects.filter(parent_category_id__isnull=True)
+        # 为所有页面提供stores数据，用于优化图片预加载
+        context['stores'] = self.get_company_filtered_locations().filter(location_type='STORE')
         return context
 
 
@@ -222,9 +226,9 @@ class HomeView(BaseFrontendMixin, TemplateView):
                 logging.error(f"Failed to get item count for SEO page {seo_page['key']}: {e}")
                 continue
 
-        # 获取Google评论 (只显示5星好评)
+        # 获取Google评论 (多语言评论，只显示5星好评)
         google_service = GoogleReviewsService()
-        google_reviews = google_service.get_reviews(max_reviews=6, min_rating=5)
+        google_reviews = google_service.get_reviews(max_reviews=6, min_rating=5, show_multilingual=True)
 
         # 检查是否有即将到货的库存
         has_incoming_inventory = self._check_incoming_inventory()

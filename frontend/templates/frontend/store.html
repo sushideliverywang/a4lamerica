@@ -84,12 +84,13 @@
 <!-- 商店信息头部 -->
 <div class="bg-background-light mt-6">
     <div class="container mx-auto px-4 py-8">
+        <div class="max-w-6xl mx-auto">
         <!-- 商店基本信息 -->
         <div class="flex items-start gap-4 mb-6">
             <!-- 商店圆形小图片 -->
             <div class="flex-shrink-0">
                 {% if location.image %}
-                    <img src="{{ location.image.url }}" alt="{{ location.name }}" class="w-20 h-20 object-cover rounded-full shadow-sm">
+                    <img src="/resize/64x64{{ location.image.url|slice:'6:' }}" alt="{{ location.name }}" class="w-20 h-20 object-cover rounded-full shadow-sm" loading="lazy">
                 {% else %}
                     <img src="{% static 'frontend/images/store-default.png' %}" alt="{{ location.name }}" class="w-20 h-20 object-cover rounded-full shadow-sm">
                 {% endif %}
@@ -162,12 +163,14 @@
                 {% endfor %}
             </div>
         </div>
+        </div>
     </div>
 </div>
 
 <!-- 分类商品展示区域 -->
 {% for category, items in category_items.items %}
 <div id="category-{{ category.id }}" class="container mx-auto px-4 pt-2 pb-4">
+    <div class="max-w-6xl mx-auto">
     <div class="flex flex-col mb-1">
         <div class="flex items-center gap-2">
             <h2 class="text-2xl font-bold text-text-primary">{{ category.name }}</h2>
@@ -246,7 +249,14 @@
                                 <meta itemprop="name" content="{{ location.name }}">
                         </div>
                         <div class="store-info">
-                            <span class="flex-1">{{ location.name }}</span>
+                            <div class="flex items-center gap-2 flex-1">
+                                {% if location.image %}
+                                    <img src="/resize/30x30{{ location.image.url|slice:'6:' }}" alt="{{ location.name }}" loading="lazy">
+                                {% else %}
+                                    <img src="{% static 'frontend/images/store-default.png' %}" alt="{{ location.name }}" class="w-[30px] h-[30px] object-cover rounded">
+                                {% endif %}
+                                <span class="flex-1">{{ location.name }}</span>
+                            </div>
                             <div class="flex items-center gap-1">
                                 <div class="likes">
                                     <svg class="w-4 h-4 text-error" fill="currentColor" viewBox="0 0 24 24">
@@ -274,16 +284,19 @@
             </svg>
         </button>
     </div>
+    </div>
 </div>
 {% endfor %}
 
 <!-- 如果没有商品显示提示 -->
 {% if not category_items %}
 <div class="container mx-auto px-4 py-16">
+    <div class="max-w-6xl mx-auto">
     <div class="text-center">
         <h2 class="text-2xl font-bold text-text-primary mb-4">No Products Available</h2>
         <p class="text-text-secondary mb-6">This store currently has no products available.</p>
         <a href="{% url 'frontend:home' %}" class="btn btn-primary">Browse All Stores</a>
+    </div>
     </div>
 </div>
 {% endif %}
@@ -291,6 +304,7 @@
 <!-- 页面底部操作按钮 -->
 <div class="bg-background-light py-8 mt-8">
     <div class="container mx-auto px-4">
+        <div class="max-w-6xl mx-auto">
         <div class="flex flex-col md:flex-row gap-4 justify-center items-center">
             <a href="{% url 'frontend:warranty_policy' location.slug %}" class="btn btn-outline">
                 Warranty Policy
@@ -298,6 +312,7 @@
             <a href="{% url 'frontend:terms_conditions' location.slug %}" class="btn btn-outline">
                 Terms & Conditions
             </a>
+        </div>
         </div>
     </div>
 </div>

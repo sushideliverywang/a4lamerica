@@ -93,7 +93,7 @@ SERVICE_TYPES = {
         'name': 'Wall Oven Installation',
         'keywords': ['Wall Oven Installation', 'oven setup', 'cooking appliance'],
         'description': 'Professional wall oven installation with electrical connections, move your wall oven to kitchen',
-        'price_range': '$250',
+        'price_range': '$200',
         'duration': '1-2 hours',
         'features': ['Same-day service (subject to availability)', 'Experienced technicians', '1-year warranty', 'Accessories included'],
         'image_desktop': '/static/frontend/images/services/Desktop-wall-oven.jpg',

@@ -105,6 +105,18 @@
     <link rel="stylesheet" href="{% static 'frontend/css/base_frontend.css' %}">
     <link href="{% static 'css/tailwind.css' %}" rel="stylesheet">
     <script async src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_CLIENT_API_KEY }}&libraries=places,marker"></script>
+
+    <!-- 预加载store图片，优化product-card和store展示性能 -->
+    {% if stores %}
+        {% for store in stores %}
+            {% if store.image %}
+                <link rel="preload" href="/resize/30x30{{ store.image.url|slice:'6:' }}" as="image" type="image/webp">
+                <link rel="preload" href="/resize/32x32{{ store.image.url|slice:'6:' }}" as="image" type="image/webp">
+                <link rel="preload" href="/resize/64x64{{ store.image.url|slice:'6:' }}" as="image" type="image/webp">
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+
     {% block extra_css %}{% endblock %}
     <meta name="google-site-verification" content="JWRnPllHFZE1RLIgIzO8yY63pUDYoU-eGZRCaGbCFOQ" />
     

@@ -6,6 +6,7 @@
 
 {% block content %}
 <div class="container mx-auto px-2 sm:px-4 py-8">
+    <div class="max-w-6xl mx-auto">
     <!-- 面包屑导航 -->
     <nav class="breadcrumb-nav mb-4 md:mb-6 mt-4">
         <ol class="flex items-center space-x-2 text-sm">
@@ -35,7 +36,7 @@
                         <div class="flex items-center justify-between mb-6">
                             <div class="flex items-center space-x-4">
                                 {% if location.image %}
-                                    <img src="{{ location.image.url }}" alt="{{ location.name }}" class="w-12 h-12 rounded-lg object-cover">
+                                    <img src="/resize/48x48{{ location.image.url|slice:'6:' }}" alt="{{ location.name }}" class="w-12 h-12 rounded-lg object-cover" loading="lazy">
                                 {% else %}
                                     <div class="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center">
                                         <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -220,6 +221,7 @@
                 </a>
             </div>
         {% endif %}
+    </div>
     </div>
 </div>
 {% endblock %}
