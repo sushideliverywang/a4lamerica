@@ -43,11 +43,8 @@ def decode_item_id(item_hash):
     try:
         from .models_proxy import InventoryItem
         
-        # 遍历所有已发布的商品，找到匹配的哈希
-        items = InventoryItem.objects.filter(
-            published=True,
-            current_state_id__in=[4, 5, 8]  # 只查找可销售状态的商品
-        )
+        # 遍历所有商品，找到匹配的哈希（移除限制以支持已售商品访问）
+        items = InventoryItem.objects.all()
         
         for item in items:
             if get_item_hash(item) == item_hash:

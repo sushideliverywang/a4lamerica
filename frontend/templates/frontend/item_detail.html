@@ -143,6 +143,45 @@
     .thumbnail-container .flex.space-x-2.overflow-x-auto::-webkit-scrollbar {
         display: none; /* Chrome, Safari and Opera */
     }
+
+    /* 商品状态叠加层样式 - 横幅样式 */
+    .item-status-overlay {
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        transform: translateY(-50%);
+        z-index: 10;
+        padding: 16px 0;
+        font-weight: 600;
+        font-size: 24px;
+        text-align: center;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        backdrop-filter: blur(8px);
+        border-top: 2px solid;
+        border-bottom: 2px solid;
+        width: 100%;
+    }
+
+    .status-sold {
+        background: rgba(220, 38, 38, 0.95);
+        border-color: rgb(220, 38, 38);
+        color: white;
+    }
+
+    .status-unavailable {
+        background: rgba(107, 114, 128, 0.95);
+        border-color: rgb(107, 114, 128);
+        color: white;
+    }
+
+    /* 移动端状态叠加层调整 */
+    @media (max-width: 768px) {
+        .item-status-overlay {
+            font-size: 20px;
+            padding: 12px 0;
+        }
+    }
 </style>
 {% endblock %}
 
@@ -369,6 +408,17 @@
                         </div>
                         {% endif %}
 
+                        <!-- 商品状态叠加层 -->
+                        {% if is_sold %}
+                        <div class="item-status-overlay status-sold">
+                            SOLD
+                        </div>
+                        {% elif is_not_available %}
+                        <div class="item-status-overlay status-unavailable">
+                            NO LONGER AVAILABLE
+                        </div>
+                        {% endif %}
+
                         <!-- 图片导航按钮 -->
                         {% if item.item_images|length > 1 %}
                         <button id="prevBtn"
@@ -515,22 +565,27 @@
                     </div>
                     <!-- 操作按钮 -->
                     <div class="space-y-4 pt-6 border-t border-border">
-                        {% if is_in_cart %}
-                        <div class="bg-success/10 border border-success/20 rounded-lg p-4 text-center">
-                            <div class="flex items-center justify-center space-x-2">
-                                <svg class="w-5 h-5 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M5 13l4 4L19 7" />
-                                </svg>
-                                <span class="text-success font-medium">Item already in your cart</span>
+                        {% if is_available %}
+                            {% if is_in_cart %}
+                            <!-- 已在购物车 -->
+                            <div class="bg-success/10 border border-success/20 rounded-lg p-4 text-center">
+                                <div class="flex items-center justify-center space-x-2">
+                                    <svg class="w-5 h-5 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M5 13l4 4L19 7" />
+                                    </svg>
+                                    <span class="text-success font-medium">Item already in your cart</span>
+                                </div>
                             </div>
-                        </div>
-                        {% else %}
-                        <button id="addToCartBtn"
-                            class="w-full btn-secondary hover:bg-primary/90 text-white font-semibold py-3 px-6 rounded-lg transition-colors">
-                            Add to Cart
-                        </button>
+                            {% else %}
+                            <!-- 可购买状态 - 显示添加到购物车按钮 -->
+                            <button id="addToCartBtn"
+                                class="w-full btn-secondary hover:bg-primary/90 text-white font-semibold py-3 px-6 rounded-lg transition-colors">
+                                Add to Cart
+                            </button>
+                            {% endif %}
                         {% endif %}
+                        <!-- 不可用状态：不显示任何按钮，状态已在图片上显示 -->
                     </div>
 
                 </div>
@@ -562,6 +617,63 @@
                         {% endif %}
                     </div>
                 </div>
+
+                <!-- 相似商品推荐 -->
+                {% if similar_items %}
+                <div class="border border-border rounded-lg mt-6">
+                    <div class="px-4 py-3 border-b border-border">
+                        <h3 class="font-medium text-text-primary">
+                            {% if is_sold %}
+                                Similar Items Available
+                            {% else %}
+                                You May Also Like
+                            {% endif %}
+                        </h3>
+                    </div>
+                    <div class="p-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                            {% for similar_item in similar_items %}
+                            <div class="border border-border rounded-lg p-3 hover:shadow-md transition-shadow">
+                                <a href="{% url 'frontend:item_detail' similar_item|item_hash %}" class="block">
+                                    <!-- 商品图片 -->
+                                    <div class="aspect-square mb-3 bg-gray-100 rounded overflow-hidden">
+                                        {% if similar_item.images.exists %}
+                                            <img src="{{ similar_item.images.first.image.url }}"
+                                                 alt="{{ similar_item.model_number.model_number }}"
+                                                 class="w-full h-full object-cover">
+                                        {% elif similar_item.model_number.images.exists %}
+                                            <img src="{{ similar_item.model_number.images.first.image.url }}"
+                                                 alt="{{ similar_item.model_number.model_number }}"
+                                                 class="w-full h-full object-cover">
+                                        {% else %}
+                                            <div class="w-full h-full flex items-center justify-center text-gray-400">
+                                                <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd" />
+                                                </svg>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+
+                                    <!-- 商品信息 -->
+                                    <div class="space-y-1">
+                                        <h4 class="text-sm font-medium text-text-primary line-clamp-2">
+                                            {{ similar_item.model_number.brand.name }} {{ similar_item.model_number.model_number }}
+                                        </h4>
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-lg font-bold text-primary">${{ similar_item.retail_price|floatformat:0 }}</span>
+                                            {% if similar_item.savings > 0 %}
+                                            <span class="text-xs text-success font-medium">Save ${{ similar_item.savings|floatformat:0 }}</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
             </div>
         </div>
     </div>

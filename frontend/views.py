@@ -379,11 +379,9 @@ class ItemDetailView(DetailViewMixin, DetailView):
     context_object_name = 'item'
     
     def get_queryset(self):
-        """只获取已发布的商品，且状态为可销售状态，只显示配置公司的商品"""
-        return self.get_company_filtered_inventory_items().filter(
-            published=True,
-            current_state_id__in=[4, 5, 8]  # 只显示这三种状态的商品
-        ).select_related(
+        """获取所有商品，移除published和状态限制避免404错误，只显示配置公司的商品"""
+        return self.get_company_filtered_inventory_items().select_related(
+            # 移除所有限制: published=True, current_state_id__in=[4, 5, 8]
             'model_number',
             'model_number__brand',
             'model_number__category',
@@ -459,8 +457,46 @@ class ItemDetailView(DetailViewMixin, DetailView):
         else:
             item.warranty_display = "No Warranty"
         
+        # 检查商品状态
+        is_available = (
+            item.published and
+            item.current_state_id in [4, 5, 8] and
+            item.order is None
+        )
+
+        # 区分已售出和其他不可用状态
+        is_sold = item.order is not None  # 有订单就是已售出
+        is_not_available = (
+            not item.published and item.order is None  # 主动下架或其他原因
+        ) or (
+            item.published and item.current_state_id not in [4, 5, 8]  # 状态不可售
+        )
+
+        # 获取相似商品（所有商品都显示，不管是否已售）
+        similar_items = self.get_company_filtered_inventory_items().filter(
+            model_number__category=item.model_number.category,
+            published=True,
+            current_state_id__in=[4, 5, 8]  # 只推荐可售的商品
+        ).exclude(id=item.id).select_related(
+            'model_number',
+            'model_number__brand'
+        )[:4]
+
+        # 为相似商品计算节省金额和加载图片
+        for similar_item in similar_items:
+            if similar_item.model_number.msrp:
+                similar_item.savings = similar_item.model_number.msrp - similar_item.retail_price
+                similar_item.savings_percentage = (similar_item.savings / similar_item.model_number.msrp) * 100
+            else:
+                similar_item.savings = 0
+                similar_item.savings_percentage = 0
+
         # 获取收藏总数 - 对所有用户显示
         context.update({
+            'is_available': is_available,
+            'is_sold': is_sold,
+            'is_not_available': is_not_available,
+            'similar_items': similar_items,
             'favorite_count': CustomerFavorite.objects.filter(item=item).count(),
             'breadcrumbs': [
                 {'name': 'Home', 'url': reverse('frontend:home')},
@@ -1333,15 +1369,22 @@ def add_to_cart(request, item_hash):
             }, status=404)
         
         customer = request.user.customer
-        
+
+        # 检查商品是否可购买（状态检查和是否已售出）
+        if item.current_state_id not in [4, 5, 8] or item.order is not None:
+            return JsonResponse({
+                'success': False,
+                'error': 'This item is no longer available for purchase'
+            }, status=400)
+
         # 检查商品是否已在购物车中
         existing_cart_items = ShoppingCart.objects.filter(
             customer=customer,
             item=item
         )
-        
+
         cart_item = existing_cart_items.first()
-        
+
         if cart_item:
             return JsonResponse({
                 'success': False,
@@ -2522,8 +2565,8 @@ def sitemap_view(request, section=None):
 
 class SEOServiceListView(BaseFrontendMixin, TemplateView):
     """
-    服务类型列表页面
-    显示特定城市的所有服务，或者显示所有服务（当没有指定城市时）
+    Service type list page
+    Display services for a specific city or all services when no city is specified
     """
     template_name = 'frontend/seo_service_list.html'
     
