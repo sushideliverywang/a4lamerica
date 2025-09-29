@@ -186,7 +186,7 @@ PRODUCT_SEO_PAGES = {
         'h1_title': 'Bespoke Kitchen Appliance Sets in Chamblee',
         'short_title': 'Bespoke Kitchen Sets',
         'city_key': 'chamblee',
-        'show_on_homepage': True,
+        'show_on_homepage': False,
         'homepage_priority': 2,
         'active': True,
 
