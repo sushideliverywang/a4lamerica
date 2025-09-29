@@ -2709,7 +2709,7 @@ class DynamicProductSEOView(BaseFrontendMixin, TemplateView):
                     }
                 })
 
-        return structured_data
+        return json.dumps(structured_data, ensure_ascii=False, indent=2)
 
 
 # 图片处理和缩放视图
