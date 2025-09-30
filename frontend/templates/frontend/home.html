@@ -593,17 +593,20 @@ appliances, refrigerators, washers, dryers, stoves, dishwashers, Appliances 4 Le
                     What Our Customers Say
                 </h2>
                 <div class="flex items-center justify-center space-x-2 mb-2">
-                    <div class="flex text-yellow-400">
+                    <div class="flex text-yellow-400" id="main-rating-stars" data-rating="{{ google_reviews.rating }}">
                         {% for i in "12345" %}
-                            {% if google_reviews.rating >= i|add:0 %}
-                                <svg class="w-6 h-6 fill-current" viewBox="0 0 20 20">
+                            <div class="relative w-6 h-6 star-container" data-star="{{ forloop.counter }}">
+                                <!-- 背景空星星 -->
+                                <svg class="w-6 h-6 text-gray-300 fill-current absolute" viewBox="0 0 20 20">
                                     <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
                                 </svg>
-                            {% else %}
-                                <svg class="w-6 h-6 text-gray-300 fill-current" viewBox="0 0 20 20">
-                                    <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
-                                </svg>
-                            {% endif %}
+                                <!-- 前景黄色星星 -->
+                                <div class="absolute inset-0 overflow-hidden star-fill">
+                                    <svg class="w-6 h-6 fill-current text-yellow-400" viewBox="0 0 20 20">
+                                        <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                                    </svg>
+                                </div>
+                            </div>
                         {% endfor %}
                     </div>
                     <span class="text-lg font-semibold text-text-primary">{{ google_reviews.rating }}/5</span>
@@ -628,17 +631,20 @@ appliances, refrigerators, washers, dryers, stoves, dishwashers, Appliances 4 Le
                              class="w-12 h-12 rounded-full object-cover mr-4">
                         <div>
                             <h4 class="font-semibold text-text-primary">{{ review.author_name }}</h4>
-                            <div class="flex text-yellow-400 text-sm">
+                            <div class="flex text-yellow-400 text-sm review-rating-stars" data-rating="{{ review.rating }}">
                                 {% for i in "12345" %}
-                                    {% if review.rating >= i|add:0 %}
-                                        <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20">
+                                    <div class="relative w-4 h-4 star-container" data-star="{{ forloop.counter }}">
+                                        <!-- 背景空星星 -->
+                                        <svg class="w-4 h-4 text-gray-300 fill-current absolute" viewBox="0 0 20 20">
                                             <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
                                         </svg>
-                                    {% else %}
-                                        <svg class="w-4 h-4 text-gray-300 fill-current" viewBox="0 0 20 20">
-                                            <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
-                                        </svg>
-                                    {% endif %}
+                                        <!-- 前景黄色星星 -->
+                                        <div class="absolute inset-0 overflow-hidden star-fill">
+                                            <svg class="w-4 h-4 fill-current text-yellow-400" viewBox="0 0 20 20">
+                                                <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                                            </svg>
+                                        </div>
+                                    </div>
                                 {% endfor %}
                             </div>
                         </div>
@@ -757,6 +763,41 @@ document.addEventListener('DOMContentLoaded', function() {
     const eagerImages = document.querySelectorAll('.product-image[loading="eager"]');
     eagerImages.forEach(img => {
         img.classList.add('loaded');
+    });
+
+    // 星星部分填充效果
+    function fillStars(container) {
+        const rating = parseFloat(container.dataset.rating);
+        const stars = container.querySelectorAll('.star-container');
+
+        stars.forEach((star, index) => {
+            const starNumber = index + 1;
+            const starFill = star.querySelector('.star-fill');
+
+            if (rating >= starNumber) {
+                // 完全填充
+                starFill.style.width = '100%';
+            } else if (rating > starNumber - 1) {
+                // 部分填充
+                const fillPercentage = ((rating - (starNumber - 1)) * 100);
+                starFill.style.width = fillPercentage + '%';
+            } else {
+                // 不填充
+                starFill.style.width = '0%';
+            }
+        });
+    }
+
+    // 应用到主评分区域
+    const mainRatingContainer = document.getElementById('main-rating-stars');
+    if (mainRatingContainer) {
+        fillStars(mainRatingContainer);
+    }
+
+    // 应用到所有个别评论的评分
+    const reviewRatingContainers = document.querySelectorAll('.review-rating-stars');
+    reviewRatingContainers.forEach(container => {
+        fillStars(container);
     });
 });
 </script>
