@@ -117,16 +117,16 @@ appliances, refrigerators, washers, dryers, stoves, dishwashers, Appliances 4 Le
                     <div class="carousel-item">
                         <a href="{% url 'frontend:store' store.slug %}" class="block">
                             {% if store.image %}
-                                <img src="{{ store.image.url }}" alt="{{ store.name }}" class="carousel-image">
+                                <img src="{{ store.image.url }}" alt="{{ store.name }}" class="carousel-image" width="800" height="500">
                             {% else %}
-                                <img src="{% static 'frontend/images/store-default.png' %}" alt="{{ store.name }}" class="carousel-image">
+                                <img src="{% static 'frontend/images/store-default.png' %}" alt="{{ store.name }}" class="carousel-image" width="800" height="500">
                             {% endif %}
                         </a>
                         <div class="carousel-content">
                             <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
                                 <div class="carousel-text">
                                     <h4 class="text-xl md:text-2xl font-bold text-text-primary mb-2">{{ store.name }}</h4>
-                                    <p class="text-base md:text-lg text-text-secondary">{{ store.address.street_number }} {{ store.address.street_name }}, {{ store.address.city }}, {{ store.address.state }} {{ store.address.zip_code }}</p>
+                                    <p class="text-xl md:text-xl font-bold text-text-primary">{{ store.address.street_number }} {{ store.address.street_name }}, {{ store.address.city }}, {{ store.address.state }} {{ store.address.zip_code }}</p>
                                     <div class="mt-2">
                                         {% with today_hours=store.business_hours.all|filter_today %}
                                             {% if today_hours %}
@@ -371,19 +371,25 @@ appliances, refrigerators, washers, dryers, stoves, dishwashers, Appliances 4 Le
                              alt="{{ item.model_number.brand.name }} {{ item.model_number.model_number }} - {{ item.model_number.category.name }} at {{ item.location.name }}"
                              itemprop="image"
                              loading="{% if forloop.parentloop.counter0 == 0 and forloop.counter0 < 4 %}eager{% else %}lazy{% endif %}"
-                             class="product-image">
+                             class="product-image"
+                             width="300"
+                             height="400">
                     {% elif item.model_number.model_images %}
                         <img src="/resize/300x400{{ item.model_number.model_images.0.image.url|slice:'6:' }}"
                              alt="{{ item.model_number.brand.name }} {{ item.model_number.model_number }} - {{ item.model_number.category.name }} at {{ item.location.name }}"
                              itemprop="image"
                              loading="{% if forloop.parentloop.counter0 == 0 and forloop.counter0 < 4 %}eager{% else %}lazy{% endif %}"
-                             class="product-image">
+                             class="product-image"
+                             width="300"
+                             height="400">
                     {% else %}
                         <img src="{% static 'frontend/images/product-default.png' %}"
                              alt="{{ item.model_number.brand.name }} {{ item.model_number.model_number }} - {{ item.model_number.category.name }} at {{ item.location.name }}"
                              itemprop="image"
                              loading="{% if forloop.parentloop.counter0 == 0 and forloop.counter0 < 4 %}eager{% else %}lazy{% endif %}"
-                             class="product-image">
+                             class="product-image"
+                             width="300"
+                             height="400">
                     {% endif %}
                     <div class="product-info">
                         <div class="brand-model">
@@ -544,8 +550,10 @@ appliances, refrigerators, washers, dryers, stoves, dishwashers, Appliances 4 Le
                             <div class="city-image-container">
                                 <picture>
                                     <source media="(max-width: 767px)" srcset="{{ city_info.image_mobile|default:city_info.image_desktop }}">
-                                    <img src="{{ city_info.image_desktop|default:'/static/frontend/images/city/default-city.jpg' }}" 
-                                         alt="{{ city_info.name }} Appliances delivery and installation service">
+                                    <img src="{{ city_info.image_desktop|default:'/static/frontend/images/city/default-city.jpg' }}"
+                                         alt="{{ city_info.name }} Appliances delivery and installation service"
+                                         width="400"
+                                         height="400">
                                 </picture>
                                 <div class="city-name-overlay">
                                     <h3>{{ city_info.name }}</h3>
@@ -628,7 +636,9 @@ appliances, refrigerators, washers, dryers, stoves, dishwashers, Appliances 4 Le
                     <div class="flex items-center mb-4">
                         <img src="{{ review.profile_photo_url|default:'/static/frontend/images/default-avatar.png' }}"
                              alt="{{ review.author_name }}"
-                             class="w-12 h-12 rounded-full object-cover mr-4">
+                             class="w-12 h-12 rounded-full object-cover mr-4"
+                             width="48"
+                             height="48">
                         <div>
                             <h4 class="font-semibold text-text-primary">{{ review.author_name }}</h4>
                             <div class="flex text-yellow-400 text-sm review-rating-stars" data-rating="{{ review.rating }}">
