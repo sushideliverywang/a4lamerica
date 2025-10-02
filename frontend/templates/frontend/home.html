@@ -347,8 +347,10 @@ appliances, refrigerators, washers, dryers, stoves, dishwashers, Appliances 4 Le
                    class="category-card group block"
                    itemprop="itemListElement"
                    itemscope
-                   itemtype="https://schema.org/Product">
+                   itemtype="https://schema.org/ItemList">
                     <meta itemprop="name" content="{{ cat_data.name }}">
+                    <meta itemprop="numberOfItems" content="{{ cat_data.count }}">
+                    <meta itemprop="url" content="{% url 'frontend:category' cat_data.slug %}">
                     <div class="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden">
                         <div class="aspect-square relative overflow-hidden">
                             <img src="{% static 'frontend/images/category/' %}{{ cat_data.image }}"
