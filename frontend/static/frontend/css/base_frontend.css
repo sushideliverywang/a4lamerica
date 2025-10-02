@@ -106,7 +106,7 @@ body.item-detail-page {
     background-color: white;
     border-bottom: 1px solid var(--border-color);
     position: fixed;
-    top: 3.5rem; /* 通知栏实际高度 */
+    top: 2.5rem; /* 通知栏高度：min-height 2.5rem */
     left: 0;
     right: 0;
     z-index: 40;
@@ -134,7 +134,7 @@ body.item-detail-page {
 @media (max-width: 768px) {
     .navbar {
         padding: 0;
-        top: 3.5rem; /* 通知栏实际高度 */
+        top: 2.5rem; /* 通知栏高度：min-height 2.5rem */
     }
 
     .notification-bar {
@@ -167,12 +167,12 @@ body.item-detail-page {
 
 /* 为固定定位的导航栏预留空间 */
 body {
-    padding-top: calc(3.5rem + 4rem); /* 通知栏实际高度 + 导航栏高度 */
+    padding-top: calc(2.5rem + 4rem); /* 通知栏高度 + 导航栏高度 */
 }
 
 @media (max-width: 768px) {
     body {
-        padding-top: calc(3.5rem + 3.5rem); /* 通知栏实际高度 + 导航栏高度 */
+        padding-top: calc(2.5rem + 3.5rem); /* 通知栏高度 + 导航栏高度 */
     }
 }
 

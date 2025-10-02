@@ -6,38 +6,6 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-8 pt-8">
         <div class="bg-white shadow-md rounded-lg px-4 py-6 sm:px-8 sm:py-8">
             <div class="flex items-center justify-between mb-8">
-                <h2 class="text-2xl font-bold">Personal Information</h2>
-            </div>
-            <div id="profileMessage" class="mb-6 hidden"></div>
-
-            <form id="profileForm" method="post" action="{% url 'frontend:customer_profile' %}">
-                {% csrf_token %}
-                <input type="hidden" name="action" value="update_profile">
-                <div class="mb-6">
-                    <label for="first_name" class="block text-base font-medium text-gray-700 mb-2">First Name</label>
-                    <input type="text" name="first_name" id="first_name" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-base" value="{{ user.first_name }}">
-                </div>
-                <div class="mb-6">
-                    <label for="last_name" class="block text-base font-medium text-gray-700 mb-2">Last Name</label>
-                    <input type="text" name="last_name" id="last_name" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-base" value="{{ user.last_name }}">
-                </div>
-                <div class="mb-6">
-                    <label for="email" class="block text-base font-medium text-gray-700 mb-2">
-                        Email
-                        <span class="text-sm text-gray-500 ml-1">(Account username cannot be changed)</span>
-                    </label>    
-                    <input type="email" name="email" id="email" class="mt-1 block w-full rounded-md border-gray-300 bg-gray-50 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-base" value="{{ user.email }}" readonly disabled>
-                </div>
-                <div class="mb-6">
-                    <label for="phone" class="block text-base font-medium text-gray-700 mb-2">Phone</label>
-                    <input type="text" name="phone" id="phone" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-base" value="{{ user.customer.phone }}">
-                </div>
-                <button type="submit" class="w-full py-3 px-4 btn-secondary text-base">Update Profile</button>
-            </form>
-        </div>
-
-        <div class="bg-white shadow-md rounded-lg px-4 py-6 sm:px-8 sm:py-8">
-            <div class="flex items-center justify-between mb-8">
                 <h2 class="text-2xl font-bold">Address Management</h2>
             </div>
 
@@ -89,6 +57,39 @@
                 </button>
             </div>
         </div>
+
+        <div class="bg-white shadow-md rounded-lg px-4 py-6 sm:px-8 sm:py-8">
+            <div class="flex items-center justify-between mb-8">
+                <h2 class="text-2xl font-bold">Personal Information</h2>
+            </div>
+            <div id="profileMessage" class="mb-6 hidden"></div>
+
+            <form id="profileForm" method="post" action="{% url 'frontend:customer_profile' %}">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="update_profile">
+                <div class="mb-6">
+                    <label for="first_name" class="block text-base font-medium text-gray-700 mb-2">First Name</label>
+                    <input type="text" name="first_name" id="first_name" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-base" value="{{ user.first_name }}">
+                </div>
+                <div class="mb-6">
+                    <label for="last_name" class="block text-base font-medium text-gray-700 mb-2">Last Name</label>
+                    <input type="text" name="last_name" id="last_name" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-base" value="{{ user.last_name }}">
+                </div>
+                <div class="mb-6">
+                    <label for="email" class="block text-base font-medium text-gray-700 mb-2">
+                        Email
+                        <span class="text-sm text-gray-500 ml-1">(Account username cannot be changed)</span>
+                    </label>    
+                    <input type="email" name="email" id="email" class="mt-1 block w-full rounded-md border-gray-300 bg-gray-50 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-base" value="{{ user.email }}" readonly disabled>
+                </div>
+                <div class="mb-6">
+                    <label for="phone" class="block text-base font-medium text-gray-700 mb-2">Phone</label>
+                    <input type="text" name="phone" id="phone" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-base" value="{{ user.customer.phone }}">
+                </div>
+                <button type="submit" class="w-full py-3 px-4 btn-secondary text-base">Update Profile</button>
+            </form>
+        </div>
+
     </div>
     </div>
 </div>

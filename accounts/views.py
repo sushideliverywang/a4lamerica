@@ -233,7 +233,7 @@ def activate_customer(request, token):
             login(request, customer.user)
             
             messages.success(request, 'Your account has been successfully activated!')
-            return redirect('frontend:home')
+            return redirect('frontend:customer_profile')
             
     except Customer.DoesNotExist:
         messages.error(request, 'Invalid or expired activation link.')
