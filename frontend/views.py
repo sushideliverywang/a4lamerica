@@ -124,73 +124,6 @@ class HomeView(BaseFrontendMixin, TemplateView):
             'image', 'company__company_name', 'timezone'
         )
         
-        # 为每个分类获取对应的商品
-        category_items = {}
-        for category in context['categories']:
-            # 获取当前类别及其所有子类别的商品，只显示配置公司的商品
-            # 只显示状态为 WAITING FOR TESTING (4), TEST (5), FOR SALE (8) 的商品
-            base_items = self.get_company_filtered_inventory_items().filter(
-                models.Q(model_number__category=category) |  # 当前类别的商品
-                models.Q(model_number__category__parent_category_id=category.id),  # 子类别的商品
-                published=True,
-                current_state_id__in=[4, 5, 8]  # 只显示这三种状态的商品
-            ).select_related(
-                'model_number',
-                'model_number__brand',
-                'model_number__category'
-            ).annotate(
-                favorite_count=Count('favorited_by', distinct=True)
-            ).only(
-                'id',
-                'retail_price',
-                'model_number__model_number',
-                'model_number__msrp',
-                'model_number__brand__name',
-                'model_number__category__name'
-            )
-            
-            # 分别处理有商品图片和没有商品图片的商品
-            items_with_images = base_items.filter(images__isnull=False).prefetch_related(
-                models.Prefetch(
-                    'images',
-                    queryset=ItemImage.objects.only('image').order_by('display_order')[:1],  # 只加载第一张图片
-                    to_attr='item_images'
-                )
-            )
-            
-            # 对于没有商品图片的商品，预加载产品型号图片
-            items_without_images = base_items.filter(images__isnull=True).prefetch_related(
-                models.Prefetch(
-                    'model_number__images',
-                    queryset=ProductImage.objects.only('image').order_by('id')[:1],  # 预加载产品型号的第一张图片
-                    to_attr='model_images'
-                )
-            )
-            
-            # 合并两个查询集
-            items = list(items_with_images) + list(items_without_images)
-            
-            if items:
-                # 计算真实的产品总数
-                total_count = len(items)
-                
-                # 限制每个分类只显示6个产品
-                items = items[:6]
-                
-                # 为每个商品计算节省金额
-                for item in items:
-                    if item.model_number.msrp:
-                        item.savings = item.model_number.msrp - item.retail_price
-                        item.savings_percentage = (item.savings / item.model_number.msrp) * 100
-                    else:
-                        item.savings = 0
-                        item.savings_percentage = 0
-                
-                # 将真实总数添加到每个商品对象中，供模板使用
-                for item in items:
-                    item.total_category_count = total_count
-                
-                category_items[category] = items
         
         # 为首页创建简化的城市数据，只包含必要的字段
         minimal_cities = {}
@@ -233,13 +166,56 @@ class HomeView(BaseFrontendMixin, TemplateView):
         # 检查是否有即将到货的库存
         has_incoming_inventory = self._check_incoming_inventory()
 
+        # 特色分类配置 - 用于新的首页分类展示
+        FEATURED_CATEGORIES = [
+            {'slug': 'refrigerator', 'name': 'Refrigerator', 'image': 'refrigerator.webp'},
+            {'slug': 'range', 'name': 'Range', 'image': 'range.webp'},
+            {'slug': 'dishwasher', 'name': 'Dishwasher', 'image': 'dishwasher.webp'},
+            {'slug': 'microwave', 'name': 'Microwave', 'image': 'microwave.webp'},
+            {'slug': 'wall-oven', 'name': 'Wall Oven', 'image': 'wall_oven.webp'},
+            {'slug': 'wine-cooler', 'name': 'Wine Cooler', 'image': 'wine_cooler.webp'},
+            {'slug': 'washer', 'name': 'Washer', 'image': 'washer.webp'},
+            {'slug': 'dryer', 'name': 'Dryer', 'image': 'dryer.webp'},
+            {'slug': 'wash-tower', 'name': 'Wash Tower', 'image': 'wash_tower.webp'},
+            {'slug': 'washerdryer-combo', 'name': 'Washer/Dryer Combo', 'image': 'washerdryer_combo.webp'},
+        ]
+
+        # 为特色分类计算商品数量
+        featured_categories = []
+        for cat_config in FEATURED_CATEGORIES:
+            try:
+                category = Category.objects.get(slug=cat_config['slug'])
+
+                # 使用与现有category_items相同的逻辑计算商品数量
+                base_items = self.get_company_filtered_inventory_items().filter(
+                    models.Q(model_number__category=category) |
+                    models.Q(model_number__category__parent_category_id=category.id),
+                    published=True,
+                    current_state_id__in=[4, 5, 8]
+                )
+
+                total_count = base_items.count()
+
+                featured_categories.append({
+                    'slug': cat_config['slug'],
+                    'name': cat_config['name'],
+                    'image': cat_config['image'],
+                    'count': total_count,
+                    'category_obj': category
+                })
+
+            except Category.DoesNotExist:
+                # 如果分类不存在，记录但继续处理其他分类
+                logging.warning(f"Featured category not found: {cat_config['slug']}")
+                continue
+
         context.update({
             'stores': stores,
-            'category_items': category_items,
             'cities': minimal_cities,
             'homepage_seo_pages': seo_pages_with_counts,
             'google_reviews': google_reviews,
             'has_incoming_inventory': has_incoming_inventory,
+            'featured_categories': featured_categories,
         })
         return context
 

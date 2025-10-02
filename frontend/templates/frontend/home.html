@@ -57,13 +57,13 @@ appliances, refrigerators, washers, dryers, stoves, dishwashers, Appliances 4 Le
       "@type": "OfferCatalog",
       "name": "Appliances Catalog",
       "itemListElement": [
-        {% for category, items in category_items.items %}
+        {% for cat_data in featured_categories %}
         {
           "@type": "ItemList",
-          "name": "{{ category.name }}",
-          "description": "{{ category.name }}",
-          "numberOfItems": "{{ items|length }}",
-          "url": "{{ request.scheme }}://{{ request.get_host }}{% url 'frontend:category' category.slug %}"
+          "name": "{{ cat_data.name }}",
+          "description": "{{ cat_data.name }}",
+          "numberOfItems": "{{ cat_data.count }}",
+          "url": "{{ request.scheme }}://{{ request.get_host }}{% url 'frontend:category' cat_data.slug %}"
         }{% if not forloop.last %},{% endif %}
         {% endfor %}
       ]
@@ -329,139 +329,50 @@ appliances, refrigerators, washers, dryers, stoves, dishwashers, Appliances 4 Le
 </section>
 {% endif %}
 
-<!-- 分类商品展示区域 -->
-{% if category_items %}
+<!-- 特色分类展示区域 -->
+{% if featured_categories %}
 <div class="bg-white text-center py-4">
     <h2 class="text-3xl md:text-4xl font-bold text-text-primary mb-2">
-        Real-time Inventory by Category
+        Real-Time Inventory by Category
     </h2>
+    <p class="text-lg text-text-secondary">Browse our appliance categories</p>
 </div>
-{% endif %}
-{% for category, items in category_items.items %}
-<section id="category-{{ category.id }}" class="bg-white category-section">
-    <div class="container mx-auto px-4 pt-2 pb-4" itemscope itemtype="https://schema.org/OfferCatalog">
+
+<section class="bg-white py-6">
+    <div class="container mx-auto px-4" itemscope itemtype="https://schema.org/OfferCatalog">
         <div class="max-w-6xl mx-auto">
-    <div class="flex flex-col mb-1">
-        <div class="flex items-center gap-2">
-            <h2 class="text-2xl font-bold text-text-primary" itemprop="name">{{ category.name }}</h2>
-            <p class="text-lg text-text-secondary">
-                {% if items.0.total_category_count %}
-                    {{ items.0.total_category_count }} items available
-                {% else %}
-                    {{ items|length }} items available
-                {% endif %}
-            </p>
-            <a href="{% url 'frontend:category' category.slug %}" 
-               class="text-sm text-text-primary hover:text-text-secondary transition-colors"
-               aria-label="View all {{ category.name }}">
-                View All {{ category.name }}
-            </a>
-        </div>
-    </div>
-    
-    <div class="product-scroll-container">
-        <div class="product-scroll-wrapper" id="scroll-wrapper-{{ category.id }}">
-            {% for item in items %}
-            <a href="{% url 'frontend:item_detail' item|item_hash %}" class="block" itemprop="itemListElement" itemscope itemtype="https://schema.org/Product">
-                <meta itemprop="name" content="{{ item.model_number.brand.name }} {{ item.model_number.model_number }}">
-                <meta itemprop="description" content="{% if item.model_number.description %}{{ item.model_number.description|striptags|escapejs }}{% else %}{{ item.model_number.brand.name }} {{ item.model_number.model_number }} - {{ item.model_number.category.name }} at {{ item.location.name }}{% endif %}">
-                <div class="product-card">
-                    {% if item.item_images %}
-                        <img src="/resize/300x400{{ item.item_images.0.image.url|slice:'6:' }}"
-                             alt="{{ item.model_number.brand.name }} {{ item.model_number.model_number }} - {{ item.model_number.category.name }} at {{ item.location.name }}"
-                             itemprop="image"
-                             loading="{% if forloop.parentloop.counter0 == 0 and forloop.counter0 < 4 %}eager{% else %}lazy{% endif %}"
-                             class="product-image"
-                             width="300"
-                             height="400">
-                    {% elif item.model_number.model_images %}
-                        <img src="/resize/300x400{{ item.model_number.model_images.0.image.url|slice:'6:' }}"
-                             alt="{{ item.model_number.brand.name }} {{ item.model_number.model_number }} - {{ item.model_number.category.name }} at {{ item.location.name }}"
-                             itemprop="image"
-                             loading="{% if forloop.parentloop.counter0 == 0 and forloop.counter0 < 4 %}eager{% else %}lazy{% endif %}"
-                             class="product-image"
-                             width="300"
-                             height="400">
-                    {% else %}
-                        <img src="{% static 'frontend/images/product-default.png' %}"
-                             alt="{{ item.model_number.brand.name }} {{ item.model_number.model_number }} - {{ item.model_number.category.name }} at {{ item.location.name }}"
-                             itemprop="image"
-                             loading="{% if forloop.parentloop.counter0 == 0 and forloop.counter0 < 4 %}eager{% else %}lazy{% endif %}"
-                             class="product-image"
-                             width="300"
-                             height="400">
-                    {% endif %}
-                    <div class="product-info">
-                        <div class="brand-model">
-                            <div class="brand" itemprop="brand" itemscope itemtype="https://schema.org/Brand">
-                                <span itemprop="name">{{ item.model_number.brand.name }}</span>
-                            </div>
-                            <div class="model" itemprop="model">{{ item.model_number.model_number }}</div>
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                {% for cat_data in featured_categories %}
+                <a href="{% url 'frontend:category' cat_data.slug %}"
+                   class="category-card group block"
+                   itemprop="itemListElement"
+                   itemscope
+                   itemtype="https://schema.org/Product">
+                    <meta itemprop="name" content="{{ cat_data.name }}">
+                    <div class="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden">
+                        <div class="aspect-square relative overflow-hidden">
+                            <img src="{% static 'frontend/images/category/' %}{{ cat_data.image }}"
+                                 alt="{{ cat_data.name }}"
+                                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                 itemprop="image"
+                                 loading="{% if forloop.counter0 < 6 %}eager{% else %}lazy{% endif %}"
+                                 width="200"
+                                 height="200">
                         </div>
-                        <div class="price-info" itemprop="offers" itemscope itemtype="https://schema.org/Offer">
-                            <div class="flex justify-between items-center">
-                                <div class="text-lg font-bold text-text-primary" itemprop="price" content="{{ item.retail_price }}">${{ item.retail_price }}</div>
-                                {% if item.model_number.msrp %}
-                                <div class="text-xs text-text-secondary line-through">MSRP: ${{ item.model_number.msrp }}</div>
-                                {% endif %}
-                            </div>
-                            {% if item.model_number.msrp %}
-                            <div class="text-xs text-success">Save ${{ item.savings|floatformat:2 }} ({{ item.savings_percentage|floatformat:0 }}%)</div>
-                            {% endif %}
-                            <meta itemprop="priceCurrency" content="USD">
-                            <meta itemprop="availability" content="https://schema.org/InStock">
-                            <meta itemprop="shippingDetails" itemscope itemtype="https://schema.org/OfferShippingDetails">
-                                <meta itemprop="shippingRate" itemscope itemtype="https://schema.org/MonetaryAmount">
-                                    <meta itemprop="value" content="0">
-                                    <meta itemprop="currency" content="USD">
-                                <meta itemprop="shippingDestination" itemscope itemtype="https://schema.org/DefinedRegion">
-                                    <meta itemprop="addressCountry" content="US">
-                                    <meta itemprop="geoRadius" content="16093.4">
-                                <meta itemprop="shippingLabel" content="Free delivery within 10 miles">
-                                <meta itemprop="deliveryTime" itemscope itemtype="https://schema.org/ShippingDeliveryTime">
-                                    <meta itemprop="businessDays" itemscope itemtype="https://schema.org/OpeningHoursSpecification">
-                                        <meta itemprop="dayOfWeek" content="Monday,Tuesday,Wednesday,Thursday,Friday,Saturday">
-                                    <meta itemprop="handlingTime" itemscope itemtype="https://schema.org/QuantitativeValue">
-                                        <meta itemprop="minValue" content="1">
-                                        <meta itemprop="maxValue" content="3">
-                                        <meta itemprop="unitCode" content="DAY">
-                            <meta itemprop="hasMerchantReturnPolicy" itemscope itemtype="https://schema.org/MerchantReturnPolicy">
-                                <meta itemprop="returnPolicyCategory" content="https://schema.org/MerchantReturnNotPermitted">
-                                <meta itemprop="customerRemorseReturnFees" content="https://schema.org/ReturnFeesCustomerResponsibility">
-                                <meta itemprop="returnPolicyCountry" content="US">
-                            <meta itemprop="seller" itemscope itemtype="https://schema.org/Organization">
-                                <meta itemprop="name" content="{% if item.location %}{{ item.location.name }}{% else %}Appliances 4 Less{% endif %}">
-                        </div>
-                        <div class="store-info">
-                            {% if item.location and item.location.image %}
-                                <img src="/resize/30x30{{ item.location.image.url|slice:'6:' }}"
-                                     alt="{{ item.location.name }}"
-                                     loading="lazy">
-                            {% else %}
-                                <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
-                                </svg>
-                            {% endif %}
-                            <span class="flex-1">{% if item.location %}{{ item.location.name }}{% else %}Store{% endif %}</span>
-                            <div class="flex items-center gap-1">
-                                <div class="likes">
-                                    <svg class="w-4 h-4 text-error" fill="currentColor" viewBox="0 0 24 24">
-                                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                                    </svg>
-                                    <span class="text-xs text-text-secondary">{{ item.favorite_count }}</span>
-                                </div>
-                            </div>
+                        <div class="p-4 text-center">
+                            <h3 class="font-semibold text-text-primary mb-1">{{ cat_data.name }}</h3>
+                            <p class="text-sm text-text-secondary">
+                                {{ cat_data.count }} item{{ cat_data.count|pluralize }} available
+                            </p>
                         </div>
                     </div>
-                </div>
-            </a>
-            {% endfor %}
-        </div>
-    </div>
+                </a>
+                {% endfor %}
+            </div>
         </div>
     </div>
 </section>
-{% endfor %}
+{% endif %}
 
 <!-- 即将到货按钮区域 -->
 <div class="bg-white py-6">

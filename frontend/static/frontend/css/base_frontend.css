@@ -1699,3 +1699,74 @@ body {
     }
 }
 
+/* --- 分类卡片样式 --- */
+.category-card {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.category-card:hover {
+    transform: translateY(-2px);
+    text-decoration: none;
+    color: inherit;
+}
+
+.category-card .aspect-square {
+    aspect-ratio: 1 / 1;
+}
+
+.category-card img {
+    transition: transform 0.3s ease;
+}
+
+.category-card:hover img {
+    transform: scale(1.05);
+}
+
+/* 确保分类卡片的图片统一显示 */
+.category-card .aspect-square img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain; /* 改为contain保持图片完整性 */
+    object-position: center;
+    background-color: #ffffff; /* 改为白色背景 */
+    padding: 1rem; /* 给图片添加内边距，确保一致的显示效果 */
+    box-sizing: border-box;
+}
+
+/* 分类卡片的文字部分 */
+.category-card h3 {
+    color: var(--text-primary);
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.category-card p {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
+/* 响应式网格调整 */
+@media (min-width: 640px) {
+    .category-card {
+        max-width: none;
+    }
+}
+
+@media (max-width: 639px) {
+    /* 移动端调整分类卡片 */
+    .category-card h3 {
+        font-size: 0.9rem;
+    }
+
+    .category-card p {
+        font-size: 0.75rem;
+    }
+
+    .category-card .p-4 {
+        padding: 0.75rem;
+    }
+}
+
