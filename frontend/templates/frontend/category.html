@@ -10,27 +10,59 @@
 
 {% block og_description %}Browse high-quality {{ category.name|lower }} appliances{% if is_store_mode %} at {{ store.name }}{% endif %}. Great prices, excellent service, and professional installation available.{% endblock %}
 
-{% if current_category_items %}
-    {% for item in current_category_items %}
-        {% if item.item_images %}
-            {% block og_image %}
-                <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ item.item_images.0.image.url }}">
-                <meta property="og:image:width" content="1200">
-                <meta property="og:image:height" content="630">
-                <meta property="og:image:alt" content="{{ category.name }} at Appliances 4 Less Doraville">
-            {% endblock %}
-            {% break %}
-        {% elif item.model_number.model_images %}
-            {% block og_image %}
-                <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ item.model_number.model_images.0.image.url }}">
-                <meta property="og:image:width" content="1200">
-                <meta property="og:image:height" content="630">
-                <meta property="og:image:alt" content="{{ category.name }} at Appliances 4 Less Doraville">
-            {% endblock %}
-            {% break %}
+{% block og_image %}
+{% load static %}
+    {% comment %}
+    Try to use static category image based on category slug.
+    Fallback order: current category -> parent category -> hero-image.jpg
+    {% endcomment %}
+    {% if category.slug == 'refrigerator' %}
+        <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'frontend/images/category/refrigerator.webp' %}">
+    {% elif category.slug == 'washer' %}
+        <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'frontend/images/category/washer.webp' %}">
+    {% elif category.slug == 'dryer' %}
+        <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'frontend/images/category/dryer.webp' %}">
+    {% elif category.slug == 'dishwasher' %}
+        <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'frontend/images/category/dishwasher.webp' %}">
+    {% elif category.slug == 'range' %}
+        <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'frontend/images/category/range.webp' %}">
+    {% elif category.slug == 'microwave' %}
+        <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'frontend/images/category/microwave.webp' %}">
+    {% elif category.slug == 'wall_oven' or category.slug == 'wall-oven' %}
+        <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'frontend/images/category/wall_oven.webp' %}">
+    {% elif category.slug == 'wash_tower' or category.slug == 'wash-tower' %}
+        <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'frontend/images/category/wash_tower.webp' %}">
+    {% elif category.slug == 'washerdryer_combo' or category.slug == 'washer-dryer-combo' %}
+        <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'frontend/images/category/washerdryer_combo.webp' %}">
+    {% elif category.slug == 'wine_cooler' or category.slug == 'wine-cooler' %}
+        <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'frontend/images/category/wine_cooler.webp' %}">
+    {% elif category.parent_category %}
+        {% comment %}Try parent category{% endcomment %}
+        {% if category.parent_category.slug == 'refrigerator' %}
+            <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'frontend/images/category/refrigerator.webp' %}">
+        {% elif category.parent_category.slug == 'washer' %}
+            <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'frontend/images/category/washer.webp' %}">
+        {% elif category.parent_category.slug == 'dryer' %}
+            <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'frontend/images/category/dryer.webp' %}">
+        {% elif category.parent_category.slug == 'dishwasher' %}
+            <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'frontend/images/category/dishwasher.webp' %}">
+        {% elif category.parent_category.slug == 'range' %}
+            <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'frontend/images/category/range.webp' %}">
+        {% elif category.parent_category.slug == 'microwave' %}
+            <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'frontend/images/category/microwave.webp' %}">
+        {% elif category.parent_category.slug == 'wall_oven' or category.parent_category.slug == 'wall-oven' %}
+            <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'frontend/images/category/wall_oven.webp' %}">
+        {% else %}
+            <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'frontend/images/hero-image.jpg' %}">
         {% endif %}
-    {% endfor %}
-{% endif %}
+    {% else %}
+        {% comment %}Fallback to hero image{% endcomment %}
+        <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'frontend/images/hero-image.jpg' %}">
+    {% endif %}
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="{{ category.name }} at Appliances 4 Less Doraville">
+{% endblock %}
 
 {% block twitter_title %}{% if is_store_mode %}{{ store.name }} - {{ category.name }}{% else %}{{ category.name }}{% endif %} | Appliances 4 Less Doraville{% endblock %}
 
