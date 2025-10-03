@@ -190,11 +190,11 @@
                 <a href="{% url 'frontend:item_detail' item|item_hash %}" class="block">
                     <div class="product-card">
                         {% if item.item_images %}
-                            <img src="{{ item.item_images.0.image.url }}" alt="{{ item.name }}">
+                            <img src="/resize/300x400{{ item.item_images.0.image.url|slice:'6:' }}" alt="{{ item.name }}" loading="lazy">
                         {% elif item.model_number.model_images %}
-                            <img src="{{ item.model_number.model_images.0.image.url }}" alt="{{ item.name }}">
+                            <img src="/resize/300x400{{ item.model_number.model_images.0.image.url|slice:'6:' }}" alt="{{ item.name }}" loading="lazy">
                         {% else %}
-                            <img src="{% static 'frontend/images/product-default.png' %}" alt="{{ item.name }}">
+                            <img src="{% static 'frontend/images/product-default.png' %}" alt="{{ item.name }}" loading="lazy">
                         {% endif %}
                         <div class="product-info">
                             <div class="brand-model">
@@ -256,11 +256,11 @@
                     <a href="{% url 'frontend:item_detail' item|item_hash %}" class="block">
                         <div class="product-card">
                             {% if item.item_images %}
-                                <img src="{{ item.item_images.0.image.url }}" alt="{{ item.name }}">
+                                <img src="/resize/300x400{{ item.item_images.0.image.url|slice:'6:' }}" alt="{{ item.name }}" loading="lazy">
                             {% elif item.model_number.model_images %}
-                                <img src="{{ item.model_number.model_images.0.image.url }}" alt="{{ item.name }}">
+                                <img src="/resize/300x400{{ item.model_number.model_images.0.image.url|slice:'6:' }}" alt="{{ item.name }}" loading="lazy">
                             {% else %}
-                                <img src="{% static 'frontend/images/product-default.png' %}" alt="{{ item.name }}">
+                                <img src="{% static 'frontend/images/product-default.png' %}" alt="{{ item.name }}" loading="lazy">
                             {% endif %}
                             <div class="product-info">
                                 <div class="brand-model">

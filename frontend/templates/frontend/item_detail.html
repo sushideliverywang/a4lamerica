@@ -9,15 +9,16 @@
 {% block og_description %}{% if item.model_number.description %}{{ item.model_number.description|striptags|truncatewords:30 }}{% else %}{{ item.model_number.brand.name }} {{ item.model_number.model_number }} - {{ item.model_number.category.name }}{% endif %} • ${{ item.retail_price|floatformat:0 }}{% if item.model_number.msrp and item.model_number.msrp > item.retail_price %} (Save ${{ item.savings|floatformat:0 }}){% endif %} • {{ item.get_condition_display }} • Available at {{ item.location.name }}{% endblock %}
 
 {% block og_image %}
+{% comment %}Use 600x800 to maintain product aspect ratio and avoid distortion in social media{% endcomment %}
 {% if item.item_images and item.item_images.0 %}
-    <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ item.item_images.0.image.url }}">
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
+    <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}/resize/600x800{{ item.item_images.0.image.url|slice:'6:' }}">
+    <meta property="og:image:width" content="600">
+    <meta property="og:image:height" content="800">
     <meta property="og:image:alt" content="{{ item.model_number.brand.name }} {{ item.model_number.model_number }}">
-{% elif item.model_number.model_images and item.model_number.model_images.0 %}
-    <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ item.model_number.model_images.0.image.url }}">
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
+{% elif item.model_number.images.all %}
+    <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}/resize/600x800{{ item.model_number.images.all.0.image.url|slice:'6:' }}">
+    <meta property="og:image:width" content="600">
+    <meta property="og:image:height" content="800">
     <meta property="og:image:alt" content="{{ item.model_number.brand.name }} {{ item.model_number.model_number }}">
 {% else %}
     <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'frontend/images/hero-image.jpg' %}">
