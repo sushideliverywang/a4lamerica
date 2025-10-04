@@ -148,7 +148,7 @@
 <body class="bg-background-light min-h-screen flex flex-col {% block body_class %}{% endblock %}">
     <!-- 顶部通知栏 -->
     <div class="notification-bar">
-        <p><span class="text-sm">Register Now for $50 Off Your First Order-</span><a href="{% url 'accounts:register_customer' %}" class="underline hover:no-underline"> Register Now</a></p>
+        <p><a href="{% url 'accounts:register_customer' %}" class="underline hover:no-underline">Register Now</a><span class="text-sm"> - Get $25 Off Your First Order</span></p>
     </div>
 
     <!-- 主标题区域 - 仅在相关页面显示 -->
@@ -430,7 +430,7 @@
     </footer>
 
     <!-- 移动端底部导航栏 -->
-    <div class="fixed bottom-0 left-0 right-0 md:hidden" style="background-color: #110f1a !important; border-top: 1px solid #4a5568;">
+    <div class="fixed bottom-0 left-0 right-0 md:hidden" style="background-color: rgba(17, 15, 26, 0.85) !important; border-top: 1px solid #4a5568; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);">
         <div class="grid grid-cols-4 gap-0 py-4">
             <a href="{% url 'frontend:home' %}" class="flex flex-col items-center justify-center transition-colors" style="color: white !important;">
                 <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5" style="stroke: white !important;">
