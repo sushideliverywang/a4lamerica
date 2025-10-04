@@ -15,6 +15,17 @@ appliances, refrigerators, washers, dryers, stoves, dishwashers, Appliances 4 Le
 
 {% block og_type %}website{% endblock %}
 
+{% block og_title %}Best Appliance Deals in Georgia - Holiday Savings | Appliances 4 Less{% endblock %}
+
+{% block og_description %}🎄 Holiday Savings Event! Buy more, save more on quality appliances. Up to $350 OFF + $25 off first order. Free delivery within 10 miles!{% endblock %}
+
+{% block og_image %}
+<meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'frontend/images/promotion/1004promotion600300.webp' %}">
+<meta property="og:image:width" content="600">
+<meta property="og:image:height" content="300">
+<meta property="og:image:alt" content="Holiday Savings - Buy More Save More">
+{% endblock %}
+
 {% block body_class %}home-page{% endblock %}
 
 {% block hero_section %}{% endblock %}
@@ -105,8 +116,26 @@ appliances, refrigerators, washers, dryers, stoves, dishwashers, Appliances 4 Le
 ]
 </script>
 
+<!-- 促销横幅 -->
+<div class="bg-background-light mt-4">
+    <div class="container mx-auto px-4">
+        <div class="max-w-6xl mx-auto">
+            <div class="promotion-banner">
+                <a href="{% url 'frontend:store' 'doraville-store' %}" class="block">
+                    <picture>
+                        <source media="(max-width: 767px)" srcset="{% static 'frontend/images/promotion/1004promotion600300.webp' %}">
+                        <img src="{% static 'frontend/images/promotion/1004promotion1200300.webp' %}"
+                             alt="Holiday Savings - Buy More Save More"
+                             class="w-full h-auto rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
+                    </picture>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- 主轮播区域 -->
-<div class="bg-white mt-6">
+<div class="bg-background-light mt-2">
     <div class="container mx-auto px-4 py-4">
         <div class="max-w-6xl mx-auto">
         <!-- 轮播图 -->
@@ -165,7 +194,7 @@ appliances, refrigerators, washers, dryers, stoves, dishwashers, Appliances 4 Le
 </div>
 
 <!-- 网站介绍区域 -->
-<div class="bg-white py-6">
+<div class="bg-background-light py-6">
     <div class="container mx-auto px-4">
         <div class="max-w-6xl mx-auto">
             <!-- 主内容区域 -->
@@ -223,7 +252,7 @@ appliances, refrigerators, washers, dryers, stoves, dishwashers, Appliances 4 Le
 
 <!-- 热门产品分类区域 -->
 {% if homepage_seo_pages %}
-<section class="bg-white py-12">
+<section class="bg-background-light py-12">
     <div class="container mx-auto px-4">
         <div class="max-w-6xl mx-auto">
             <!-- 区域标题 -->
@@ -320,14 +349,14 @@ appliances, refrigerators, washers, dryers, stoves, dishwashers, Appliances 4 Le
 
 <!-- 特色分类展示区域 -->
 {% if featured_categories %}
-<div class="bg-white text-center py-4">
+<div class="bg-background-light text-center py-4">
     <h2 class="text-3xl md:text-4xl font-bold text-text-primary mb-2">
         Real-Time Inventory by Category
     </h2>
     <p class="text-lg text-text-secondary">Browse our appliance categories</p>
 </div>
 
-<section class="bg-white py-6">
+<section class="bg-background-light py-6">
     <div class="container mx-auto px-4" itemscope itemtype="https://schema.org/OfferCatalog">
         <div class="max-w-6xl mx-auto">
             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
@@ -366,7 +395,7 @@ appliances, refrigerators, washers, dryers, stoves, dishwashers, Appliances 4 Le
 {% endif %}
 
 <!-- 即将到货按钮区域 -->
-<div class="bg-white py-6">
+<div class="bg-background-light py-6">
     <div class="container mx-auto px-4">
         <div class="max-w-6xl mx-auto">
             <!-- 主内容区域 -->
@@ -441,7 +470,7 @@ appliances, refrigerators, washers, dryers, stoves, dishwashers, Appliances 4 Le
 </div>
 
 <!-- 城市列表 -->
-<div class="bg-white py-8">
+<div class="bg-background-light py-8">
     <div class="container mx-auto px-4">
         <div class="max-w-6xl mx-auto">
             <h2 class="text-2xl font-bold text-text-primary mb-6 text-center">Free Delivery to Neighborhood</h2>

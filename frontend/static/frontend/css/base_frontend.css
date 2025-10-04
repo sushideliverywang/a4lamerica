@@ -2,7 +2,7 @@
 :root {
     --primary-color: #110f1a;        /* 主色：深灰绿 */
     --secondary-color: #b32712;      /* 辅色：橙橙色 */
-    --background-light: #FDF2d8;     /* 浅色背景 */
+    --background-light: #FDF8F4;     /* 浅色背景 */
     --background-dark: #272433;      /* 深色背景 */
     --text-primary: #1A1A1A;         /* 正文文字 - 提高对比度 */
     --text-secondary: #4A5568;       /* 次要文字 - 提高对比度 */
