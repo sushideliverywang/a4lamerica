@@ -426,52 +426,52 @@
             </div>
         </div>
         <!-- 移动端底部间距 -->
-        <div class="md:hidden h-16"></div>
+        <div class="md:hidden h-20"></div>
     </footer>
 
     <!-- 移动端底部导航栏 -->
-    <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 md:hidden">
-        <div class="grid grid-cols-4 gap-0 py-2">
-            <a href="{% url 'frontend:home' %}" class="flex flex-col items-center justify-center text-text-primary hover:text-secondary">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+    <div class="fixed bottom-0 left-0 right-0 md:hidden" style="background-color: #110f1a !important; border-top: 1px solid #4a5568;">
+        <div class="grid grid-cols-4 gap-0 py-4">
+            <a href="{% url 'frontend:home' %}" class="flex flex-col items-center justify-center transition-colors" style="color: white !important;">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5" style="stroke: white !important;">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
                 </svg>
-                <span class="text-xs mt-1">Home</span>
+                <span class="text-xs mt-2 font-medium" style="color: white !important;">Home</span>
             </a>
-            <button id="mobileShopAllButton" class="flex flex-col items-center justify-center text-text-primary hover:text-secondary">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+            <button id="mobileShopAllButton" class="flex flex-col items-center justify-center transition-colors" style="color: white !important;">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5" style="stroke: white !important;">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
                 </svg>
-                <span class="text-xs mt-1">Shop All</span>
+                <span class="text-xs mt-2 font-medium" style="color: white !important;">Shop All</span>
             </button>
             {% if user.is_authenticated %}
-                <button id="mobileUserMenuButton" class="flex flex-col items-center justify-center text-text-primary hover:text-secondary">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                <button id="mobileUserMenuButton" class="flex flex-col items-center justify-center transition-colors" style="color: white !important;">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5" style="stroke: white !important;">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                     </svg>
-                    <span class="text-xs mt-1">Account</span>
+                    <span class="text-xs mt-2 font-medium" style="color: white !important;">Account</span>
                 </button>
             {% else %}
-                <a href="{% url 'accounts:login' %}?next={{ request.path }}" class="flex flex-col items-center justify-center text-text-primary hover:text-secondary">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
+                <a href="{% url 'accounts:login' %}?next={{ request.path }}" class="flex flex-col items-center justify-center transition-colors" style="color: white !important;">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5" style="stroke: white !important;">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
                     </svg>
-                    <span class="text-xs mt-1">Log In</span>
+                    <span class="text-xs mt-2 font-medium" style="color: white !important;">Log In</span>
                 </a>
             {% endif %}
             <!-- 移动端购物车图标 -->
             <a href="{% if user.is_authenticated %}{% url 'frontend:shopping_cart' %}{% else %}javascript:void(0){% endif %}" 
                {% if not user.is_authenticated %}onclick="showLoginModal('Please login to access your shopping cart.', '{% url 'frontend:shopping_cart' %}')"{% endif %} 
-               class="flex flex-col items-center justify-center text-text-primary hover:text-secondary">
+               class="flex flex-col items-center justify-center transition-colors" style="color: white !important;">
                 <div class="relative">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5" style="stroke: white !important;">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
                     </svg>
-                    <span class="absolute -top-1 -right-1 bg-secondary text-white text-xs rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 !w-[18px] !h-[18px] cart-count {% if not user.is_authenticated or user.customer.cart_items.count == 0 %}hidden{% endif %}">
+                    <span class="absolute -top-1 -right-1 bg-secondary text-white text-xs rounded-full min-w-[20px] h-[20px] flex items-center justify-center px-1 !w-[20px] !h-[20px] cart-count {% if not user.is_authenticated or user.customer.cart_items.count == 0 %}hidden{% endif %}">
                         {{ user.customer.cart_items.count }}
                     </span>
                 </div>
-                <span class="text-xs mt-1">Cart</span>
+                <span class="text-xs mt-2 font-medium" style="color: white !important;">Cart</span>
             </a>
         </div>
     </div>
