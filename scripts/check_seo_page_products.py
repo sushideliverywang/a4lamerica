@@ -99,6 +99,8 @@ def check_seo_page(page_key):
 
     # 5. 检查类别筛选
     if 'category' in filters_config:
+        from frontend.config.product_seo_pages import get_category_with_descendants
+
         category_config = filters_config['category']
         if 'names' in category_config:
             category_names = category_config['names']
@@ -110,10 +112,23 @@ def check_seo_page(page_key):
 
             # 检查类别是否存在
             matching_categories = Category.objects.filter(name__in=category_names)
-            print(f"   匹配的类别: {list(matching_categories.values_list('name', flat=True))}")
+            print(f"   匹配的父类别: {list(matching_categories.values_list('name', flat=True))}")
 
-            category_items = company_items.filter(model_number__category__name__in=category_names)
-            print(f"   符合类别条件: {category_items.count()}")
+            # 显示子类别
+            category_ids = []
+            for parent in matching_categories:
+                parent_ids = get_category_with_descendants(parent)
+                category_ids.extend(parent_ids)
+
+                # 显示该父类别下的所有子类别
+                subcategories = Category.objects.filter(id__in=parent_ids).exclude(id=parent.id)
+                if subcategories.exists():
+                    print(f"   '{parent.name}' 的子类别: {list(subcategories.values_list('name', flat=True))}")
+
+            print(f"   总共包含的类别ID: {category_ids}")
+
+            category_items = company_items.filter(model_number__category_id__in=category_ids)
+            print(f"   符合类别条件（含子类别）: {category_items.count()}")
 
             if category_items.count() > 0:
                 print(f"   示例产品型号:")

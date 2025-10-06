@@ -56,10 +56,11 @@ PRODUCT_SEO_PAGE_TEMPLATE = {
             },
 
             # 类别筛选（可选）- 二选一使用
+            # 注意：会自动包含所有子类别！例如 'Dishwasher' 会匹配所有洗碗机子类别
             # 'category': {
-            #     'names': ['Category Name 1', 'Category Name 2'],  # 按类别名称筛选
+            #     'names': ['Category Name 1', 'Category Name 2'],  # 按类别名称筛选（自动包含子类别）
             #     # 或者使用slug筛选：
-            #     # 'slugs': ['category-slug-1', 'category-slug-2'],
+            #     # 'slugs': ['category-slug-1', 'category-slug-2'],  # 按类别slug筛选（自动包含子类别）
             # },
 
             # 产品模型筛选（推荐使用）
@@ -273,10 +274,11 @@ PRODUCT_SEO_PAGES = {
             },
 
             # 类别筛选（可选）- 二选一使用
+            # 注意：会自动包含所有子类别！例如 'Dishwasher' 会匹配所有洗碗机子类别
             # 'category': {
-            #     'names': ['Category Name 1', 'Category Name 2'],  # 按类别名称筛选
+            #     'names': ['Category Name 1', 'Category Name 2'],  # 按类别名称筛选（自动包含子类别）
             #     # 或者使用slug筛选：
-            #     # 'slugs': ['category-slug-1', 'category-slug-2'],
+            #     # 'slugs': ['category-slug-1', 'category-slug-2'],  # 按类别slug筛选（自动包含子类别）
             # },
 
             # 产品模型筛选（推荐使用）
@@ -555,6 +557,25 @@ def get_seo_page_config(page_key):
     active_pages = get_active_seo_pages()
     return active_pages.get(page_key)
 
+def get_category_with_descendants(category):
+    """
+    递归获取类别及其所有子孙类别的ID列表
+
+    Args:
+        category: Category对象
+
+    Returns:
+        list: 包含该类别及所有子孙类别的ID列表
+    """
+    category_ids = [category.id]
+
+    # 递归获取所有子类别
+    for subcategory in category.subcategories.all():
+        category_ids.extend(get_category_with_descendants(subcategory))
+
+    return category_ids
+
+
 def build_product_filters(config):
     """
     根据配置构建Django QuerySet过滤条件
@@ -562,11 +583,15 @@ def build_product_filters(config):
     支持新的filters结构：
     {
         'basic': {'published': True, 'company_id': 'from_settings'},
-        'category': {'names': [...], 'slugs': [...]},
+        'category': {'names': [...], 'slugs': [...]},  # 自动包含所有子类别
         'brand': {'name__iexact': 'LG', 'slug__iexact': 'lg'},
         'product_model': {'description__icontains': '...', 'model_numbers': [...]},
         'inventory': {'condition__in': [...]}
     }
+
+    注意：
+    - category筛选会自动递归包含所有子类别
+      例如：'Dishwasher' 会同时匹配 'Dishwasher' 及其所有子类别（如 'Built-in Dishwasher', 'Portable Dishwasher' 等）
 
     Args:
         config (dict): SEO页面配置
@@ -590,17 +615,33 @@ def build_product_filters(config):
                 actual_value = value
             filters &= Q(**{field: actual_value})
 
-    # 类别筛选
+    # 类别筛选（自动包含子类别）
     if 'category' in filter_config:
+        from frontend.models_proxy import Category
         category_config = filter_config['category']
+        category_ids = []
 
         # 通过类别名称筛选
         if 'names' in category_config:
-            filters &= Q(model_number__category__name__in=category_config['names'])
+            # 获取所有匹配的父类别
+            parent_categories = Category.objects.filter(name__in=category_config['names'])
+
+            # 递归获取每个父类别及其所有子孙类别
+            for parent in parent_categories:
+                category_ids.extend(get_category_with_descendants(parent))
 
         # 通过类别slug筛选
         elif 'slugs' in category_config:
-            filters &= Q(model_number__category__slug__in=category_config['slugs'])
+            # 获取所有匹配的父类别
+            parent_categories = Category.objects.filter(slug__in=category_config['slugs'])
+
+            # 递归获取每个父类别及其所有子孙类别
+            for parent in parent_categories:
+                category_ids.extend(get_category_with_descendants(parent))
+
+        # 使用ID列表进行筛选（包含父类别和所有子类别）
+        if category_ids:
+            filters &= Q(model_number__category_id__in=category_ids)
 
     # 品牌筛选
     if 'brand' in filter_config:
