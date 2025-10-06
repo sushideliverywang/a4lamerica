@@ -236,7 +236,7 @@ PRODUCT_SEO_PAGES = {
         # 页面标题，显示在浏览器标签栏和搜索结果中，建议60字符以内
         # 例如：'Best Washing Machines in Atlanta GA - Appliances 4 Less'
 
-        'meta_description': 'Shop premium Bosch 800 series dishwashers in Duluth, GA. 42dB noise level. Same-day delivery available.',
+        'meta_description': 'Shop premium Bosch 800 series dishwashers in Duluth, GA. 42dB noise level. Same-day delivery subject to availability.',
         # 页面描述，显示在搜索结果中，建议150-160字符以内
         # 例如：'Shop premium washing machines in Atlanta, GA. Energy efficient models with smart features. Same-day delivery available.'
 
@@ -343,7 +343,7 @@ PRODUCT_SEO_PAGES = {
         # 页面标题，显示在浏览器标签栏和搜索结果中，建议60字符以内
         # 例如：'Best Washing Machines in Atlanta GA - Appliances 4 Less'
 
-        'meta_description': 'Shop premium All-in-One washer dryer in Sandy Springs, GA. Apartment friendly. Same-day delivery available.',
+        'meta_description': 'Shop premium All-in-One washer dryer in Sandy Springs, GA. Apartment friendly. Same-day delivery subject to availability.',
         # 页面描述，显示在搜索结果中，建议150-160字符以内
         # 例如：'Shop premium washing machines in Atlanta, GA. Energy efficient models with smart features. Same-day delivery available.'
 
@@ -442,6 +442,75 @@ PRODUCT_SEO_PAGES = {
         # 图标标识符，用于显示SVG图标（如果没有图片时）
         # 可选值：'refrigerator', 'washing-machine', 'appliance-set', 'discount' 等
     },
+
+    'lg-truesteam-dishwasher-norcross': {
+        # === 基础SEO信息 ===
+        'title': 'Best LG TrueSteam Dishwashers in Norcross GA - Appliances 4 Less',
+        'meta_description': 'Shop premium LG TrueSteam dishwashers in Norcross, GA. Advanced steam cleaning technology for sparkling dishes. Same-day delivery subject to availability.',
+        'h1_title': 'LG TrueSteam Dishwashers in Norcross, Georgia',
+        'short_title': 'LG TrueSteam Dishwashers',
+
+        # === 地理位置信息 ===
+        'city_key': 'norcross',
+
+        # === 首页显示设置 ===
+        'show_on_homepage': True,
+        'homepage_priority': 5,
+        'active': True,
+
+        # === 产品筛选条件 ===
+        'filters': {
+            # 基础筛选（必须包含）
+            'basic': {
+                'published': True,
+                'order__isnull': True,
+                'company_id': 'from_settings'
+            },
+
+            # 类别筛选
+            'category': {
+                'names': ['Dishwasher'],
+            },
+
+            # 品牌筛选
+            'brand': {
+                'name__iexact': 'LG',
+            },
+
+            # 产品模型筛选 - 描述包含truesteam
+            'product_model': {
+                'description__icontains': 'truesteam',
+            },
+        },
+
+        # 最少库存数量，低于此数量页面自动隐藏
+        'min_inventory': 1,
+
+        # === SEO关键词 ===
+        'keywords': [
+            'lg truesteam dishwasher norcross',
+            'lg dishwasher norcross ga',
+            'truesteam dishwasher norcross',
+            'steam cleaning dishwasher',
+            'lg quadwash dishwasher norcross'
+        ],
+
+        # === 页面内容 ===
+        'content_description': 'Discover the perfect LG TrueSteam dishwasher for your Norcross home. Our selection features advanced steam cleaning technology that eliminates 99.9% of bacteria for truly clean dishes.',
+
+        'features': [
+            'TrueSteam technology eliminates 99.9% of bacteria',
+            'QuadWash spray arms for complete coverage',
+            'Dynamic Dry for spotless results',
+            'SmartThinQ app connectivity',
+            'FREE delivery in Norcross area'
+        ],
+
+        # === 页面展示素材 ===
+        'featured_image': '/static/frontend/images/products/lg-truesteam-dishwasher.webp',
+        'background_image': '/static/frontend/images/city/Desktop-Norcross.webp',
+        'icon': 'dishwasher',
+    },
 }
 
 def get_active_seo_pages():
@@ -494,6 +563,7 @@ def build_product_filters(config):
     {
         'basic': {'published': True, 'company_id': 'from_settings'},
         'category': {'names': [...], 'slugs': [...]},
+        'brand': {'name__iexact': 'LG', 'slug__iexact': 'lg'},
         'product_model': {'description__icontains': '...', 'model_numbers': [...]},
         'inventory': {'condition__in': [...]}
     }
@@ -531,6 +601,12 @@ def build_product_filters(config):
         # 通过类别slug筛选
         elif 'slugs' in category_config:
             filters &= Q(model_number__category__slug__in=category_config['slugs'])
+
+    # 品牌筛选
+    if 'brand' in filter_config:
+        brand_config = filter_config['brand']
+        for field, value in brand_config.items():
+            filters &= Q(**{f'model_number__brand__{field}': value})
 
     # 产品模型筛选
     if 'product_model' in filter_config:
