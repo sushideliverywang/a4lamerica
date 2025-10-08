@@ -108,6 +108,27 @@ class TermsOfServiceView(BaseFrontendMixin, TemplateView):
 class CookiePolicyView(BaseFrontendMixin, TemplateView):
     template_name = 'frontend/cookie_policy.html'
 
+class AboutUsView(BaseFrontendMixin, TemplateView):
+    template_name = 'frontend/about_us.html'
+
+class ContactUsView(BaseFrontendMixin, TemplateView):
+    template_name = 'frontend/contact_us.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # 获取所有店铺的location信息
+        context['stores'] = self.get_company_filtered_locations().filter(location_type='STORE')
+        return context
+
+class ReturnPolicyView(BaseFrontendMixin, TemplateView):
+    template_name = 'frontend/return_policy.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # 获取所有店铺的location信息，用于展示warranty policy链接
+        context['stores'] = self.get_company_filtered_locations().filter(location_type='STORE')
+        return context
+
 
 class HomeView(BaseFrontendMixin, TemplateView):
     template_name = 'frontend/home.html'

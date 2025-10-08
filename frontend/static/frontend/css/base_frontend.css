@@ -78,7 +78,9 @@ body.item-detail-page {
 /* --- 布局组件 --- */
 /* 顶部通知栏 */
 .notification-bar {
-    background-color: var(--primary-color);
+    background-color: rgba(17, 15, 26, 0.85);  /* #110f1a with 0.85 opacity */
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     color: white;
     text-align: center;
     padding: 0.5rem 1rem;

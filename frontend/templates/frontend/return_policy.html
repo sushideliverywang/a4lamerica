@@ -1,0 +1,169 @@
+{% extends "frontend/base_frontend.html" %}
+{% load static %}
+
+{% block title %}Return & Refund Policy - A4L America LLC{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold mb-8">Return & Refund Policy</h1>
+
+        <div class="prose max-w-none">
+            <section class="mb-8">
+                <h2 class="text-2xl font-semibold mb-4">1. Overview</h2>
+                <p>At A4L America LLC (Appliances 4 Less Doraville), we specialize in scratch and dent, open-box, and discounted appliances. Due to the nature of these products and their already reduced prices, <strong>all sales are final</strong> with limited exceptions as outlined below.</p>
+            </section>
+
+            <section class="mb-8">
+                <h2 class="text-2xl font-semibold mb-4">2. Important Notice - All Sales Final</h2>
+                <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
+                    <p class="font-semibold">Please Read Carefully:</p>
+                    <p>Due to the discounted nature of our scratch and dent, open-box, and used appliances, <strong>all sales are final</strong>. We strongly encourage customers to:</p>
+                    <ul class="list-disc pl-6 mt-2">
+                        <li>Inspect items carefully before purchase (in-store inspection is required)</li>
+                        <li>Verify dimensions and specifications match your needs</li>
+                        <li>Ask questions about condition and functionality before completing purchase</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section class="mb-8">
+                <h2 class="text-2xl font-semibold mb-4">3. Limited Exception - Mechanical or Electrical Defects Only</h2>
+                <p>We will only accept returns or exchanges for items with mechanical or electrical defects that render the appliance non-functional, subject to the following conditions:</p>
+                <ul class="list-disc pl-6 mt-2">
+                    <li><strong>Time limit:</strong> Defects must be reported within <strong>48 hours</strong> of delivery or pickup</li>
+                    <li><strong>Proof required:</strong> Customer must provide clear documentation (photos/videos) of the defect</li>
+                    <li><strong>Inspection:</strong> Our technician may need to inspect the item to verify the defect</li>
+                    <li><strong>Resolution:</strong> At our discretion, we will repair, replace, or provide store credit</li>
+                </ul>
+                <p class="mt-4"><strong>We will NOT accept returns for:</strong></p>
+                <ul class="list-disc pl-6">
+                    <li>Cosmetic damage (scratches, dents, dings) - these are expected and disclosed</li>
+                    <li>Change of mind or wrong size/color selection</li>
+                    <li>Buyer's remorse</li>
+                    <li>Damage that occurred after delivery or pickup</li>
+                    <li>Improper installation or misuse</li>
+                    <li>Normal wear and tear</li>
+                </ul>
+            </section>
+
+            <section class="mb-8">
+                <h2 class="text-2xl font-semibold mb-4">4. How to Report a Defect</h2>
+                <p>If you believe your appliance has a mechanical or electrical defect within 48 hours of delivery/pickup:</p>
+                <ol class="list-decimal pl-6">
+                    <li>Contact us immediately at <a href="mailto:sales.10@a4lamerica.com" class="text-blue-600 hover:text-blue-800">sales.10@a4lamerica.com</a> or text <a href="tel:+16786285135" class="text-blue-600 hover:text-blue-800">(678) 628-5135</a></li>
+                    <li>Provide your order number and detailed description of the defect</li>
+                    <li>Send clear photos or videos demonstrating the issue</li>
+                    <li>Do not attempt to repair or modify the appliance yourself</li>
+                    <li>Our team will review and respond within 1 business day</li>
+                </ol>
+                <p class="mt-4"><strong>Important:</strong> Reports made after 48 hours will not be eligible for return, but may still be covered under store warranty.</p>
+            </section>
+
+            <section class="mb-8">
+                <h2 class="text-2xl font-semibold mb-4">5. Store Warranties</h2>
+                <p>All of our appliances come with store warranties that cover defects in materials and workmanship. These warranties are separate from our return policy and may provide coverage beyond our 48-hour window.</p>
+                <p class="mt-4">Warranty information is provided at the time of purchase. Warranty service is handled directly by the store where you made your purchase.</p>
+
+                {% if stores %}
+                <div class="mt-4">
+                    <p class="font-semibold mb-2">View warranty policies by location:</p>
+                    <ul class="list-disc pl-6">
+                        {% for store in stores %}
+                        <li>
+                            <a href="{% url 'frontend:warranty_policy' store.slug %}" class="text-blue-600 hover:text-blue-800">
+                                {{ store.name }} Warranty Policy
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+            </section>
+
+            <section class="mb-8">
+                <h2 class="text-2xl font-semibold mb-4">6. Inspection Before Purchase</h2>
+                <p>We strongly encourage all customers to:</p>
+                <ul class="list-disc pl-6">
+                    <li><strong>In-store purchases:</strong> Thoroughly inspect the appliance before completing the purchase</li>
+                    <li><strong>Online purchases:</strong> We only offer brand new products online purchases</li>
+                    <li><strong>Ask questions:</strong> Our staff is here to help you understand the condition and functionality of each item</li>
+                </ul>
+            </section>
+
+            <section class="mb-8">
+                <h2 class="text-2xl font-semibold mb-4">7. Why All Sales Are Final</h2>
+                <p>We offer scratch and dent, open-box, and used appliances at significantly reduced prices - often 30-70% off retail. This deep discount reflects the cosmetic imperfections and "as-is" nature of these products. To maintain these low prices for our customers, we cannot accept returns for cosmetic issues or buyer's remorse.</p>
+            </section>
+
+            <section class="mb-8">
+                <h2 class="text-2xl font-semibold mb-4">8. Incorrect Item Delivered</h2>
+                <p>If we deliver an incorrect model or wrong item:</p>
+                <ul class="list-disc pl-6">
+                    <li>Contact us within 48 hours of delivery</li>
+                    <li>We will arrange pickup of the incorrect item at no cost to you</li>
+                    <li>We will deliver the correct item or provide a full refund</li>
+                    <li>All shipping costs will be covered by us</li>
+                </ul>
+            </section>
+
+            <section class="mb-8">
+                <h2 class="text-2xl font-semibold mb-4">9. Contact Information</h2>
+                <p class="mb-4">For questions about this policy or to report a defect, please contact the location where you made your purchase:</p>
+
+                {% if stores %}
+                <div class="space-y-6">
+                    {% for store in stores %}
+                    <div class="border-l-4 border-blue-500 pl-4 py-2">
+                        <h3 class="text-lg font-semibold mb-2">{{ store.name }}</h3>
+                        <ul class="list-none space-y-1">
+                            {% if store.address %}
+                            <li><strong>Address:</strong> {{ store.address.street_number }} {{ store.address.street_name }}{% if store.address.city %}, {{ store.address.city }}{% endif %}{% if store.address.state %}, {{ store.address.state }}{% endif %}{% if store.address.zip_code %} {{ store.address.zip_code }}{% endif %}</li>
+                            {% endif %}
+                            <li><strong>Phone/Text:</strong> <a href="tel:{% if store.phone %}{{ store.phone }}{% else %}+16786285135{% endif %}" class="text-blue-600 hover:text-blue-800">{% if store.phone %}{{ store.phone }}{% else %}(678) 628-5135{% endif %}</a></li>
+                            <li><strong>Email:</strong> <a href="mailto:{% if store.email %}{{ store.email }}{% else %}sales.10@a4lamerica.com{% endif %}" class="text-blue-600 hover:text-blue-800">{% if store.email %}{{ store.email }}{% else %}sales.10@a4lamerica.com{% endif %}</a></li>
+                            {% if store.business_hours.all %}
+                            <li>
+                                <strong>Business Hours:</strong>
+                                <div class="ml-4 mt-1">
+                                    {% for hours in store.business_hours.all %}
+                                    <div class="text-sm">
+                                        <span class="inline-block w-24">{{ hours.get_day_of_week_display }}:</span>
+                                        {% if hours.is_closed %}
+                                            <span>Closed</span>
+                                        {% elif hours.is_24_hours %}
+                                            <span>24 Hours</span>
+                                        {% else %}
+                                            <span>{{ hours.open_time|time:"g:i A" }} - {{ hours.close_time|time:"g:i A" }}</span>
+                                        {% endif %}
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="border-l-4 border-blue-500 pl-4 py-2">
+                    <h3 class="text-lg font-semibold mb-2">A4L America LLC</h3>
+                    <ul class="list-none space-y-1">
+                        <li><strong>Email:</strong> <a href="mailto:sales.10@a4lamerica.com" class="text-blue-600 hover:text-blue-800">sales.10@a4lamerica.com</a></li>
+                        <li><strong>Phone/Text:</strong> <a href="tel:+16786285135" class="text-blue-600 hover:text-blue-800">(678) 628-5135</a></li>
+                        <li><strong>Address:</strong> 6930 Buford Hwy, Suite B, Doraville, GA 30340</li>
+                        <li><strong>Business Hours:</strong> Monday-Saturday 10:00 AM - 6:00 PM EST</li>
+                    </ul>
+                </div>
+                {% endif %}
+            </section>
+
+            <section class="mb-8">
+                <h2 class="text-2xl font-semibold mb-4">10. Policy Updates</h2>
+                <p>We reserve the right to update this Return & Refund Policy at any time. Any changes will be posted on this page with an updated "Last Updated" date.</p>
+                <p class="mt-4"><strong>Last Updated:</strong> October 8, 2025</p>
+            </section>
+        </div>
+    </div>
+</div>
+{% endblock %}

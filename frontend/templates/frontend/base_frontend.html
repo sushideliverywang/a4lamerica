@@ -416,12 +416,23 @@
             </div>
             
             <p class="mb-0">&copy; {% now "Y" %} A4L America LLC All rights reserved.</p>
-            <div class="text-gray-400 text-sm mt-2 overflow-x-auto whitespace-nowrap">
-                <a href="{% url 'frontend:privacy_policy' %}" class="underline text-xs md:text-sm">Privacy Policy</a>
-                <span class="mx-2">|</span>
-                <a href="{% url 'frontend:terms_of_service' %}" class="underline text-xs md:text-sm">Terms of Service</a>
-                <span class="mx-2">|</span>
-                <a href="{% url 'frontend:cookie_policy' %}" class="underline text-xs md:text-sm">Cookie Policy</a>
+            <div class="text-gray-400 text-sm mt-2">
+                <!-- 第一行：商业相关链接 -->
+                <div class="overflow-x-auto whitespace-nowrap mb-1">
+                    <a href="{% url 'frontend:about_us' %}" class="underline text-xs md:text-sm">About Us</a>
+                    <span class="mx-2">|</span>
+                    <a href="{% url 'frontend:contact_us' %}" class="underline text-xs md:text-sm">Contact Us</a>
+                    <span class="mx-2">|</span>
+                    <a href="{% url 'frontend:return_policy' %}" class="underline text-xs md:text-sm">Return Policy</a>
+                </div>
+                <!-- 第二行：网站政策链接 -->
+                <div class="overflow-x-auto whitespace-nowrap">
+                    <a href="{% url 'frontend:privacy_policy' %}" class="underline text-xs md:text-sm">Privacy Policy</a>
+                    <span class="mx-2">|</span>
+                    <a href="{% url 'frontend:terms_of_service' %}" class="underline text-xs md:text-sm">Terms of Service</a>
+                    <span class="mx-2">|</span>
+                    <a href="{% url 'frontend:cookie_policy' %}" class="underline text-xs md:text-sm">Cookie Policy</a>
+                </div>
             </div>
             </div>
         </div>

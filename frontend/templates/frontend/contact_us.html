@@ -1,0 +1,122 @@
+{% extends "frontend/base_frontend.html" %}
+{% load static %}
+
+{% block title %}Contact Us - A4L America LLC{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold mb-8">Contact Us</h1>
+
+        <div class="prose max-w-none">
+            <section class="mb-8">
+                <h2 class="text-2xl font-semibold mb-4">Get in Touch</h2>
+                <p>We're here to help! Whether you have questions about our products, need assistance with an order, or want to learn more about our services, please don't hesitate to reach out.</p>
+            </section>
+
+            {% if stores %}
+            <section class="mb-8">
+                <h2 class="text-2xl font-semibold mb-4">Our Locations</h2>
+                <div class="space-y-6">
+                    {% for store in stores %}
+                    <div class="bg-gray-50 p-6 rounded-lg">
+                        <h3 class="font-semibold text-lg mb-4">{{ store.name }}</h3>
+
+                        <div class="space-y-4">
+                            <!-- Address -->
+                            {% if store.address %}
+                            <div class="flex items-start">
+                                <svg class="w-6 h-6 text-blue-600 mr-3 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                </svg>
+                                <div>
+                                    <p class="font-semibold">Address</p>
+                                    <p>{{ store.address.street_number }} {{ store.address.street_name }}</p>
+                                    <p>{{ store.address.city }}, {{ store.address.state }} {{ store.address.zip_code }}</p>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            <!-- Email -->
+                            <div class="flex items-start">
+                                <svg class="w-6 h-6 text-blue-600 mr-3 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                </svg>
+                                <div>
+                                    <p class="font-semibold">Email</p>
+                                    <a href="mailto:{% if store.email %}{{ store.email }}{% else %}sales.10@a4lamerica.com{% endif %}" class="text-blue-600 hover:text-blue-800">{% if store.email %}{{ store.email }}{% else %}sales.10@a4lamerica.com{% endif %}</a>
+                                </div>
+                            </div>
+
+                            <!-- Phone -->
+                            <div class="flex items-start">
+                                <svg class="w-6 h-6 text-blue-600 mr-3 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+                                </svg>
+                                <div>
+                                    <p class="font-semibold">Phone/Text</p>
+                                    <a href="tel:{% if store.phone %}{{ store.phone }}{% else %}+16786285135{% endif %}" class="text-blue-600 hover:text-blue-800">{% if store.phone %}{{ store.phone }}{% else %}(678) 628-5135{% endif %}</a>
+                                </div>
+                            </div>
+
+                            <!-- Business Hours -->
+                            {% if store.business_hours.all %}
+                            <div class="flex items-start">
+                                <svg class="w-6 h-6 text-blue-600 mr-3 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <div>
+                                    <p class="font-semibold mb-2">Business Hours</p>
+                                    {% for hours in store.business_hours.all %}
+                                    <div class="text-sm flex">
+                                        <span class="inline-block w-24">{{ hours.get_day_of_week_display }}:</span>
+                                        {% if hours.is_closed %}
+                                            <span>Closed</span>
+                                        {% elif hours.is_24_hours %}
+                                            <span>24 Hours</span>
+                                        {% else %}
+                                            <span>{{ hours.open_time|time:"g:i A" }} - {{ hours.close_time|time:"g:i A" }}</span>
+                                        {% endif %}
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+            {% else %}
+            <section class="mb-8">
+                <h2 class="text-2xl font-semibold mb-4">Our Location</h2>
+                <div class="bg-gray-50 p-6 rounded-lg">
+                    <p class="font-semibold text-lg mb-2">A4L America LLC</p>
+                    <p class="mb-1">Appliances 4 Less Doraville</p>
+                    <p class="mb-1">6930 Buford Hwy, Suite B</p>
+                    <p class="mb-1">Doraville, GA 30340</p>
+                    <p class="mb-1">United States</p>
+                </div>
+            </section>
+            {% endif %}
+
+            <section class="mb-8">
+                <h2 class="text-2xl font-semibold mb-4">What We Do</h2>
+                <p>A4L America LLC specializes in providing high-quality home appliances and electronics. We offer a wide selection of scratch and dent products, open-box, new, and used products at competitive prices.</p>
+                <p class="mt-4">Our commitment is to deliver excellent customer service and quality products that meet your needs and exceed your expectations.</p>
+            </section>
+
+            <section class="mb-8">
+                <h2 class="text-2xl font-semibold mb-4">Customer Support</h2>
+                <p>For order inquiries, product questions, or any other concerns, please contact the location nearest to you (see contact information above) via email or text message during business hours. We typically respond to all inquiries within 1-2 business days.</p>
+            </section>
+
+            <section class="mb-8">
+                <h2 class="text-2xl font-semibold mb-4">Visit Our Store{% if stores|length > 1 %}s{% endif %}</h2>
+                <p>You're welcome to visit our physical location{% if stores|length > 1 %}s{% endif %}. We recommend texting ahead to ensure we have the product you're looking for in stock. Please see our business hours listed above for each location.</p>
+            </section>
+        </div>
+    </div>
+</div>
+{% endblock %}
