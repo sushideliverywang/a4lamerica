@@ -456,6 +456,13 @@ class ProductModel(models.Model):
         verbose_name="Discount Price"
     )
     link = models.URLField(max_length=500, null=True, blank=True, verbose_name="Product URL")
+    gtin = models.CharField(
+        max_length=14,
+        null=True,
+        blank=True,
+        verbose_name="GTIN (UPC/EAN)",
+        help_text="Global Trade Item Number - UPC (12 digits) or EAN (13 digits)"
+    )
 
     class Meta:
         managed = False

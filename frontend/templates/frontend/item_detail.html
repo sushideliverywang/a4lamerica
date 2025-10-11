@@ -228,6 +228,9 @@
   "model": "{{ item.model_number.model_number }}",
   "category": "{{ item.model_number.category.name }}",
   "sku": "{{ item.control_number }}",
+  {% if item.model_number.gtin %}
+  "gtin": "{{ item.model_number.gtin }}",
+  {% endif %}
   "condition": "{{ item.get_condition_display }}",
   "url": "{{ request.build_absolute_uri }}",
   "image": [

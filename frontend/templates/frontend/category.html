@@ -93,6 +93,9 @@
         "model": "{{ item.model_number.model_number }}",
         "category": "{{ item.model_number.category.name }}",
         "sku": "{{ item.control_number }}",
+        {% if item.model_number.gtin %}
+        "gtin": "{{ item.model_number.gtin }}",
+        {% endif %}
         "condition": "{{ item.get_condition_display }}",
         "url": "{{ request.scheme }}://{{ request.get_host }}{% url 'frontend:item_detail' item|item_hash %}",
         "image": "{% if item.item_images %}{{ request.scheme }}://{{ request.get_host }}{{ item.item_images.0.image.url }}{% elif item.model_number.model_images %}{{ request.scheme }}://{{ request.get_host }}{{ item.model_number.model_images.0.image.url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{% static 'frontend/images/product-default.png' %}{% endif %}",
