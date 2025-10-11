@@ -4,7 +4,47 @@
 
 import hashlib
 import hmac
+import re
+import logging
 from django.conf import settings
+
+logger = logging.getLogger(__name__)
+
+
+def is_valid_hash(encoded_id):
+    """
+    验证哈希字符串是否有效（只包含十六进制字符）
+
+    Args:
+        encoded_id (str): 待验证的哈希字符串
+
+    Returns:
+        bool: 如果有效返回True，否则返回False
+    """
+    if not encoded_id or not isinstance(encoded_id, str):
+        return False
+
+    # SHA256生成的哈希长度应该是64位十六进制字符
+    if len(encoded_id) != 64:
+        return False
+
+    # 只允许十六进制字符（0-9, a-f, A-F）
+    return bool(re.match(r'^[0-9a-fA-F]{64}$', encoded_id))
+
+
+def sanitize_hash_for_cache_key(encoded_id):
+    """
+    清理哈希字符串用于缓存键，防止特殊字符导致问题
+
+    Args:
+        encoded_id (str): 原始哈希字符串
+
+    Returns:
+        str: 清理后的哈希字符串（只包含小写十六进制字符）
+    """
+    # 只保留十六进制字符并转换为小写
+    return ''.join(c.lower() for c in encoded_id if c in '0123456789abcdefABCDEF')[:64]
+
 
 def get_item_hash(item):
     """
@@ -37,22 +77,25 @@ def decode_item_id(item_hash):
     解码商品哈希获取商品对象
     通过遍历所有商品来找到匹配的哈希
     """
-    if not item_hash:
+    # 安全检查1：验证输入格式
+    if not is_valid_hash(item_hash):
+        # 记录可疑的输入（可能是攻击）
+        logger.warning(f"Invalid hash format detected: {item_hash[:100]}")
         return None
-    
+
     try:
         from .models_proxy import InventoryItem
-        
+
         # 遍历所有商品，找到匹配的哈希（移除限制以支持已售商品访问）
         items = InventoryItem.objects.all()
-        
+
         for item in items:
             if get_item_hash(item) == item_hash:
                 return item
-        
+
         # 如果找不到匹配的商品，返回None
         return None
-        
+
     except Exception:
         return None
 
