@@ -1074,12 +1074,12 @@ class CustomerProfileView(LoginRequiredMixin, BaseFrontendMixin, TemplateView):
 
         return JsonResponse({'status': 'error', 'message': 'Invalid action.'})
 
-class CustomerFavoriteView(BaseFrontendMixin, TemplateView):
+class CustomerFavoriteView(LoginRequiredMixin, BaseFrontendMixin, TemplateView):
     template_name = 'frontend/customer_favorite.html'
-    
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        
+
         # 首先获取当前用户收藏的商品ID列表
         favorite_item_ids = CustomerFavorite.objects.filter(
             customer=self.request.user.customer
@@ -1216,7 +1216,7 @@ def toggle_favorite(request, item_hash):
             'error': str(e)
         }, status=500, content_type='application/json')
 
-class ShoppingCartView(BaseFrontendMixin, TemplateView):
+class ShoppingCartView(LoginRequiredMixin, BaseFrontendMixin, TemplateView):
     template_name = 'frontend/shopping_cart.html'
     
     def get_context_data(self, **kwargs):
@@ -1527,13 +1527,13 @@ def geocode_address(request):
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
 
-class ShowMapView(BaseFrontendMixin, TemplateView):
+class ShowMapView(LoginRequiredMixin, BaseFrontendMixin, TemplateView):
     template_name = 'frontend/show_map.html'
-    
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         address_id = self.request.GET.get('address_id')
-        
+
         if address_id:
             try:
                 address = CustomerAddress.objects.get(
@@ -1705,7 +1705,7 @@ def create_order(request):
         })
     
 
-class CustomerOrderDetailView(BaseFrontendMixin, TemplateView):
+class CustomerOrderDetailView(LoginRequiredMixin, BaseFrontendMixin, TemplateView):
     template_name = 'frontend/customer_order_detail.html'
 
     def get_context_data(self, **kwargs):

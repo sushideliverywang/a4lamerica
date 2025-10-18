@@ -149,7 +149,7 @@ PRODUCT_SEO_PAGES = {
             # 产品模型筛选（可选）
              'product_model': {
                  # 移除description查询，只使用型号匹配
-                 'model_number__icontains': 'LH29S8565S, LRMDS3006S, LRMVC2306S',  # 按型号筛选
+                 'model_number__icontains': 'LH29S8565S, LRMDS3006S, LRMVC2306S, LRMVS3006S, LH29S8250S, LH29S8365S',  # 按型号筛选
              },
             # 库存条件筛选（可选）
             # 'inventory': {
@@ -181,55 +181,41 @@ PRODUCT_SEO_PAGES = {
         'icon': 'refrigerator',
     },
 
-    'bespoke-kitchen-appliance-sets-chamblee': {
-        'title': 'Bespoke Kitchen Appliance Sets Near Chamblee GA',
-        'meta_description': 'Complete bespoke kitchen appliance packages in Chamblee. Matching refrigerator, stove, dishwasher sets. Professional installation available.',
-        'h1_title': 'Bespoke Kitchen Appliance Sets in Chamblee',
-        'short_title': 'Bespoke Kitchen Sets',
+    'bespoke-refrigerators-chamblee': {
+        'title': 'Bespoke Refrigerator in Chamblee GA - Appliances 4 Less',
+        'meta_description': 'Complete bespoke Refrigerator in Chamblee. Matching refrigerator, stove, dishwasher sets. Professional installation available.',
+        'h1_title': 'Bespoke Refrigerator in Chamblee, Georgia',
+        'short_title': 'Bespoke Refrigerator',
         'city_key': 'chamblee',
-        'show_on_homepage': False,
+        'show_on_homepage': True,
         'homepage_priority': 2,
         'active': True,
-
-        # 复杂筛选示例：通过产品描述查找不锈钢产品
         'filters': {
             'basic': {
                 'published': True,
                 'order__isnull': True,
                 'company_id': 'from_settings'
             },
-            #'category': {
-            #    'names': ['Bespoke Kitchen Appliance Set']  # 厨房电器类别
-            #},
-            'product_model': {
-                #'description__icontains': 'bespoke kitchen appliance set'  # 描述中包含不锈钢
-                'model_number__icontains': 'RF23BB860012, NSI6DB990012, ME21DB670012, DW80BB707012'  # 按型号筛选
-            }
+            'category': {
+                'names': ['Bespoke Refrigerator']
+            },
         },
-        'min_inventory': 1,  # 需要至少5件不同类型的产品才能组成套装1
-
-        # SEO内容
+        'min_inventory': 1,
         'keywords': [
-            'bespoke kitchen appliance set chamblee',
-            'kitchen appliance package chamblee ga',
-            'matching kitchen appliances',
-            'bespoke kitchen suite',
-            'appliance bundle deals chamblee'
+        'bespoke refrigerator chamblee',
+        'bespoke refrigerator chamblee ga',
+        'FAMILY HUB refrigerator',
         ],
-        'content_description': 'Create your dream kitchen with our bespoke appliance sets in Chamblee. Mix and match or choose complete packages for a coordinated look.',
+        'content_description': 'Create your dream kitchen with our bespoke refrigerator in Chamblee. Mix and match or choose complete packages for a coordinated look.',
         'features': [
-            'Matching bespoke finishes',
-            'Energy efficient appliances',
-            'Package deals available',
-            'Professional installation included',
-            'Same brand coordination options'
+            'Energy efficient refrigerator',
+            'FAMILY HUB refrigerator',
         ],
-
-        'featured_image': '/static/frontend/images/products/bespoke-kitchen-appliance-set.webp',
+        'featured_image': '/static/frontend/images/products/bespoke-refrigerators.webp',
         'background_image': '/static/frontend/images/city/Desktop-Chamblee.webp',
-        'icon': 'appliance-set',
+        'icon': 'refrigerator',
     },
-        
+
     'bosch-800-series-dishwashers-duluth': {
 
         # === 基础SEO信息 ===
@@ -512,6 +498,45 @@ PRODUCT_SEO_PAGES = {
         'featured_image': '/static/frontend/images/products/lg-truesteam-dishwasher.webp',
         'background_image': '/static/frontend/images/city/Desktop-Norcross.webp',
         'icon': 'dishwasher',
+    },
+
+    'upright-freezers-peachtree-corners': {
+        'title': 'Best Upright Freezers in Peachtree Corners GA - Appliances 4 Less',
+        'meta_description': 'Shop premium Upright freezers in Peachtree Corners, GA. Energy efficient models with large capacity. Same-day delivery subject to availability.',
+        'h1_title': 'Upright Freezers in Peachtree Corners, Georgia',
+        'short_title': 'Upright Freezers',
+        'city_key': 'peachtree_corners',
+        'show_on_homepage': True,
+        'homepage_priority': 6,
+        'active': True,
+        'filters': {
+            'basic': {
+                'published': True,
+                'order__isnull': True,
+                'company_id': 'from_settings'
+            },
+            # 类别筛选
+            'category': {
+                'names': ['Freezer'],
+            },
+        },
+        'min_inventory': 1,
+        'keywords': [
+            'upright freezers peachtree corners',
+            'upright freezer peachtree corners ga',
+            'energy efficient upright freezer',
+            'large capacity upright freezer',
+            'peachtree corners apartment friendly'
+        ],
+        'content_description': 'Discover the perfect Upright freezer for your Peachtree Corners home. Our selection features energy-efficient models with large capacity.',
+        'features': [
+            'energy efficient models',
+            'large capacity',
+            'peachtree corners apartment friendly'
+        ],
+        'featured_image': '/static/frontend/images/products/upright-freezer.webp',
+        'background_image': '/static/frontend/images/city/Desktop-PeachtreeCorners.webp',
+        'icon': 'freezer',
     },
 }
 
