@@ -534,7 +534,7 @@ PRODUCT_SEO_PAGES = {
             'large capacity',
             'peachtree corners apartment friendly'
         ],
-        'featured_image': '/static/frontend/images/products/upright-freezer.webp',
+        'featured_image': '/static/frontend/images/products/upright-freezers.webp',
         'background_image': '/static/frontend/images/city/Desktop-PeachtreeCorners.webp',
         'icon': 'freezer',
     },
