@@ -2137,23 +2137,23 @@ class WarrantyPolicyView(BaseFrontendMixin, TemplateView):
 class WarrantyAgreementView(LoginRequiredMixin, BaseFrontendMixin, TemplateView):
     """保修政策同意页面（需要登录）"""
     template_name = 'frontend/warranty_agreement.html'
-    
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         location_slug = kwargs['location_slug']
         location = get_object_or_404(
-            self.get_company_filtered_locations(), 
+            self.get_company_filtered_locations(),
             slug=location_slug
         )
         customer = self.request.user.customer
-        
+
         # 获取来源参数
         source = self.request.GET.get('source', '')
         order_number = self.request.GET.get('order_number', '')
-        
+
         # 获取当前有效的保修政策
         warranty_policy = LocationWarrantyPolicy.get_active_policy_for_location(location)
-        
+
         # 读取文件内容
         policy_content = None
         if warranty_policy and warranty_policy.content_file:
@@ -2164,15 +2164,19 @@ class WarrantyAgreementView(LoginRequiredMixin, BaseFrontendMixin, TemplateView)
                 logger = logging.getLogger(__name__)
                 logger.error(f"Error reading warranty policy file: {e}")
                 policy_content = "Error loading policy content."
-        
+
         # 检查是否已经同意
         has_agreed = CustomerWarrantyPolicy.has_agreed(customer, location)
+
+        # 检查Terms是否已同意（用于显示导航按钮）
+        has_agreed_terms = CustomerTermsAgreement.has_agreed(customer, location)
         
         context.update({
             'location': location,
             'warranty_policy': warranty_policy,
             'policy_content': policy_content,
             'has_agreed': has_agreed,
+            'has_agreed_terms': has_agreed_terms,
             'customer': customer,
             'source': source,
             'order_number': order_number,
@@ -2259,23 +2263,23 @@ class TermsAndConditionsView(BaseFrontendMixin, TemplateView):
 class TermsAgreementView(LoginRequiredMixin, BaseFrontendMixin, TemplateView):
     """条款和条件同意页面（需要登录）"""
     template_name = 'frontend/terms_agreement.html'
-    
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         location_slug = kwargs['location_slug']
         location = get_object_or_404(
-            self.get_company_filtered_locations(), 
+            self.get_company_filtered_locations(),
             slug=location_slug
         )
         customer = self.request.user.customer
-        
+
         # 获取来源参数
         source = self.request.GET.get('source', '')
         order_number = self.request.GET.get('order_number', '')
-        
+
         # 获取当前有效的条款和条件
         terms_conditions = LocationTermsAndConditions.get_active_terms_for_location(location)
-        
+
         # 读取文件内容
         terms_content = None
         if terms_conditions and terms_conditions.content_file:
@@ -2286,15 +2290,19 @@ class TermsAgreementView(LoginRequiredMixin, BaseFrontendMixin, TemplateView):
                 logger = logging.getLogger(__name__)
                 logger.error(f"Error reading terms and conditions file: {e}")
                 terms_content = "Error loading terms and conditions content."
-        
+
         # 检查是否已经同意
         has_agreed = CustomerTermsAgreement.has_agreed(customer, location)
+
+        # 检查Warranty是否已同意（用于显示导航按钮）
+        has_agreed_warranty = CustomerWarrantyPolicy.has_agreed(customer, location)
         
         context.update({
             'location': location,
             'terms_conditions': terms_conditions,
             'terms_content': terms_content,
             'has_agreed': has_agreed,
+            'has_agreed_warranty': has_agreed_warranty,
             'customer': customer,
             'source': source,
             'order_number': order_number,

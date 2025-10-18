@@ -40,24 +40,52 @@
         
         <!-- 同意表单 -->
         {% if not has_agreed %}
-        <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
             <h3 class="text-lg font-semibold text-blue-900 mb-4">Agreement Required</h3>
             <p class="text-blue-800 mb-4">Please read the terms and conditions above and agree to proceed with your order.</p>
             <button id="agreeBtn" class="btn btn-primary">I Agree to the Terms & Conditions</button>
         </div>
         {% else %}
-        <div class="bg-green-50 border border-green-200 rounded-lg p-6">
+        <div class="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">
             <h3 class="text-lg font-semibold text-green-900 mb-2">Already Agreed</h3>
             <p class="text-green-800">You have already agreed to these terms and conditions.</p>
         </div>
         {% endif %}
-        
-        <!-- 返回按钮 -->
-        <div class="mt-6">
+
+        <!-- 导航按钮 -->
+        <div class="flex flex-col sm:flex-row gap-3 justify-center items-center">
+            <!-- 返回按钮 -->
             {% if source == 'order_confirm' and order_number %}
-                <a href="{% url 'frontend:customer_order_detail' order_number %}#order-confirmation" class="btn btn-outline">Back to Order Confirm</a>
+                <a href="{% url 'frontend:customer_order_detail' order_number %}#order-confirmation"
+                   class="w-full sm:w-auto px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-900 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                    </svg>
+                    Back to Order Confirm
+                </a>
             {% else %}
-                <a href="{% url 'frontend:store' location.slug %}" class="btn btn-outline">Back to Store</a>
+                <a href="{% url 'frontend:store' location.slug %}"
+                   class="w-full sm:w-auto px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-900 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                    </svg>
+                    Back to Store
+                </a>
+            {% endif %}
+
+            <!-- 跳转到Warranty按钮（仅在Warranty未同意时显示） -->
+            {% if not has_agreed_warranty %}
+                <a href="{% url 'frontend:warranty_agreement' location.slug %}?source={{ source }}&order_number={{ order_number }}"
+                   class="w-full sm:w-auto px-6 py-3 {% if has_agreed %}bg-blue-600 hover:bg-blue-700{% else %}bg-gray-500 hover:bg-gray-600{% endif %} text-white rounded-lg font-medium transition-colors duration-200 flex items-center justify-center">
+                    {% if has_agreed %}
+                        Next: Agree to Warranty Policy
+                    {% else %}
+                        Next: Warranty Policy
+                    {% endif %}
+                    <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                    </svg>
+                </a>
             {% endif %}
         </div>
     </div>
