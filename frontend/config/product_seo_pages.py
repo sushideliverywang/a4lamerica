@@ -241,7 +241,7 @@ PRODUCT_SEO_PAGES = {
         # 例如：'atlanta', 'doraville', 'chamblee'
 
         # === 首页显示设置 ===
-        'show_on_homepage': True,
+        'show_on_homepage': False,
         # 是否在首页显示此SEO页面，True或False
 
         'homepage_priority': 3,
@@ -537,6 +537,108 @@ PRODUCT_SEO_PAGES = {
         'featured_image': '/static/frontend/images/products/upright-freezers.webp',
         'background_image': '/static/frontend/images/city/Desktop-PeachtreeCorners.webp',
         'icon': 'freezer',
+    },
+    'lg-gas-cooktop-dunwoody':{
+
+        # === 基础SEO信息 ===
+        'title': 'Best LG Gas Cooktop in Dunwoody GA - Appliances 4 Less',
+        # 页面标题，显示在浏览器标签栏和搜索结果中，建议60字符以内
+        # 例如：'Best Washing Machines in Atlanta GA - Appliances 4 Less'
+
+        'meta_description': 'Shop premium LG Gas cooktop in Dunwoody, GA. UltraHeat 20K BTU burners for fast and even cooking. Same-day delivery subject to availability.',
+        # 页面描述，显示在搜索结果中，建议150-160字符以内
+        # 例如：'Shop premium washing machines in Atlanta, GA. Energy efficient models with smart features. Same-day delivery available.'
+
+        'h1_title': 'LG Gas Cooktop in Dunwoody, Georgia',
+        # 页面主标题，显示在页面顶部
+        # 例如：'Washing Machines in Atlanta, Georgia'
+
+        'short_title': 'LG Gas Cooktop',
+        # 简短标题，用于导航和卡片显示
+        # 例如：'Washing Machines'
+
+        # === 地理位置信息 ===
+        'city_key': 'dunwoody',
+        # 城市标识符，必须与CITIES配置中的key匹配
+        # 例如：'atlanta', 'doraville', 'chamblee'
+
+        # === 首页显示设置 ===
+        'show_on_homepage': True,
+        'homepage_priority': 7,
+        'active': True,
+
+        # === 产品筛选条件 ===
+        'filters': {
+            # 基础筛选（必须包含）
+            'basic': {
+                'published': True,              # 只显示已发布的产品
+                'order__isnull': True,          # 只显示未售出的产品
+                'company_id': 'from_settings'   # 自动从settings获取公司ID
+            },
+
+            # 类别筛选（可选）- 二选一使用
+            # 注意：会自动包含所有子类别！例如 'Dishwasher' 会匹配所有洗碗机子类别
+             'category': {
+                 'names': ['Cooktop'],  # 按类别名称筛选（自动包含子类别）
+                 # 或者使用slug筛选：
+                 # 'slugs': ['category-slug-1', 'category-slug-2'],  # 按类别slug筛选（自动包含子类别）
+            },
+
+            # 产品模型筛选（推荐使用）
+            #'product_model': {
+                # 按型号筛选（推荐）- 支持逗号分隔多个型号
+                #'model_number__icontains': 'MODEL1, MODEL2, MODEL3',
+                # 例如：'WF45T6000AW, WF45T6200AW, WF50T8500AV'
+
+                # 或者按描述筛选（可选）
+                # 'description__icontains': 'keyword in description',
+            #},
+
+            # 库存条件筛选（可选）
+            # 'inventory': {
+            #     'condition__in': ['BRAND_NEW', 'OPEN_BOX'],  # 只显示特定条件的产品
+            # }
+        },
+
+        # 最少库存数量，低于此数量页面自动隐藏
+        'min_inventory': 1,
+
+        # === SEO关键词 ===
+        'keywords': [
+            'lg gas cooktop dunwoody',      # 主关键词
+            'lg gas cooktop dunwoody ga',   # 带州名的关键词
+            'ultraheat 20k btu burners',        # 特定功能关键词
+            'lg life is good',           # 品牌相关关键词
+            'dunwoody apartment friendly'            # 本地服务关键词
+        ],
+        # 例如：['washing machines atlanta', 'washers atlanta ga', 'front load washers', 'samsung lg washers', 'washer delivery atlanta']
+
+        # === 页面内容 ===
+        'content_description': 'Discover the perfect LG Gas Cooktop for your Dunwoody home. Our selection features UltraHeat 20K BTU burners for fast and even cooking.',
+        # 页面内容描述，显示在页面中
+        # 例如：'Discover the perfect washing machine for your Atlanta home. Our selection features energy-efficient models with smart technology and large capacity.'
+
+        'features': [
+            'UltraHeat 20K BTU burner for rapid boiling and true simmering',           # 产品特色1
+            'Continuous cast iron grates provide even heating and stability for your cookware',           # 产品特色2
+            'Wipe away stains with ease thanks to the specially coated EasyClean surface',           # 产品特色3
+            'Auto Reignition automatically reignites the burners if the flame accidentally goes out',           # 产品特色4
+            'dunwoody free delivery'        # 本地服务特色
+        ],
+        # 例如：['Energy Star certified models', 'Smart WiFi connectivity', 'Large capacity options', 'Quiet operation technology', 'Same-day delivery in Atlanta']
+
+        # === 页面展示素材 ===
+        'featured_image': '/static/frontend/images/products/cooktop.webp',
+        # 产品特色图片路径，显示在首页卡片中
+        # 建议尺寸：600x400px，例如：'/static/frontend/images/products/washing-machines.jpg'
+
+        'background_image': '/static/frontend/images/city/Desktop-Dunwoody.webp',
+        # 城市背景图片路径，显示在产品页面中
+        # 例如：'/static/frontend/images/city/Desktop-Atlanta.webp'
+
+        'icon': 'cooktop',
+        # 图标标识符，用于显示SVG图标（如果没有图片时）
+        # 可选值：'refrigerator', 'washing-machine', 'appliance-set', 'discount' 等
     },
 }
 
