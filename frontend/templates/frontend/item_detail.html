@@ -215,38 +215,35 @@
 {% csrf_token %}
 
 <!-- 结构化数据 - JSON-LD -->
+<!-- 与 nasmaha Google Merchant Service 保持一致 -->
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "Product",
-  "name": "{{ item.model_number.brand.name }} {{ item.model_number.model_number }}",
-  "description": "{% if item.model_number.description %}{{ item.model_number.description|striptags|escapejs }}{% else %}{{ item.model_number.brand.name }} {{ item.model_number.model_number }} - {{ item.model_number.category.name }}{% endif %}",
+  "name": "{{ structured_title|escapejs }}",
+  "description": "{{ structured_description|escapejs }}",
   "brand": {
     "@type": "Brand",
     "name": "{{ item.model_number.brand.name }}"
   },
-  "model": "{{ item.model_number.model_number }}",
-  "category": "{{ item.model_number.category.name }}",
+  "mpn": "{{ item.model_number.model_number }}",
   "sku": "{{ item.control_number }}",
   {% if item.model_number.gtin %}
   "gtin": "{{ item.model_number.gtin }}",
   {% endif %}
-  "condition": "{{ item.get_condition_display }}",
+  "itemCondition": "{{ structured_condition }}",
   "url": "{{ request.build_absolute_uri }}",
   "image": [
-    {% if item.item_images %}
-      {% for image in item.item_images %}
-        "{{ request.scheme }}://{{ request.get_host }}{{ image.image.url }}"{% if not forloop.last %},{% endif %}
-      {% endfor %}
-    {% else %}
-      "{{ request.scheme }}://{{ request.get_host }}{% static 'frontend/images/product-default.png' %}"
-    {% endif %}
+    {% for image_url in structured_images %}
+      "{{ image_url }}"{% if not forloop.last %},{% endif %}
+    {% endfor %}
   ],
   "offers": {
     "@type": "Offer",
-    "price": {{ item.retail_price }},
+    "price": "{{ item.retail_price }}",
     "priceCurrency": "USD",
-    "availability": "https://schema.org/InStock",
+    "availability": "{{ structured_availability }}",
+    "url": "{{ request.build_absolute_uri }}",
     "seller": {
       "@type": "Organization",
       "name": "{{ item.location.name }}",
@@ -258,7 +255,7 @@
         "addressLocality": "{{ item.location.address.city }}",
         "addressRegion": "{{ item.location.address.state }}",
         "postalCode": "{{ item.location.address.zip_code }}",
-        "addressCountry": "{{ item.location.address.country }}"
+        "addressCountry": "US"
       }
       {% endif %}
     }
@@ -274,25 +271,6 @@
     {% endfor %}
   ]
   {% endif %}
-  {% if item.warranty_type != 'NONE' %}
-  ,"warranty": {
-    "@type": "WarrantyPromise",
-    "warrantyScope": "{{ item.get_warranty_type_display }}",
-    "durationOfWarranty": "{{ item.warranty_display }}"
-  }
-  {% endif %}
-  {% comment %}
-  <!-- 评分和评论结构化数据 - 当有评分系统时启用 -->
-  {% if item.average_rating and item.review_count %}
-  ,"aggregateRating": {
-    "@type": "AggregateRating",
-    "ratingValue": "{{ item.average_rating }}",
-    "reviewCount": "{{ item.review_count }}",
-    "bestRating": "5",
-    "worstRating": "1"
-  }
-  {% endif %}
-  {% endcomment %}
 }
 </script>
 

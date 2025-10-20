@@ -531,7 +531,12 @@ class ItemDetailView(DetailViewMixin, DetailView):
                 'is_favorited': False,
                 'is_in_cart': False
             })
-        
+
+        # 添加结构化数据（与 nasmaha 的 Google Merchant Service 保持一致）
+        from .structured_data_utils import get_all_structured_data
+        structured_data = get_all_structured_data(item, self.request)
+        context.update(structured_data)
+
         return context
 
 class CategoryView(BaseFrontendMixin, TemplateView):
