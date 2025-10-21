@@ -4,6 +4,8 @@
 
 {% block title %}{{ item.model_number.brand.name }} {{ item.model_number.model_number }} - {{ item.location.name }}{% endblock %}
 
+{% block meta_robots %}{% if item.published %}index, follow{% else %}noindex, nofollow{% endif %}{% endblock %}
+
 {% block og_title %}{{ item.model_number.brand.name }} {{ item.model_number.model_number }} - ${{ item.retail_price|floatformat:0 }} at {{ item.location.name }}{% endblock %}
 
 {% block og_description %}{% if item.model_number.description %}{{ item.model_number.description|striptags|truncatewords:30 }}{% else %}{{ item.model_number.brand.name }} {{ item.model_number.model_number }} - {{ item.model_number.category.name }}{% endif %} • ${{ item.retail_price|floatformat:0 }}{% if item.model_number.msrp and item.model_number.msrp > item.retail_price %} (Save ${{ item.savings|floatformat:0 }}){% endif %} • {{ item.get_condition_display }} • Available at {{ item.location.name }}{% endblock %}
