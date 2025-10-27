@@ -406,14 +406,17 @@
                         {% for image in item.item_images %}
                         <div class="image-slide {% if forloop.first %}active{% endif %}"
                             data-index="{{ forloop.counter0 }}">
-                            <img src="{{ image.image.url }}" alt="{{ item.model_number.brand.name }} {{ item.model_number.model_number }} - {{ item.model_number.category.name }} at {{ item.location.name }}"
-                                class="w-full object-cover">
+                            <img src="/resize/800x1067{{ image.image.url|slice:'6:' }}"
+                                 alt="{{ item.model_number.brand.name }} {{ item.model_number.model_number }} - {{ item.model_number.category.name }} at {{ item.location.name }}"
+                                 class="w-full object-cover"
+                                 {% if not forloop.first %}loading="lazy"{% endif %}>
                         </div>
                         {% endfor %}
                         {% else %}
                         <div class="image-slide active">
                             <img src="{% static 'frontend/images/product-default.png' %}"
-                                alt="{{ item.model_number.brand.name }} {{ item.model_number.model_number }} - {{ item.model_number.category.name }} at {{ item.location.name }}" class="w-full object-cover">
+                                alt="{{ item.model_number.brand.name }} {{ item.model_number.model_number }} - {{ item.model_number.category.name }} at {{ item.location.name }}"
+                                class="w-full object-cover">
                         </div>
                         {% endif %}
 
@@ -465,7 +468,10 @@
                             <button
                                 class="thumbnail-btn flex-shrink-0 w-16 h-16 rounded border-2 {% if forloop.first %}border-primary{% else %}border-border{% endif %} overflow-hidden"
                                 data-index="{{ forloop.counter0 }}">
-                                <img src="{{ image.image.url }}" alt="" class="w-full h-full object-cover">
+                                <img src="/resize/64x64{{ image.image.url|slice:'6:' }}"
+                                     alt=""
+                                     class="w-full h-full object-cover"
+                                     loading="lazy">
                             </button>
                             {% endfor %}
                         </div>
@@ -647,13 +653,15 @@
                                     <!-- 商品图片 -->
                                     <div class="aspect-square mb-3 bg-gray-100 rounded overflow-hidden">
                                         {% if similar_item.images.exists %}
-                                            <img src="{{ similar_item.images.first.image.url }}"
+                                            <img src="/resize/200x200{{ similar_item.images.first.image.url|slice:'6:' }}"
                                                  alt="{{ similar_item.model_number.model_number }}"
-                                                 class="w-full h-full object-cover">
+                                                 class="w-full h-full object-cover"
+                                                 loading="lazy">
                                         {% elif similar_item.model_number.images.exists %}
-                                            <img src="{{ similar_item.model_number.images.first.image.url }}"
+                                            <img src="/resize/200x200{{ similar_item.model_number.images.first.image.url|slice:'6:' }}"
                                                  alt="{{ similar_item.model_number.model_number }}"
-                                                 class="w-full h-full object-cover">
+                                                 class="w-full h-full object-cover"
+                                                 loading="lazy">
                                         {% else %}
                                             <div class="w-full h-full flex items-center justify-center text-gray-400">
                                                 <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">

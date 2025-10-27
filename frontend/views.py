@@ -409,19 +409,24 @@ class ItemDetailView(DetailViewMixin, DetailView):
         context = super().get_context_data(**kwargs)
         item = context['item']
         
-        # 按需加载图片：如果商品有图片则加载商品图片，否则加载产品型号图片
-        if item.images.exists():
-            # 商品有图片，加载所有商品图片
-            item_images = ItemImage.objects.filter(
-                item=item
-            ).only('image').order_by('display_order')
-            item.item_images = list(item_images)
-        else:
-            # 商品没有图片，加载所有产品型号图片
+        # 合并加载图片：优先加载商品图片，然后加载型号图片
+        item_images_list = []
+
+        # 1. 先加载商品专属图片
+        item_images = ItemImage.objects.filter(
+            item=item
+        ).only('image').order_by('display_order')
+        item_images_list.extend(list(item_images))
+
+        # 2. 再加载产品型号图片
+        if item.model_number:
             model_images = ProductImage.objects.filter(
                 product_model=item.model_number
             ).only('image').order_by('id')
-            item.item_images = list(model_images)
+            item_images_list.extend(list(model_images))
+
+        # 3. 如果两个地方都没有图片，item_images_list 为空列表，模板会显示默认图
+        item.item_images = item_images_list
         
         # 计算节省金额
         if item.model_number.msrp:
