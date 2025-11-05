@@ -62,6 +62,9 @@ urlpatterns = [
     # 图片缩放服务URL
     path('resize/<int:width>x<int:height>/<path:image_path>', views.ImageResizeView.as_view(), name='image_resize'),
 
+    # Apple verification URL
+    path('apple-verification.html', views.AppleVerificationView.as_view(), name='apple_verification'),
+
     # 商店页面URL（注意：这个URL需要放在最后，避免与其他URL冲突）
     # 排除已知的系统路径，避免冲突
     path('<slug:location_slug>/', views.StoreView.as_view(), name='store'),

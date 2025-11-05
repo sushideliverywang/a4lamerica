@@ -693,40 +693,40 @@
                     {% csrf_token %}
                     <input type="hidden" name="action" value="add_address">
                     <input type="hidden" name="address_id" id="address_id">
-                    <div class="px-4 py-3 space-y-4">
+                    <div class="px-4 py-3 space-y-5">
                         <div>
-                            <label class="block text-base font-medium text-gray-700 mb-2">Street Address</label>
-                            <input type="text" name="street_address" id="street_address" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-base" autocomplete="off">
+                            <label class="block text-base font-semibold text-gray-900 mb-2">Street Address *</label>
+                            <input type="text" name="street_address" id="street_address" required class="w-full px-4 py-4 rounded-lg border-2 border-gray-400 shadow-sm focus:border-secondary focus:ring-2 focus:ring-secondary text-base" placeholder="Enter street address" autocomplete="off">
                             <div id="address-suggestions" class="hidden absolute z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg mt-1"></div>
                         </div>
                         <div>
-                            <label class="block text-base font-medium text-gray-700 mb-2">Apartment, suite, etc. (optional)</label>
-                            <input type="text" name="apartment_suite" id="apartment_suite" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-base">
+                            <label class="block text-base font-semibold text-gray-900 mb-2">Apartment, suite, etc.</label>
+                            <input type="text" name="apartment_suite" id="apartment_suite" class="w-full px-4 py-4 rounded-lg border-2 border-gray-400 shadow-sm focus:border-secondary focus:ring-2 focus:ring-secondary text-base" placeholder="Apt, Suite, Unit (optional)">
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-base font-medium text-gray-700 mb-2">City</label>
-                                <input type="text" name="city" id="city" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-base">
+                                <label class="block text-base font-semibold text-gray-900 mb-2">City *</label>
+                                <input type="text" name="city" id="city" required class="w-full px-4 py-4 rounded-lg border-2 border-gray-400 shadow-sm focus:border-secondary focus:ring-2 focus:ring-secondary text-base" placeholder="City">
                             </div>
                             <div>
-                                <label class="block text-base font-medium text-gray-700 mb-2">State</label>
-                                <input type="text" name="state" id="state" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-base">
+                                <label class="block text-base font-semibold text-gray-900 mb-2">State *</label>
+                                <input type="text" name="state" id="state" required class="w-full px-4 py-4 rounded-lg border-2 border-gray-400 shadow-sm focus:border-secondary focus:ring-2 focus:ring-secondary text-base" placeholder="State">
                             </div>
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-base font-medium text-gray-700 mb-2">ZIP Code</label>
-                                <input type="text" name="zip_code" id="zip_code" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-base">
+                                <label class="block text-base font-semibold text-gray-900 mb-2">ZIP Code *</label>
+                                <input type="text" name="zip_code" id="zip_code" required class="w-full px-4 py-4 rounded-lg border-2 border-gray-400 shadow-sm focus:border-secondary focus:ring-2 focus:ring-secondary text-base" placeholder="ZIP Code">
                             </div>
                             <div>
-                                <label class="block text-base font-medium text-gray-700 mb-2">Country</label>
-                                <input type="text" name="country" id="country" value="US" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-base">
+                                <label class="block text-base font-semibold text-gray-900 mb-2">Country *</label>
+                                <input type="text" name="country" id="country" value="US" required class="w-full px-4 py-4 rounded-lg border-2 border-gray-400 shadow-sm focus:border-secondary focus:ring-2 focus:ring-secondary text-base" placeholder="Country">
                             </div>
                         </div>
-                        <div>
-                            <label class="flex items-center">
-                                <input type="checkbox" name="is_default" id="is_default" class="rounded border-gray-300 text-secondary focus:ring-secondary">
-                                <span class="ml-2 text-base text-gray-700">Set as default address</span>
+                        <div class="pt-2">
+                            <label class="flex items-center p-3 bg-gray-50 rounded-lg cursor-pointer">
+                                <input type="checkbox" name="is_default" id="is_default" class="w-5 h-5 rounded border-gray-300 text-secondary focus:ring-secondary">
+                                <span class="ml-3 text-base font-medium text-gray-700">Set as default address</span>
                             </label>
                         </div>
                     </div>
@@ -752,40 +752,40 @@
                         {% csrf_token %}
                         <input type="hidden" name="action" value="add_address">
                         <input type="hidden" name="address_id" id="address_id_desktop">
-                        <div class="space-y-4">
+                        <div class="space-y-5">
                             <div>
-                                <label class="block text-base font-medium text-gray-700 mb-2">Street Address</label>
-                                <input type="text" name="street_address" id="street_address_desktop" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-base" autocomplete="off">
+                                <label class="block text-base font-semibold text-gray-900 mb-2">Street Address *</label>
+                                <input type="text" name="street_address" id="street_address_desktop" required class="w-full px-4 py-3 rounded-lg border-2 border-gray-400 shadow-sm focus:border-secondary focus:ring-2 focus:ring-secondary text-base" placeholder="Enter street address" autocomplete="off">
                                 <div id="address-suggestions-desktop" class="hidden absolute z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg mt-1"></div>
                             </div>
                             <div>
-                                <label class="block text-base font-medium text-gray-700 mb-2">Apartment, suite, etc. (optional)</label>
-                                <input type="text" name="apartment_suite" id="apartment_suite_desktop" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-base">
+                                <label class="block text-base font-semibold text-gray-900 mb-2">Apartment, suite, etc.</label>
+                                <input type="text" name="apartment_suite" id="apartment_suite_desktop" class="w-full px-4 py-3 rounded-lg border-2 border-gray-400 shadow-sm focus:border-secondary focus:ring-2 focus:ring-secondary text-base" placeholder="Apt, Suite, Unit (optional)">
                             </div>
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label class="block text-base font-medium text-gray-700 mb-2">City</label>
-                                    <input type="text" name="city" id="city_desktop" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-base">
+                                    <label class="block text-base font-semibold text-gray-900 mb-2">City *</label>
+                                    <input type="text" name="city" id="city_desktop" required class="w-full px-4 py-3 rounded-lg border-2 border-gray-400 shadow-sm focus:border-secondary focus:ring-2 focus:ring-secondary text-base" placeholder="City">
                                 </div>
                                 <div>
-                                    <label class="block text-base font-medium text-gray-700 mb-2">State</label>
-                                    <input type="text" name="state" id="state_desktop" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-base">
+                                    <label class="block text-base font-semibold text-gray-900 mb-2">State *</label>
+                                    <input type="text" name="state" id="state_desktop" required class="w-full px-4 py-3 rounded-lg border-2 border-gray-400 shadow-sm focus:border-secondary focus:ring-2 focus:ring-secondary text-base" placeholder="State">
                                 </div>
                             </div>
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label class="block text-base font-medium text-gray-700 mb-2">ZIP Code</label>
-                                    <input type="text" name="zip_code" id="zip_code_desktop" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-base">
+                                    <label class="block text-base font-semibold text-gray-900 mb-2">ZIP Code *</label>
+                                    <input type="text" name="zip_code" id="zip_code_desktop" required class="w-full px-4 py-3 rounded-lg border-2 border-gray-400 shadow-sm focus:border-secondary focus:ring-2 focus:ring-secondary text-base" placeholder="ZIP Code">
                                 </div>
                                 <div>
-                                    <label class="block text-base font-medium text-gray-700 mb-2">Country</label>
-                                    <input type="text" name="country" id="country_desktop" value="US" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-base">
+                                    <label class="block text-base font-semibold text-gray-900 mb-2">Country *</label>
+                                    <input type="text" name="country" id="country_desktop" value="US" required class="w-full px-4 py-3 rounded-lg border-2 border-gray-400 shadow-sm focus:border-secondary focus:ring-2 focus:ring-secondary text-base" placeholder="Country">
                                 </div>
                             </div>
-                            <div>
-                                <label class="flex items-center">
-                                    <input type="checkbox" name="is_default" id="is_default_desktop" class="rounded border-gray-300 text-secondary focus:ring-secondary">
-                                    <span class="ml-2 text-base text-gray-700">Set as default address</span>
+                            <div class="pt-2">
+                                <label class="flex items-center p-3 bg-gray-50 rounded-lg cursor-pointer">
+                                    <input type="checkbox" name="is_default" id="is_default_desktop" class="w-5 h-5 rounded border-gray-300 text-secondary focus:ring-secondary">
+                                    <span class="ml-3 text-base font-medium text-gray-700">Set as default address</span>
                                 </label>
                             </div>
                         </div>
