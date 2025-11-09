@@ -640,6 +640,74 @@ PRODUCT_SEO_PAGES = {
         # 图标标识符，用于显示SVG图标（如果没有图片时）
         # 可选值：'refrigerator', 'washing-machine', 'appliance-set', 'discount' 等
     },
+
+    'induction-ranges-brookhaven': {
+        # === 基础SEO信息 ===
+        'title': 'Best Induction Ranges in Brookhaven GA - Appliances 4 Less',
+        'meta_description': 'Shop premium induction ranges in Brookhaven, GA. 85% more energy efficient than electric, faster cooking, precise temperature control. Same-day delivery available.',
+        'h1_title': 'Induction Ranges in Brookhaven, Georgia',
+        'short_title': 'Induction Ranges',
+
+        # === 地理位置信息 ===
+        'city_key': 'brookhaven',
+
+        # === 首页显示设置 ===
+        'show_on_homepage': True,
+        'homepage_priority': 8,
+        'active': True,
+
+        # === 产品筛选条件 ===
+        'filters': {
+            # 基础筛选（必须包含）
+            'basic': {
+                'published': True,              # 只显示已发布的产品
+                'order__isnull': True,          # 只显示未售出的产品
+                'company_id': 'from_settings'   # 自动从settings获取公司ID
+            },
+
+            # 类别筛选 - 使用 Induction Range 类别
+            'category': {
+                'names': ['Induction Range'],  # 按类别名称筛选（自动包含子类别）
+            },
+        },
+
+        # 最少库存数量，低于此数量页面自动隐藏
+        'min_inventory': 1,
+
+        # === SEO关键词 ===
+        'keywords': [
+            'induction ranges brookhaven',                    # 主关键词
+            'induction stove brookhaven ga',                  # 带州名的关键词
+            'induction range vs electric brookhaven',         # 对比关键词
+            'energy efficient induction cooktop',             # 能效关键词
+            'fast cooking induction range',                   # 功能关键词
+            'precise temperature control range',              # 精准温控关键词
+            'safe cooktop brookhaven ga'                      # 安全特性关键词
+        ],
+
+        # === 页面内容 ===
+        'content_description': 'Discover the perfect induction range for your Brookhaven home. Unlike traditional electric ranges, induction technology heats cookware directly through electromagnetic fields, delivering 85% energy efficiency, 20-40% faster cooking, and instant temperature control—all while keeping your cooktop cool to the touch.',
+
+        'features': [
+            '85% more energy efficient than traditional electric ranges',
+            '20-40% faster cooking - boils water 2-4 minutes quicker',
+            'Instant and precise temperature control for perfect cooking results',
+            'Cooktop stays cool to touch - safer than electric coil ranges',
+            'Easy cleanup - spills don\'t burn onto the cool surface',
+            'FREE delivery in Brookhaven area'
+        ],
+
+        # === 页面展示素材 ===
+        'featured_image': '/static/frontend/images/products/induction-range.webp',
+        # 产品特色图片路径，显示在首页卡片中
+        # 建议尺寸：600x400px
+
+        'background_image': '/static/frontend/images/city/Desktop-Brookhaven.webp',
+        # 城市背景图片路径，显示在产品页面中
+
+        'icon': 'range',
+        # 图标标识符，用于显示SVG图标（如果没有图片时）
+    },
 }
 
 def get_active_seo_pages():
