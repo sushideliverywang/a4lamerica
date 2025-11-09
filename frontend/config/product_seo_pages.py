@@ -708,6 +708,69 @@ PRODUCT_SEO_PAGES = {
         'icon': 'range',
         # 图标标识符，用于显示SVG图标（如果没有图片时）
     },
+
+    'french-door-refrigerators-duluth': {
+        # === 基础SEO信息 ===
+        'title': 'Best French Door Refrigerators in Duluth GA - Appliances 4 Less',
+        'meta_description': 'Shop premium French door refrigerators in Duluth, GA. Energy efficient with wide shelves for large platters, ice makers & water dispensers. Same-day delivery available.',
+        'h1_title': 'French Door Refrigerators in Duluth, Georgia',
+        'short_title': 'French Door Refrigerators',
+
+        # === 地理位置信息 ===
+        'city_key': 'duluth',
+
+        # === 首页显示设置 ===
+        'show_on_homepage': True,
+        'homepage_priority': 9,
+        'active': True,
+
+        # === 产品筛选条件 ===
+        'filters': {
+            # 基础筛选（必须包含）
+            'basic': {
+                'published': True,
+                'order__isnull': True,
+                'company_id': 'from_settings'
+            },
+
+            # 类别筛选
+            'category': {
+                'names': ['French Door Refrigerator'],
+            },
+        },
+
+        # 最少库存数量，低于此数量页面自动隐藏
+        'min_inventory': 1,
+
+        # === SEO关键词 ===
+        'keywords': [
+            'french door refrigerator duluth',
+            'french door fridge duluth ga',
+            'energy efficient french door refrigerator',
+            'counter depth french door refrigerator',
+            'french door refrigerator with ice maker',
+            'wide shelf refrigerator duluth',
+            'french door vs side by side'
+        ],
+
+        # === 页面内容 ===
+        'content_description': 'Discover the perfect French door refrigerator for your Duluth home. Unlike traditional side-by-side models, French door refrigerators offer wider shelf space ideal for large platters and party trays, with more energy-efficient design that minimizes cold air loss.',
+
+        'features': [
+            'Wide shelves perfect for large platters and wide items',
+            'Energy efficient design - open one door at a time to minimize air loss',
+            'Fresh food at eye level for easy access without bending',
+            'Counter-depth and standard depth options available',
+            'Ice makers and water dispensers included',
+            'Samsung, LG, Whirlpool top brands available',
+            'FREE delivery in Duluth area'
+        ],
+
+        # === 页面展示素材 ===
+        'featured_image': '/static/frontend/images/products/french-door-refrigerator.webp',
+        'background_image': '/static/frontend/images/city/Desktop-Duluth.webp',
+        'icon': 'refrigerator',
+    },
 }
 
 def get_active_seo_pages():
