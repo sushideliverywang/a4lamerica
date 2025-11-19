@@ -76,6 +76,7 @@ Preview upcoming appliances arriving soon at Appliances 4 Less. Add items to fav
                     <!-- 商品网格 -->
                     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                         {% for item in items %}
+                        <a href="{% url 'frontend:item_detail' item|item_hash %}?source=incoming" class="block">
                         <div class="incoming-product-card" itemscope itemtype="https://schema.org/Product">
                             <meta itemprop="name" content="{{ item.model_number.brand.name }} {{ item.model_number.model_number }}">
                             <meta itemprop="description" content="Coming Soon - {{ item.model_number.brand.name }} {{ item.model_number.model_number }} - {{ item.model_number.category.name }}">
@@ -129,6 +130,7 @@ Preview upcoming appliances arriving soon at Appliances 4 Less. Add items to fav
                                 </div>
                             </div>
                         </div>
+                        </a>
                         {% endfor %}
                     </div>
                 </div>

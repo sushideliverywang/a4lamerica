@@ -230,9 +230,10 @@
                     <div class="flex items-start mb-3">
                         <!-- Item Image -->
                         <div class="flex-shrink-0 mr-4">
+                            <a href="{% url 'frontend:item_detail' item|item_hash %}?source=order" class="block">
                             <div class="w-20 h-20 rounded-lg overflow-hidden">
                                 {% if item.item_images %}
-                                    <img src="{{ item.item_images.0.image.url }}" 
+                                    <img src="{{ item.item_images.0.image.url }}"
                                          alt="{{ item.model_number.model_number }}"
                                          class="w-full h-full object-cover">
                                 {% else %}
@@ -243,6 +244,7 @@
                                     </div>
                                 {% endif %}
                             </div>
+                            </a>
                         </div>
                         
                         <!-- Item Info -->

@@ -2,13 +2,13 @@
 {% load static %}
 {% load frontend_filters %}
 
-{% block title %}{{ item.model_number.brand.name }} {{ item.model_number.model_number }} - {{ item.location.name }}{% endblock %}
+{% block title %}{{ item.model_number.brand.name }} {{ item.model_number.model_number }}{% if item.location %} - {{ item.location.name }}{% endif %}{% endblock %}
 
 {% block meta_robots %}{% if item.published %}index, follow{% else %}noindex, nofollow{% endif %}{% endblock %}
 
-{% block og_title %}{{ item.model_number.brand.name }} {{ item.model_number.model_number }} - ${{ item.retail_price|floatformat:0 }} at {{ item.location.name }}{% endblock %}
+{% block og_title %}{{ item.model_number.brand.name }} {{ item.model_number.model_number }}{% if not is_coming_soon %} - ${{ item.retail_price|floatformat:0 }}{% endif %}{% if item.location %} at {{ item.location.name }}{% endif %}{% endblock %}
 
-{% block og_description %}{% if item.model_number.description %}{{ item.model_number.description|striptags|truncatewords:30 }}{% else %}{{ item.model_number.brand.name }} {{ item.model_number.model_number }} - {{ item.model_number.category.name }}{% endif %} • ${{ item.retail_price|floatformat:0 }}{% if item.model_number.msrp and item.model_number.msrp > item.retail_price %} (Save ${{ item.savings|floatformat:0 }}){% endif %} • {{ item.get_condition_display }} • Available at {{ item.location.name }}{% endblock %}
+{% block og_description %}{% if item.model_number.description %}{{ item.model_number.description|striptags|truncatewords:30 }}{% else %}{{ item.model_number.brand.name }} {{ item.model_number.model_number }} - {{ item.model_number.category.name }}{% endif %}{% if is_coming_soon %} • Coming Soon{% else %} • ${{ item.retail_price|floatformat:0 }}{% if item.model_number.msrp and item.model_number.msrp > item.retail_price %} (Save ${{ item.savings|floatformat:0 }}){% endif %}{% endif %} • {{ item.get_condition_display }}{% if item.location %} • Available at {{ item.location.name }}{% endif %}{% endblock %}
 
 {% block og_image %}
 {% comment %}Use 600x800 to maintain product aspect ratio and avoid distortion in social media{% endcomment %}
@@ -30,7 +30,7 @@
 {% endif %}
 {% endblock %}
 
-{% block twitter_title %}{{ item.model_number.brand.name }} {{ item.model_number.model_number }} - ${{ item.retail_price|floatformat:0 }}{% endblock %}
+{% block twitter_title %}{{ item.model_number.brand.name }} {{ item.model_number.model_number }}{% if not is_coming_soon %} - ${{ item.retail_price|floatformat:0 }}{% endif %}{% endblock %}
 
 {% block body_class %}item-detail-page{% endblock %}
 
@@ -172,42 +172,62 @@
         display: none; /* Chrome, Safari and Opera */
     }
 
-    /* 商品状态叠加层样式 - 横幅样式 */
+    /* 商品状态叠加层样式 - 对角线角标 */
     .item-status-overlay {
         position: absolute;
-        top: 50%;
+        top: 0;
         left: 0;
-        right: 0;
-        transform: translateY(-50%);
         z-index: 10;
-        padding: 16px 0;
-        font-weight: 600;
-        font-size: 24px;
-        text-align: center;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        backdrop-filter: blur(8px);
-        border-top: 2px solid;
-        border-bottom: 2px solid;
-        width: 100%;
+        overflow: hidden;
+        width: 150px;
+        height: 150px;
+        pointer-events: none;
     }
 
-    .status-sold {
-        background: rgba(220, 38, 38, 0.95);
-        border-color: rgb(220, 38, 38);
+    .item-status-overlay span {
+        position: absolute;
+        display: block;
+        width: 225px;
+        padding: 10px 0;
+        font-weight: 700;
+        font-size: 16px;
+        text-align: center;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+        transform: rotate(-45deg);
+        top: 30px;
+        left: -60px;
+    }
+
+    .status-sold span {
+        background: rgb(220, 38, 38);
         color: white;
     }
 
-    .status-unavailable {
-        background: rgba(107, 114, 128, 0.95);
-        border-color: rgb(107, 114, 128);
+    .status-coming-soon span {
+        background: rgb(59, 130, 246);
+        color: white;
+    }
+
+    .status-unavailable span {
+        background: rgb(107, 114, 128);
         color: white;
     }
 
     /* 移动端状态叠加层调整 */
     @media (max-width: 768px) {
         .item-status-overlay {
-            font-size: 20px;
-            padding: 12px 0;
+            width: 120px;
+            height: 120px;
+        }
+
+        .item-status-overlay span {
+            width: 180px;
+            padding: 8px 0;
+            font-size: 12px;
+            top: 22px;
+            left: -50px;
         }
     }
 </style>
@@ -245,7 +265,7 @@
     "price": "{{ item.retail_price }}",
     "priceCurrency": "USD",
     "availability": "{{ structured_availability }}",
-    "url": "{{ request.build_absolute_uri }}",
+    "url": "{{ request.build_absolute_uri }}"{% if item.location %},
     "seller": {
       "@type": "Organization",
       "name": "{{ item.location.name }}",
@@ -260,7 +280,7 @@
         "addressCountry": "US"
       }
       {% endif %}
-    }
+    }{% endif %}
   }
   {% if item.model_number.specs.all %}
   ,"additionalProperty": [
@@ -277,6 +297,7 @@
 </script>
 
 <!-- 店铺信息结构化数据 -->
+{% if item.location %}
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -298,6 +319,7 @@
   {% endif %}
 }
 </script>
+{% endif %}
 
 <!-- 面包屑导航结构化数据 -->
 <script type="application/ld+json">
@@ -349,12 +371,36 @@
         </ol>
     </nav>
 
+    <!-- 返回按钮 - 只对 incoming 和 order 来源显示 -->
+    {% if source == 'incoming' %}
+    <div class="mb-4">
+        <a href="{% url 'frontend:incoming_inventory' %}"
+           class="inline-flex items-center text-sm text-text-secondary hover:text-primary transition-colors">
+            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+            </svg>
+            Back to Upcoming Arrivals
+        </a>
+    </div>
+    {% elif source == 'order' %}
+    <div class="mb-4">
+        <a href="javascript:history.back()"
+           class="inline-flex items-center text-sm text-text-secondary hover:text-primary transition-colors">
+            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+            </svg>
+            Back to Order Detail
+        </a>
+    </div>
+    {% endif %}
+
     <div class="py-2">
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <!-- 左侧：商品图片 -->
             <div class="space-y-4">
-                <!-- 店铺信息 -->
+                <!-- 店铺信息和收藏按钮 -->
                 <div class="flex items-center justify-between">
+                    {% if item.location %}
                     <a href="{% url 'frontend:store' item.location.slug %}" class="flex items-center space-x-3 hover:bg-gray-50 p-2 rounded-lg transition-colors group">
                         {% if item.location.image %}
                         <img src="/resize/32x32{{ item.location.image.url|slice:'6:' }}" alt="{{ item.location.name }}"
@@ -379,6 +425,9 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                         </svg>
                     </a>
+                    {% else %}
+                    <div class="p-2"></div>
+                    {% endif %}
 
                     <!-- 收藏按钮 -->
                     <button id="favoriteButton"
@@ -407,7 +456,7 @@
                         <div class="image-slide {% if forloop.first %}active{% endif %}"
                             data-index="{{ forloop.counter0 }}">
                             <img src="/resize/800x1067{{ image.image.url|slice:'6:' }}"
-                                 alt="{{ item.model_number.brand.name }} {{ item.model_number.model_number }} - {{ item.model_number.category.name }} at {{ item.location.name }}"
+                                 alt="{{ item.model_number.brand.name }} {{ item.model_number.model_number }} - {{ item.model_number.category.name }}{% if item.location %} at {{ item.location.name }}{% endif %}"
                                  class="w-full object-cover"
                                  {% if not forloop.first %}loading="lazy"{% endif %}>
                         </div>
@@ -415,19 +464,23 @@
                         {% else %}
                         <div class="image-slide active">
                             <img src="{% static 'frontend/images/product-default.png' %}"
-                                alt="{{ item.model_number.brand.name }} {{ item.model_number.model_number }} - {{ item.model_number.category.name }} at {{ item.location.name }}"
+                                alt="{{ item.model_number.brand.name }} {{ item.model_number.model_number }} - {{ item.model_number.category.name }}{% if item.location %} at {{ item.location.name }}{% endif %}"
                                 class="w-full object-cover">
                         </div>
                         {% endif %}
 
-                        <!-- 商品状态叠加层 -->
+                        <!-- 商品状态叠加层 - 对角线角标 -->
                         {% if is_sold %}
                         <div class="item-status-overlay status-sold">
-                            SOLD
+                            <span>SOLD</span>
+                        </div>
+                        {% elif is_coming_soon %}
+                        <div class="item-status-overlay status-coming-soon">
+                            <span>Coming Soon</span>
                         </div>
                         {% elif is_not_available %}
                         <div class="item-status-overlay status-unavailable">
-                            NO LONGER AVAILABLE
+                            <span>Unavailable</span>
                         </div>
                         {% endif %}
 
@@ -510,9 +563,22 @@
                         <div class="space-y-2">
                             <div class="flex items-start justify-between">
                                 <div class="flex items-baseline space-x-2">
+                                    {% if is_coming_soon %}
+                                    <span class="text-3xl font-bold text-text-primary">Price TBD</span>
+                                    {% else %}
                                     <span class="text-3xl font-bold text-text-primary">${{ item.retail_price }}</span>
+                                    {% endif %}
                                 </div>
-                                {% if item.model_number.msrp and item.model_number.msrp > item.retail_price %}
+                                {% if is_coming_soon %}
+                                    {% if item.model_number.msrp %}
+                                    <div class="flex flex-col space-y-1 text-right">
+                                        <div class="flex items-baseline space-x-2 justify-end">
+                                            <span class="text-sm text-text-secondary">MSRP:</span>
+                                            <span class="text-lg text-text-secondary line-through">${{ item.model_number.msrp }}</span>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                {% elif item.model_number.msrp and item.model_number.msrp > item.retail_price %}
                                 <div class="flex flex-col space-y-1 text-right">
                                     <div class="flex items-baseline space-x-2 justify-end">
                                         <span class="text-sm text-text-secondary">MSRP:</span>

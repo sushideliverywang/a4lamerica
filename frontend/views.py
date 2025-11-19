@@ -468,10 +468,11 @@ class ItemDetailView(DetailViewMixin, DetailView):
 
         # 区分已售出和其他不可用状态
         is_sold = item.order is not None  # 有订单就是已售出
+        is_coming_soon = item.current_state_id in [1, 2, 3] and item.order is None  # 运输途中
         is_not_available = (
             not item.published and item.order is None  # 主动下架或其他原因
         ) or (
-            item.published and item.current_state_id not in [4, 5, 8]  # 状态不可售
+            item.published and item.current_state_id not in [1, 2, 3, 4, 5, 8]  # 状态不可售
         )
 
         # 获取相似商品（所有商品都显示，不管是否已售）
@@ -493,13 +494,18 @@ class ItemDetailView(DetailViewMixin, DetailView):
                 similar_item.savings = 0
                 similar_item.savings_percentage = 0
 
+        # 获取来源参数
+        source = self.request.GET.get('source', '')
+
         # 获取收藏总数 - 对所有用户显示
         context.update({
             'is_available': is_available,
             'is_sold': is_sold,
+            'is_coming_soon': is_coming_soon,
             'is_not_available': is_not_available,
             'similar_items': similar_items,
             'favorite_count': CustomerFavorite.objects.filter(item=item).count(),
+            'source': source,
             'breadcrumbs': [
                 {'name': 'Home', 'url': reverse('frontend:home')},
                 {'name': item.model_number.category.name, 'url': reverse('frontend:category', args=[item.model_number.category.slug])},
