@@ -241,7 +241,7 @@ PRODUCT_SEO_PAGES = {
         # 例如：'atlanta', 'doraville', 'chamblee'
 
         # === 首页显示设置 ===
-        'show_on_homepage': False,
+        'show_on_homepage': True,
         # 是否在首页显示此SEO页面，True或False
 
         'homepage_priority': 3,
