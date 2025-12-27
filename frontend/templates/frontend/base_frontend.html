@@ -13,13 +13,13 @@
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>{% block title %}Appliances 4 Less Doraville  | Georgia's Best DiscountAppliance Store{% endblock %}</title>
+    <title>{% block title %}A4L America | Georgia's Best Discount Appliance Store{% endblock %}</title>
     
     <!-- SEO Meta Tags -->
-    <meta name="description" content="{% block meta_description %}Appliances 4 Less Doraville - Your trusted appliances store offering quality products with competitive prices and excellent customer service. Shop for the latest refrigerators, washers, dryers, stoves, dishwashers, and more.{% endblock %}">
-    <meta name="keywords" content="{% block meta_keywords %}refrigerators, washers, dryers, stoves, dishwashers, Appliances 4 Less Doraville, online store, quality products{% endblock %}">
+    <meta name="description" content="{% block meta_description %}A4L America - Your trusted appliances store offering quality products with competitive prices and excellent customer service. Shop for the latest refrigerators, washers, dryers, stoves, dishwashers, and more.{% endblock %}">
+    <meta name="keywords" content="{% block meta_keywords %}refrigerators, washers, dryers, stoves, dishwashers, A4L America, online store, quality products{% endblock %}">
     <meta name="robots" content="{% block meta_robots %}index, follow{% endblock %}">
-    <meta name="author" content="Appliances 4 Less Doraville">
+    <meta name="author" content="A4L America">
     
     <!-- 地理位置信息 -->
     <meta name="geo.region" content="US-GA">
@@ -38,23 +38,23 @@
     <link rel="robots" href="{% url 'frontend:robots_txt' %}">
     
     <!-- Open Graph Meta Tags for Social Media -->
-    <meta property="og:title" content="{% block og_title %}Appliances 4 Less Doraville{% endblock %}">
-    <meta property="og:description" content="{% block og_description %}Appliances 4 Less Doraville - Your trusted appliances store offering quality products with competitive prices and excellent customer service.{% endblock %}">
+    <meta property="og:title" content="{% block og_title %}A4L America{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}A4L America - Your trusted appliances store offering quality products with competitive prices and excellent customer service.{% endblock %}">
     <meta property="og:type" content="{% block og_type %}website{% endblock %}">
     <meta property="og:url" content="{{ request.build_absolute_uri }}">
-    <meta property="og:site_name" content="Appliances 4 Less Doraville">
+    <meta property="og:site_name" content="A4L America">
     {% load static %}
     {% block og_image %}
     <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'frontend/images/hero-image.jpg' %}">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
-    <meta property="og:image:alt" content="Appliances 4 Less Doraville">
+    <meta property="og:image:alt" content="A4L America">
     {% endblock %}
 
     <!-- Twitter Card Meta Tags -->
     <meta name="twitter:card" content="{% block twitter_card %}summary_large_image{% endblock %}">
-    <meta name="twitter:title" content="{% block twitter_title %}Appliances 4 Less Doraville{% endblock %}">
-    <meta name="twitter:description" content="{% block twitter_description %}Appliances 4 Less Doraville - Your trusted appliances store offering quality products with competitive prices and excellent customer service.{% endblock %}">
+    <meta name="twitter:title" content="{% block twitter_title %}A4L America{% endblock %}">
+    <meta name="twitter:description" content="{% block twitter_description %}A4L America - Your trusted appliances store offering quality products with competitive prices and excellent customer service.{% endblock %}">
     {% block twitter_image %}{% endblock %}
 
     <!-- Favicon配置 -->
