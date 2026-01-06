@@ -72,3 +72,24 @@ def item_hash(item):
         return encode_item_id(item)
     except Exception:
         return str(item.id) if hasattr(item, 'id') else 'None'
+
+@register.filter
+def format_phone(phone):
+    """
+    格式化电话号码为 XXX-XXX-XXXX 格式
+    """
+    if not phone:
+        return ''
+
+    # 移除所有非数字字符
+    digits = ''.join(filter(str.isdigit, str(phone)))
+
+    # 如果是10位数字，格式化为 XXX-XXX-XXXX
+    if len(digits) == 10:
+        return f"{digits[:3]}-{digits[3:6]}-{digits[6:]}"
+    # 如果是11位数字（带国家代码1），格式化为 X-XXX-XXX-XXXX
+    elif len(digits) == 11 and digits[0] == '1':
+        return f"{digits[0]}-{digits[1:4]}-{digits[4:7]}-{digits[7:]}"
+    # 其他情况返回原始值
+    else:
+        return phone

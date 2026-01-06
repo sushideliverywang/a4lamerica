@@ -124,7 +124,7 @@
                 </div>
                 <div>
                     <h3 class="text-sm font-medium text-text-secondary">Customer Name</h3>
-                    <p class="mt-1 text-lg font-semibold text-text-primary">{{ order.customer.user.get_full_name }} ({{ order.customer.phone }})</p>
+                    <p class="mt-1 text-lg font-semibold text-text-primary">{{ order.customer.user.get_full_name }} ({{ order.customer.phone|format_phone }})</p>
                     <p class="mt-1 text-sm text-text-secondary">{{ order.customer.user.email }}</p>
                 </div>
                 <div>
