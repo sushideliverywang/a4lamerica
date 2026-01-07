@@ -538,6 +538,7 @@ PRODUCT_SEO_PAGES = {
         'background_image': '/static/frontend/images/city/Desktop-PeachtreeCorners.webp',
         'icon': 'freezer',
     },
+
     'lg-gas-cooktop-dunwoody':{
 
         # === 基础SEO信息 ===
@@ -769,6 +770,46 @@ PRODUCT_SEO_PAGES = {
         # === 页面展示素材 ===
         'featured_image': '/static/frontend/images/products/french-door-refrigerator.webp',
         'background_image': '/static/frontend/images/city/Desktop-Duluth.webp',
+        'icon': 'refrigerator',
+    },
+
+    'compact-refrigerators-peachtree-corners': {
+        'title': 'Best Compact Refrigerators in Peachtree Corners GA - Appliances 4 Less',
+        'meta_description': 'Shop premium compact refrigerators in Peachtree Corners, GA. Space-saving designs perfect for apartments, offices, and small spaces. Same-day delivery available.',
+        'h1_title': 'Compact Refrigerators in Peachtree Corners, Georgia',
+        'short_title': 'Compact Refrigerators',
+        'city_key': 'peachtree_corners',
+        'show_on_homepage': True,
+        'homepage_priority': 6,
+        'active': True,
+        'filters': {
+            'basic': {
+                'published': True,
+                'order__isnull': True,
+                'company_id': 'from_settings'
+            },
+            'category': {
+                'names': ['Compact Refrigerator']
+            }
+        },
+        'min_inventory': 1,
+        'keywords': [
+            'compact refrigerators peachtree corners',
+            'compact fridge peachtree corners ga',
+            'mini refrigerator peachtree corners',
+            'small refrigerator peachtree corners',
+            'apartment size refrigerator peachtree corners'
+        ],
+        'content_description': 'Discover the perfect compact refrigerator for your Peachtree Corners home, apartment, or office. Our selection features energy-efficient space-saving models ideal for small spaces.',
+        'features': [
+            'Space-saving compact designs',
+            'Energy efficient models',
+            'Perfect for apartments and offices',
+            'Quiet operation technology',
+            'Same-day delivery in Peachtree Corners area'
+        ],
+        'featured_image': '/static/frontend/images/products/compact-refrigerator.webp',
+        'background_image': '/static/frontend/images/city/Desktop-PeachtreeCorners.webp',
         'icon': 'refrigerator',
     },
 
