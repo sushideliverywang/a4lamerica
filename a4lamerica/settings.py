@@ -151,8 +151,8 @@ else:
     # 注意: 确保Apache用户对此目录有写入权限
     
     # 生产环境限制配置
-    IP_RATE_LIMIT_MAX = 5
-    IP_RATE_LIMIT_TIMEOUT = 300
+    IP_RATE_LIMIT_MAX = 50       # 增加到50次（避免共享IP问题）
+    IP_RATE_LIMIT_TIMEOUT = 3600  # 1小时（而不是5分钟）
     DEVICE_RATE_LIMIT_MAX = 10
     DEVICE_RATE_LIMIT_TIMEOUT = 86400
 
@@ -341,7 +341,7 @@ DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL')
 # Google reCAPTCHA 配置
 RECAPTCHA_SITE_KEY = os.getenv('RECAPTCHA_SITE_KEY')  # 从Google获取的站点密钥
 RECAPTCHA_SECRET_KEY = os.getenv('RECAPTCHA_SECRET_KEY')  # 从Google获取的密钥
-RECAPTCHA_SCORE_THRESHOLD = os.getenv('RECAPTCHA_SCORE_THRESHOLD')  # 设置分数阈值，低于此分数视为机器人
+RECAPTCHA_SCORE_THRESHOLD = float(os.getenv('RECAPTCHA_SCORE_THRESHOLD', '0.4'))  # 默认0.4，避免误判正常用户
 
 # 设置日期时间格式为美国短格式
 DATE_FORMAT = 'm/d/Y'           # 例如: 01/15/2024

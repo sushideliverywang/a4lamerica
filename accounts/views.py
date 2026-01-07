@@ -35,19 +35,16 @@ def register_customer(request):
                 # 获取并检查 IP
                 ip_address = get_client_ip(request)
                 if not check_ip_registration_limit(ip_address):
-                    messages.error(request, 'Too many registration attempts. Please try again later.')
+                    messages.error(request, 'Too many registration attempts from this network. Please try again in 1 hour.')
                     return render(request, 'accounts/register_customer.html', {'form': form})
                 
                 # 获取 reCAPTCHA token
                 recaptcha_token = request.POST.get('g-recaptcha-response')
                 email = form.cleaned_data['email']
-                
-                # 执行安全检查
-                if not all([
-                    verify_recaptcha(recaptcha_token),
-                    verify_email_domain(email)
-                ]):
-                    messages.error(request, 'Verification failed. Please try again.')
+
+                # 执行安全检查 - 只检查 reCAPTCHA
+                if not verify_recaptcha(recaptcha_token):
+                    messages.error(request, 'Security verification failed. Please refresh the page and try again.')
                     return render(request, 'accounts/register_customer.html', {'form': form})
 
                 with transaction.atomic():
