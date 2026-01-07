@@ -6,6 +6,7 @@ from django.contrib.auth import login, authenticate, logout, update_session_auth
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
+from django.utils.http import url_has_allowed_host_and_scheme
 from .forms import CustomerRegistrationForm
 from .models import User, Customer
 from django.utils import timezone
@@ -196,7 +197,17 @@ def login_view(request):
                 messages.success(request, f'Welcome back, {user.get_full_name() or user.email}!')
                 # 只有普通客户才使用next_url，员工和管理员直接重定向到dashboard
                 if not user.is_staff and next_url:
-                    return redirect(next_url)
+                    # 安全验证：确保重定向URL是本站的URL
+                    if url_has_allowed_host_and_scheme(
+                        url=next_url,
+                        allowed_hosts={request.get_host()},
+                        require_https=request.is_secure()
+                    ):
+                        return redirect(next_url)
+                    else:
+                        # URL验证失败，记录可疑的重定向尝试
+                        logger.warning(f"Rejected unsafe redirect attempt to: {next_url} from IP: {get_client_ip(request)}")
+                        # 忽略不安全的URL，使用默认重定向
                 return redirect('frontend:home')
             else:
                 messages.error(request, 'Invalid email or password.')
@@ -217,24 +228,25 @@ def activate_customer(request, token):
             token_expiry__gt=timezone.now(),
             is_email_verified=False
         )
-        
+
         with transaction.atomic():
             # 激活用户
             customer.user.is_active = True
             customer.user.save()
-            
+
             # 更新客户状态
             customer.is_email_verified = True
             customer.activation_token = None
             customer.token_expiry = None
             customer.save()
-            
-            # 自动登录用户
-            login(request, customer.user)
-            
-            messages.success(request, 'Your account has been successfully activated!')
-            return redirect('frontend:customer_profile')
-            
+
+            # 记录激活成功日志
+            logger.info(f"Account activated successfully for user: {customer.user.email}")
+
+            # 不自动登录，要求用户输入密码验证身份
+            messages.success(request, 'Your email has been verified successfully! Please log in with your password.')
+            return redirect('accounts:login')
+
     except Customer.DoesNotExist:
         messages.error(request, 'Invalid or expired activation link.')
         return redirect('accounts:login')
