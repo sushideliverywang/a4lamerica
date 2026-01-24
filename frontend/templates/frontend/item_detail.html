@@ -215,6 +215,25 @@
         color: white;
     }
 
+    .status-in-stock span {
+        background: rgb(34, 197, 94);
+        color: white;
+    }
+
+    /* 动画闪烁的绿点 */
+    @keyframes pulse-dot {
+        0%, 100% {
+            opacity: 1;
+        }
+        50% {
+            opacity: 0.5;
+        }
+    }
+
+    .animate-pulse-dot {
+        animation: pulse-dot 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+
     /* 移动端状态叠加层调整 */
     @media (max-width: 768px) {
         .item-status-overlay {
@@ -253,7 +272,6 @@
   {% if item.model_number.gtin %}
   "gtin": "{{ item.model_number.gtin }}",
   {% endif %}
-  "itemCondition": "{{ structured_condition }}",
   "url": "{{ request.build_absolute_uri }}",
   "image": [
     {% for image_url in structured_images %}
@@ -264,6 +282,8 @@
     "@type": "Offer",
     "price": "{{ item.retail_price }}",
     "priceCurrency": "USD",
+    "priceValidUntil": "{% now 'Y' %}-12-31",
+    "itemCondition": "{{ structured_condition }}",
     "availability": "{{ structured_availability }}",
     "url": "{{ request.build_absolute_uri }}"{% if item.location %},
     "seller": {
@@ -482,6 +502,10 @@
                         <div class="item-status-overlay status-unavailable">
                             <span>Unavailable</span>
                         </div>
+                        {% elif is_available %}
+                        <div class="item-status-overlay status-in-stock">
+                            <span>IN STOCK</span>
+                        </div>
                         {% endif %}
 
                         <!-- 图片导航按钮 -->
@@ -647,6 +671,12 @@
                     <!-- 操作按钮 -->
                     <div class="space-y-4 pt-6 border-t border-border">
                         {% if is_available %}
+                            <!-- 可用性提示 -->
+                            <div class="flex items-center justify-center space-x-2 py-2">
+                                <div class="w-2 h-2 bg-success rounded-full animate-pulse-dot"></div>
+                                <span class="text-sm font-medium text-success">Available for Purchase</span>
+                            </div>
+
                             {% if is_in_cart %}
                             <!-- 已在购物车 -->
                             <div class="bg-success/10 border border-success/20 rounded-lg p-4 text-center">
