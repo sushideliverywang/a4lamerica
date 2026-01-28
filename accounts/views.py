@@ -38,14 +38,14 @@ def register_customer(request):
                     messages.error(request, 'Too many registration attempts from this network. Please try again in 1 hour.')
                     return render(request, 'accounts/register_customer.html', {'form': form})
                 
-                # 获取 reCAPTCHA token
-                recaptcha_token = request.POST.get('g-recaptcha-response')
+                # 获取 reCAPTCHA token (暂时停用)
+                # recaptcha_token = request.POST.get('g-recaptcha-response')
                 email = form.cleaned_data['email']
 
-                # 执行安全检查 - 只检查 reCAPTCHA
-                if not verify_recaptcha(recaptcha_token):
-                    messages.error(request, 'Security verification failed. Please refresh the page and try again.')
-                    return render(request, 'accounts/register_customer.html', {'form': form})
+                # 执行安全检查 - reCAPTCHA验证已暂时停用
+                # if not verify_recaptcha(recaptcha_token):
+                #     messages.error(request, 'Security verification failed. Please refresh the page and try again.')
+                #     return render(request, 'accounts/register_customer.html', {'form': form})
 
                 with transaction.atomic():
                     # 创建用户账户，但设置为未激活
