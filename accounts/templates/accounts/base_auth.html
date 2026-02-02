@@ -95,7 +95,7 @@
             color: rgba(255, 255, 255, 0.9) !important;
         }
     </style>
-    <!-- reCAPTCHA 暂时停用
+
     {% if RECAPTCHA_SITE_KEY %}
     <script>
         // 添加全局错误处理
@@ -116,7 +116,7 @@
         }
     </script>
     {% endif %}
-    -->
+
     {% block extra_css %}{% endblock %}
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
 </head>
@@ -150,12 +150,10 @@
     <footer class="bg-background-dark py-3">
         <div class="container text-center">
             <p class="mb-0">&copy; {% now "Y" %} A4L America Doraville. All rights reserved.</p>
-            <!-- reCAPTCHA提示暂时停用
             <p class="text-gray-400 text-sm mt-2">This site is protected by reCAPTCHA and the Google
                 <a href="https://policies.google.com/privacy" class="underline">Privacy Policy</a> and
                 <a href="https://policies.google.com/terms" class="underline">Terms of Service</a> apply.
             </p>
-            -->
         </div>
     </footer>
 

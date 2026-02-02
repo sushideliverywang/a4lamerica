@@ -94,8 +94,8 @@
                                 {% endif %}
                             </div>
                         {% endfor %}
-                        <!-- reCAPTCHA 暂时停用 -->
-                        <!-- <input type="hidden" name="g-recaptcha-response" id="g-recaptcha-response"> -->
+
+                        <input type="hidden" name="g-recaptcha-response" id="g-recaptcha-response">
                         <button type="submit" 
                                 id="submitButton"
                                 class="btn btn-primary w-100">
@@ -165,18 +165,7 @@
         loadingOverlay.classList.remove('active');
     }
 
-    // 添加表单提交处理（reCAPTCHA已暂时停用）
-    document.getElementById('registration-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        showLoading();
-
-        // 直接提交表单（跳过reCAPTCHA验证）
-        setTimeout(() => {
-            e.target.submit();
-        }, 100);
-    });
-
-    /* 原reCAPTCHA验证代码（已暂时停用）
+    // 添加表单提交处理（启用reCAPTCHA验证）
     document.getElementById('registration-form').addEventListener('submit', function(e) {
         e.preventDefault();
 
@@ -201,7 +190,7 @@
                         throw new Error('Failed to get reCAPTCHA token');
                     }
                     document.getElementById('g-recaptcha-response').value = token;
-                    console.log('reCAPTCHA token obtained:', token);
+                    console.log('reCAPTCHA token obtained, submitting form...');
                     e.target.submit();
                 })
                 .catch(function(error) {
@@ -224,7 +213,6 @@
             }
         }, 5000); // 5秒后检查
     });
-    */
 
     // 页面加载时清空表单
     clearForm();

@@ -25,38 +25,67 @@ def get_client_ip(request):
     return ip
 
 
-def verify_recaptcha(token: str) -> bool:
-    """验证 reCAPTCHA token"""
+def verify_recaptcha(token: str, user_info: dict = None) -> bool:
+    """验证 reCAPTCHA token
+
+    Args:
+        token: reCAPTCHA token
+        user_info: 可选的用户信息字典，用于日志记录（例如：{'email': 'user@example.com', 'ip': '1.2.3.4'}）
+
+    Returns:
+        bool: 验证是否通过
+    """
     try:
         # 向 Google 验证服务器发送请求
         response = requests.post('https://www.google.com/recaptcha/api/siteverify', {
             'secret': settings.RECAPTCHA_SECRET_KEY,
             'response': token
         })
-        
+
         # 检查响应状态码
         if response.status_code != 200:
-            logger.error(f"Request failed with status code: {response.status_code}")
+            logger.error(f"reCAPTCHA request failed with status code: {response.status_code}")
             return False
-        
+
         result = response.json()
-        
-        # 添加详细日志
-        logger.info(f"reCAPTCHA response: {result}")
-        
-        if result.get('success'):
-            score = float(result.get('score', 0))
-            logger.info(f"reCAPTCHA score: {score}")
-            
-            # 调整验证逻辑
-            if score < float(settings.RECAPTCHA_SCORE_THRESHOLD):
-                logger.warning(f"Suspicious activity detected. Score: {score}")
-                return False
-                
-            return True
-        return False
+
+        # 提取关键信息用于分析
+        success = result.get('success', False)
+        score = float(result.get('score', 0))
+        action = result.get('action', 'unknown')
+        challenge_ts = result.get('challenge_ts', 'unknown')
+        hostname = result.get('hostname', 'unknown')
+        error_codes = result.get('error-codes', [])
+
+        # 构建日志信息
+        log_context = f"score={score}, action={action}, hostname={hostname}"
+        if user_info:
+            if 'email' in user_info:
+                log_context += f", email={user_info['email']}"
+            if 'ip' in user_info:
+                log_context += f", ip={user_info['ip']}"
+
+        if not success:
+            logger.error(f"reCAPTCHA validation failed: {log_context}, errors={error_codes}")
+            return False
+
+        # 记录详细的验证结果（用于后续分析）
+        threshold = float(settings.RECAPTCHA_SCORE_THRESHOLD)
+        logger.info(f"reCAPTCHA verification: {log_context}, threshold={threshold}, challenge_ts={challenge_ts}")
+
+        # 判断是否通过阈值
+        if score < threshold:
+            logger.warning(f"reCAPTCHA score below threshold: {log_context}, REJECTED")
+            return False
+
+        logger.info(f"reCAPTCHA verification PASSED: {log_context}")
+        return True
+
     except requests.RequestException as e:
-        logger.error(f"reCAPTCHA verification failed: {str(e)}")
+        logger.error(f"reCAPTCHA network error: {str(e)}")
+        return False
+    except Exception as e:
+        logger.error(f"reCAPTCHA unexpected error: {str(e)}")
         return False
 
 def verify_email_domain(email: str) -> bool:
