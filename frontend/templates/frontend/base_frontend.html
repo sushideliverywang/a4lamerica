@@ -694,7 +694,7 @@
                     <input type="hidden" name="action" value="add_address">
                     <input type="hidden" name="address_id" id="address_id">
                     <div class="px-4 py-3 space-y-5">
-                        <div>
+                        <div class="relative">
                             <label class="block text-base font-semibold text-gray-900 mb-2">Street Address *</label>
                             <input type="text" name="street_address" id="street_address" required class="w-full px-4 py-4 rounded-lg border-2 border-gray-400 shadow-sm focus:border-secondary focus:ring-2 focus:ring-secondary text-base" placeholder="Enter street address" autocomplete="off">
                             <div id="address-suggestions" class="hidden absolute z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg mt-1"></div>
@@ -753,7 +753,7 @@
                         <input type="hidden" name="action" value="add_address">
                         <input type="hidden" name="address_id" id="address_id_desktop">
                         <div class="space-y-5">
-                            <div>
+                            <div class="relative">
                                 <label class="block text-base font-semibold text-gray-900 mb-2">Street Address *</label>
                                 <input type="text" name="street_address" id="street_address_desktop" required class="w-full px-4 py-3 rounded-lg border-2 border-gray-400 shadow-sm focus:border-secondary focus:ring-2 focus:ring-secondary text-base" placeholder="Enter street address" autocomplete="off">
                                 <div id="address-suggestions-desktop" class="hidden absolute z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg mt-1"></div>
@@ -1146,6 +1146,15 @@
             });
             handleAddressSuggestion(addressSuggestionsDesktop);
         }
+
+        // 点击外部关闭建议框
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('#street_address') && !e.target.closest('#address-suggestions') &&
+                !e.target.closest('#street_address_desktop') && !e.target.closest('#address-suggestions-desktop')) {
+                addressSuggestions?.classList.add('hidden');
+                addressSuggestionsDesktop?.classList.add('hidden');
+            }
+        });
     });
 
     // 处理地址表单提交
@@ -1174,31 +1183,8 @@
         }
     }
 
-    // 地址自动完成功能
+    // 搜索功能初始化
     document.addEventListener('DOMContentLoaded', function() {
-        const streetAddressInput = document.getElementById('street_address');
-        const streetAddressInputDesktop = document.getElementById('street_address_desktop');
-        const suggestionsContainer = document.getElementById('address-suggestions');
-        const suggestionsContainerDesktop = document.getElementById('address-suggestions-desktop');
-        
-        if (streetAddressInput && suggestionsContainer) {
-            streetAddressInput.addEventListener('input', () => handleAddressInput(streetAddressInput, suggestionsContainer));
-            handleAddressSuggestion(suggestionsContainer);
-        }
-        
-        if (streetAddressInputDesktop && suggestionsContainerDesktop) {
-            streetAddressInputDesktop.addEventListener('input', () => handleAddressInput(streetAddressInputDesktop, suggestionsContainerDesktop));
-            handleAddressSuggestion(suggestionsContainerDesktop);
-        }
-        
-        document.addEventListener('click', function(e) {
-            if (!e.target.closest('#street_address') && !e.target.closest('#address-suggestions') &&
-                !e.target.closest('#street_address_desktop') && !e.target.closest('#address-suggestions-desktop')) {
-                suggestionsContainer?.classList.add('hidden');
-                suggestionsContainerDesktop?.classList.add('hidden');
-            }
-        });
-
         // 简化搜索功能初始化
         
         // 为搜索输入框添加回车键事件和实时搜索
