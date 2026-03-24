@@ -963,44 +963,13 @@ class CustomerProfileView(LoginRequiredMixin, BaseFrontendMixin, TemplateView):
                 )
                 
                 suggestions = []
-                for prediction in autocomplete_result:
-                    # 获取每个建议的详细信息
-                    place_details = gmaps.place(
-                        prediction['place_id'],
-                        fields=['address_component', 'formatted_address']
-                    )
-                    
-                    if place_details['status'] == 'OK':
-                        result = place_details['result']
-                        address_components = result['address_components']
-                        
-                        # 解析地址组件
-                        address = {
-                            'street_address': '',
-                            'city': '',
-                            'state': '',
-                            'zip_code': '',
-                            'country': 'US'
-                        }
-                        
-                        for component in address_components:
-                            types = component['types']
-                            if 'street_number' in types:
-                                address['street_address'] = component['long_name']
-                            elif 'route' in types:
-                                address['street_address'] += ' ' + component['long_name']
-                            elif 'locality' in types:
-                                address['city'] = component['long_name']
-                            elif 'administrative_area_level_1' in types:
-                                address['state'] = component['short_name']
-                            elif 'postal_code' in types:
-                                address['zip_code'] = component['long_name']
-                        
-                        suggestions.append({
-                            'place_id': prediction['place_id'],
-                            'description': prediction['description'],
-                            'address': address
-                        })
+                # 只返回 autocomplete 的基本信息，不对每个建议调用 Place Details
+                # 用户选择后再调用 get_address_details 获取完整信息，避免不必要的 API 费用
+                for prediction in autocomplete_result[:5]:  # 限制返回5个建议
+                    suggestions.append({
+                        'place_id': prediction['place_id'],
+                        'description': prediction['description']
+                    })
 
                 return JsonResponse({
                     'status': 'success',
@@ -1018,8 +987,8 @@ class CustomerProfileView(LoginRequiredMixin, BaseFrontendMixin, TemplateView):
                         'message': 'Place ID is required.'
                     })
 
-                # 使用 Google Places API 获取地址详情
-                place_details = gmaps.place(place_id, fields=['address_component', 'formatted_address'])
+                # 使用 Google Places API 获取地址详情（只请求必要字段以避免 Atmosphere Data 等额外费用）
+                place_details = gmaps.place(place_id, fields=['address_components', 'formatted_address', 'geometry'])
                 
                 if place_details['status'] == 'OK':
                     result = place_details['result']

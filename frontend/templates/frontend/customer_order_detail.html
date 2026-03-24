@@ -785,9 +785,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         
                         if (data.status === 'success' && data.suggestions.length > 0) {
                             suggestionsContainer.innerHTML = data.suggestions.map(suggestion => {
-                                const address = suggestion.address;
-                                const fullAddress = `${address.street_address}, ${address.city}, ${address.state} ${address.zip_code}`;
-                                return `<div class="p-2 hover:bg-gray-100 cursor-pointer" data-place-id="${suggestion.place_id}" data-address="${fullAddress}">${fullAddress}</div>`;
+                                return `<div class="p-2 hover:bg-gray-100 cursor-pointer" data-place-id="${suggestion.place_id}">${suggestion.description}</div>`;
                             }).join('');
                             suggestionsContainer.classList.remove('hidden');
                         } else {
