@@ -1047,7 +1047,7 @@
                         // 获取当前激活的输入框（移动端或桌面端）
                         const isDesktop = suggestionsContainer.id === 'address-suggestions-desktop';
                         const suffix = isDesktop ? '_desktop' : '';
-                        
+
                         // 填充表单字段
                         const fields = {
                             'street_address': data.address.street_address || '',
@@ -1056,7 +1056,7 @@
                             'zip_code': data.address.zip_code || '',
                             'country': 'US'
                         };
-                        
+
                         Object.entries(fields).forEach(([field, value]) => {
                             const input = document.getElementById(`${field}${suffix}`);
                             if (input) input.value = value;

@@ -988,7 +988,7 @@ class CustomerProfileView(LoginRequiredMixin, BaseFrontendMixin, TemplateView):
                     })
 
                 # 使用 Google Places API 获取地址详情（只请求必要字段以避免 Atmosphere Data 等额外费用）
-                place_details = gmaps.place(place_id, fields=['address_components', 'formatted_address', 'geometry'])
+                place_details = gmaps.place(place_id, fields=['address_component', 'formatted_address', 'geometry'])
                 
                 if place_details['status'] == 'OK':
                     result = place_details['result']
