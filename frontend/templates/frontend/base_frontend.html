@@ -1114,17 +1114,37 @@
         if (modal) modal.classList.add('hidden');
     }
 
-    // 地址表单提交
+    // 地址表单提交和地址自动完成初始化
     document.addEventListener('DOMContentLoaded', function() {
         const addressForm = document.getElementById('addressForm');
         const addressFormDesktop = document.getElementById('addressFormDesktop');
-        
+
         if (addressForm) {
             addressForm.addEventListener('submit', handleAddressFormSubmit);
         }
-        
+
         if (addressFormDesktop) {
             addressFormDesktop.addEventListener('submit', handleAddressFormSubmit);
+        }
+
+        // 初始化地址自动完成功能 - 移动端
+        const streetAddressInput = document.getElementById('street_address');
+        const addressSuggestions = document.getElementById('address-suggestions');
+        if (streetAddressInput && addressSuggestions) {
+            streetAddressInput.addEventListener('input', function() {
+                handleAddressInput(this, addressSuggestions);
+            });
+            handleAddressSuggestion(addressSuggestions);
+        }
+
+        // 初始化地址自动完成功能 - 桌面端
+        const streetAddressInputDesktop = document.getElementById('street_address_desktop');
+        const addressSuggestionsDesktop = document.getElementById('address-suggestions-desktop');
+        if (streetAddressInputDesktop && addressSuggestionsDesktop) {
+            streetAddressInputDesktop.addEventListener('input', function() {
+                handleAddressInput(this, addressSuggestionsDesktop);
+            });
+            handleAddressSuggestion(addressSuggestionsDesktop);
         }
     });
 
@@ -1356,10 +1376,25 @@
     function handleAddressInput(inputElement, suggestionsContainer) {
         clearTimeout(addressInputTimeout);
         const value = inputElement.value.trim();
-        if (value.length < 3) {
+
+        // 基础验证：至少5个字符
+        if (value.length < 5) {
             suggestionsContainer.classList.add('hidden');
             return;
         }
+
+        // 智能地址检测：地址是否"看起来完整"
+        const hasNumber = /\d/.test(value);  // 包含数字（门牌号）
+        const hasLetter = /[a-zA-Z]/.test(value);  // 包含字母（街道名）
+        const hasSpace = /\s/.test(value);  // 包含空格（分隔符）
+
+        // 至少需要：数字 + 字母 + 空格（如 "123 Main"）
+        if (!hasNumber || !hasLetter || !hasSpace) {
+            suggestionsContainer.classList.add('hidden');
+            return;
+        }
+
+        // 防抖：500ms（给用户更多输入时间）
         addressInputTimeout = setTimeout(() => {
             const formData = new FormData();
             formData.append('action', 'get_address_suggestions');
@@ -1386,7 +1421,7 @@
             .catch(error => {
                 suggestionsContainer.classList.add('hidden');
             });
-        }, 300);
+        }, 500);
     }
     </script>
 </body>
