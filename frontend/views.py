@@ -180,9 +180,9 @@ class HomeView(BaseFrontendMixin, TemplateView):
                 logging.error(f"Failed to get item count for SEO page {seo_page['key']}: {e}")
                 continue
 
-        # 获取Google评论 (多语言评论，只显示5星好评)
+        # 获取Google评论 (英语评论，只显示5星好评，7天缓存)
         google_service = GoogleReviewsService()
-        google_reviews = google_service.get_reviews(max_reviews=6, min_rating=5, show_multilingual=True)
+        google_reviews = google_service.get_reviews(max_reviews=6, min_rating=5, show_multilingual=False)
 
         # 检查是否有即将到货的库存
         has_incoming_inventory = self._check_incoming_inventory()

@@ -18,7 +18,7 @@ class GoogleReviewsService:
     def __init__(self):
         self.api_key = getattr(settings, 'GOOGLE_MAPS_API_KEY', None)
         self.place_id = getattr(settings, 'GOOGLE_PLACE_ID', None)
-        self.cache_timeout = 3600  # 1小时缓存
+        self.cache_timeout = 604800  # 7天缓存（7 * 24 * 3600 = 604800秒）
 
     def get_reviews(self, max_reviews=6, min_rating=None, show_multilingual=False):
         """
