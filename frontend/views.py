@@ -2377,7 +2377,7 @@ def robots_txt(request):
     env_info = f"DEBUG={settings.DEBUG}, DOMAIN={domain}, PROTOCOL={protocol}"
     sitemap_keys = ", ".join(sitemaps.keys())
 
-    robots_content = f"""# Appliances 4 Less Doraville - 动态生成 Robots.txt
+    robots_content = f"""# S&D Appliances Doraville - 动态生成 Robots.txt
 # 环境信息: {env_info}
 # 配置的Sitemap: {sitemap_keys}
 # 活跃店面: {store_list}
