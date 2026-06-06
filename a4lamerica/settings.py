@@ -124,7 +124,7 @@ else:
     
     # 媒体文件配置
     MEDIA_URL = '/media/'
-    MEDIA_ROOT = '/Volumes/ExternalSSD/nasmaha/media'  # 使用nasmaha的媒体文件
+    MEDIA_ROOT = '/var/www/nasmaha/media'  # 使用nasmaha的媒体文件
     
     SECURE_SSL_REDIRECT = False  # 由 Apache 处理
     SESSION_COOKIE_SECURE = True
