@@ -82,20 +82,42 @@ class BaseCompanyMixin:
 
 class BaseFrontendMixin(BaseCompanyMixin, TemplateView):
     def get_context_data(self, **kwargs):
+        from .cart_utils import get_session_cart
+
         context = super().get_context_data(**kwargs)
         context['categories'] = Category.objects.filter(parent_category_id__isnull=True)
         # 为所有页面提供stores数据，用于优化图片预加载
         context['stores'] = self.get_company_filtered_locations().filter(location_type='STORE')
+
+        # 添加购物车数量（支持游客和已登录用户）
+        if self.request.user.is_authenticated and hasattr(self.request.user, 'customer'):
+            context['cart_count'] = ShoppingCart.objects.filter(customer=self.request.user.customer).count()
+        else:
+            # 游客用户 - 从session获取购物车数量
+            session_cart = get_session_cart(self.request)
+            context['cart_count'] = len(session_cart)
+
         return context
 
 
 class DetailViewMixin(BaseCompanyMixin):
     """专门用于DetailView的Mixin，提供分类数据"""
     def get_context_data(self, **kwargs):
+        from .cart_utils import get_session_cart
+
         context = super().get_context_data(**kwargs)
         context['categories'] = Category.objects.filter(parent_category_id__isnull=True)
         # 为所有页面提供stores数据，用于优化图片预加载
         context['stores'] = self.get_company_filtered_locations().filter(location_type='STORE')
+
+        # 添加购物车数量（支持游客和已登录用户）
+        if self.request.user.is_authenticated and hasattr(self.request.user, 'customer'):
+            context['cart_count'] = ShoppingCart.objects.filter(customer=self.request.user.customer).count()
+        else:
+            # 游客用户 - 从session获取购物车数量
+            session_cart = get_session_cart(self.request)
+            context['cart_count'] = len(session_cart)
+
         return context
 
 

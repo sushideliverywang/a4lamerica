@@ -279,15 +279,14 @@
                             </a>
                         {% endif %}
                         <!-- 桌面端购物车图标 -->
-                        <a href="{% if user.is_authenticated %}{% url 'frontend:shopping_cart' %}{% else %}javascript:void(0){% endif %}" 
-                           {% if not user.is_authenticated %}onclick="showLoginModal('Please login to access your shopping cart.', '{% url 'frontend:shopping_cart' %}')"{% endif %} 
+                        <a href="{% url 'frontend:shopping_cart' %}"
                            class="flex items-center text-text-primary hover:text-secondary">
                             <div class="relative">
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
                                 </svg>
-                                <span class="absolute -top-1 -right-1 bg-secondary text-white text-xs rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 !w-[18px] !h-[18px] cart-count {% if not user.is_authenticated or user.customer.cart_items.count == 0 %}hidden{% endif %}">
-                                    {{ user.customer.cart_items.count }}
+                                <span class="absolute -top-1 -right-1 bg-secondary text-white text-xs rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 !w-[18px] !h-[18px] cart-count {% if cart_count == 0 %}hidden{% endif %}">
+                                    {{ cart_count }}
                                 </span>
                             </div>
                             <span class="ml-2">Cart</span>
@@ -473,15 +472,14 @@
                 </a>
             {% endif %}
             <!-- 移动端购物车图标 -->
-            <a href="{% if user.is_authenticated %}{% url 'frontend:shopping_cart' %}{% else %}javascript:void(0){% endif %}" 
-               {% if not user.is_authenticated %}onclick="showLoginModal('Please login to access your shopping cart.', '{% url 'frontend:shopping_cart' %}')"{% endif %} 
+            <a href="{% url 'frontend:shopping_cart' %}"
                class="flex flex-col items-center justify-center transition-colors" style="color: white !important;">
                 <div class="relative">
                     <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5" style="stroke: white !important;">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
                     </svg>
-                    <span class="absolute -top-1 -right-1 bg-secondary text-white text-xs rounded-full min-w-[20px] h-[20px] flex items-center justify-center px-1 !w-[20px] !h-[20px] cart-count {% if not user.is_authenticated or user.customer.cart_items.count == 0 %}hidden{% endif %}">
-                        {{ user.customer.cart_items.count }}
+                    <span class="absolute -top-1 -right-1 bg-secondary text-white text-xs rounded-full min-w-[20px] h-[20px] flex items-center justify-center px-1 !w-[20px] !h-[20px] cart-count {% if cart_count == 0 %}hidden{% endif %}">
+                        {{ cart_count }}
                     </span>
                 </div>
                 <span class="text-xs mt-2 font-medium" style="color: white !important;">Cart</span>
