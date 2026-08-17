@@ -1226,12 +1226,6 @@
         const addToCartBtn = document.getElementById('addToCartBtn');
         if (addToCartBtn) {
             addToCartBtn.addEventListener('click', function () {
-                const isAuthenticated = {% if user.is_authenticated %}true{% else %} false{% endif %};
-                if (!isAuthenticated) {
-                    showLoginModal('Please login to add items to your cart.');
-                    return;
-                }
-
                 addToCartBtn.disabled = true;
                 addToCartBtn.textContent = 'Adding...';
 
