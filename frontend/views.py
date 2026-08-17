@@ -1222,70 +1222,70 @@ class ShoppingCartView(BaseFrontendMixin, TemplateView):  # 移除LoginRequiredM
                 'item__location',
                 'item__location__address'
             )
-        
-        # 分别处理有商品图片和没有商品图片的商品
-        cart_items_with_images = base_cart_items.filter(item__images__isnull=False).prefetch_related(
-            'item__images'
-        )
-        
-        # 对于没有商品图片的商品，预加载产品型号图片
-        cart_items_without_images = base_cart_items.filter(item__images__isnull=True).prefetch_related(
-            'item__model_number__images'
-        )
-        
-        # 合并两个查询集
-        cart_items = list(cart_items_with_images) + list(cart_items_without_images)
-        
-        # 获取每个商品的受欢迎程度（被多少个不同客户添加到购物车）
-        item_popularity_counts = {}
-        # 查询每个商品被多少个不同客户添加到购物车
-        for cart_item in base_cart_items:
-            item_id = cart_item.item.id
-            if item_id not in item_popularity_counts:
-                # 查询该商品被多少个不同客户添加到购物车
-                popularity_count = ShoppingCart.objects.filter(
-                    item_id=item_id
-                ).values('customer').distinct().count()
-                item_popularity_counts[item_id] = popularity_count
-        
-        # 获取用户地址
-        addresses = CustomerAddress.objects.filter(customer=self.request.user.customer)
-        default_address = addresses.filter(is_default=True).first()
-        if not default_address and addresses.exists():
-            default_address = addresses.first()
-        
-        # 按 location 分组并计算每个 location 的总价
-        location_items = {}
-        for cart_item in base_cart_items:
-            location = cart_item.item.location
-            if location:
-                if location not in location_items:
-                    location_items[location] = {
-                        'items': [],
-                        'total_price': 0,
-                        'sales_tax': 0
-                    }
-                
-                # 为购物车项目设置图片
-                if cart_item.item.images.exists():
-                    cart_item.item.item_images = [cart_item.item.images.first()]
-                else:
-                    cart_item.item.model_number.model_images = [cart_item.item.model_number.images.first()] if cart_item.item.model_number.images.exists() else []
-                
-                # 添加购物车计数到商品信息中
-                cart_item.popularity_count = item_popularity_counts[cart_item.item.id]
-                
-                location_items[location]['items'].append(cart_item)
-                location_items[location]['total_price'] += cart_item.price_at_add
-                # 计算销售税
-                location_items[location]['sales_tax'] = location_items[location]['total_price'] * location.sales_tax_rate
-        
-        # 构建面包屑导航
-        breadcrumbs = [
-            {'name': 'Home', 'url': reverse('frontend:home')},
-            {'name': 'Shopping Cart', 'url': reverse('frontend:shopping_cart')}
-        ]
-        
+
+            # 分别处理有商品图片和没有商品图片的商品
+            cart_items_with_images = base_cart_items.filter(item__images__isnull=False).prefetch_related(
+                'item__images'
+            )
+
+            # 对于没有商品图片的商品，预加载产品型号图片
+            cart_items_without_images = base_cart_items.filter(item__images__isnull=True).prefetch_related(
+                'item__model_number__images'
+            )
+
+            # 合并两个查询集
+            cart_items = list(cart_items_with_images) + list(cart_items_without_images)
+
+            # 获取每个商品的受欢迎程度（被多少个不同客户添加到购物车）
+            item_popularity_counts = {}
+            # 查询每个商品被多少个不同客户添加到购物车
+            for cart_item in base_cart_items:
+                item_id = cart_item.item.id
+                if item_id not in item_popularity_counts:
+                    # 查询该商品被多少个不同客户添加到购物车
+                    popularity_count = ShoppingCart.objects.filter(
+                        item_id=item_id
+                    ).values('customer').distinct().count()
+                    item_popularity_counts[item_id] = popularity_count
+
+            # 获取用户地址
+            addresses = CustomerAddress.objects.filter(customer=self.request.user.customer)
+            default_address = addresses.filter(is_default=True).first()
+            if not default_address and addresses.exists():
+                default_address = addresses.first()
+
+            # 按 location 分组并计算每个 location 的总价
+            location_items = {}
+            for cart_item in base_cart_items:
+                location = cart_item.item.location
+                if location:
+                    if location not in location_items:
+                        location_items[location] = {
+                            'items': [],
+                            'total_price': 0,
+                            'sales_tax': 0
+                        }
+
+                    # 为购物车项目设置图片
+                    if cart_item.item.images.exists():
+                        cart_item.item.item_images = [cart_item.item.images.first()]
+                    else:
+                        cart_item.item.model_number.model_images = [cart_item.item.model_number.images.first()] if cart_item.item.model_number.images.exists() else []
+
+                    # 添加购物车计数到商品信息中
+                    cart_item.popularity_count = item_popularity_counts[cart_item.item.id]
+
+                    location_items[location]['items'].append(cart_item)
+                    location_items[location]['total_price'] += cart_item.price_at_add
+                    # 计算销售税
+                    location_items[location]['sales_tax'] = location_items[location]['total_price'] * location.sales_tax_rate
+
+            # 构建面包屑导航
+            breadcrumbs = [
+                {'name': 'Home', 'url': reverse('frontend:home')},
+                {'name': 'Shopping Cart', 'url': reverse('frontend:shopping_cart')}
+            ]
+
             context.update({
                 'location_items': location_items,
                 'addresses': addresses,
