@@ -1201,22 +1201,27 @@ def toggle_favorite(request, item_hash):
             'error': str(e)
         }, status=500, content_type='application/json')
 
-class ShoppingCartView(LoginRequiredMixin, BaseFrontendMixin, TemplateView):
+class ShoppingCartView(BaseFrontendMixin, TemplateView):  # 移除LoginRequiredMixin以支持游客
     template_name = 'frontend/shopping_cart.html'
-    
+
     def get_context_data(self, **kwargs):
+        from .cart_utils import get_session_cart
+        from decimal import Decimal
+
         context = super().get_context_data(**kwargs)
-        
-        # 获取当前用户的购物车商品
-        base_cart_items = ShoppingCart.objects.filter(
-            customer=self.request.user.customer
-        ).select_related(
-            'item',
-            'item__model_number',
-            'item__model_number__brand',
-            'item__location',
-            'item__location__address'
-        )
+
+        # 判断用户是否登录
+        if self.request.user.is_authenticated and hasattr(self.request.user, 'customer'):
+            # 已登录用户 - 使用数据库购物车
+            base_cart_items = ShoppingCart.objects.filter(
+                customer=self.request.user.customer
+            ).select_related(
+                'item',
+                'item__model_number',
+                'item__model_number__brand',
+                'item__location',
+                'item__location__address'
+            )
         
         # 分别处理有商品图片和没有商品图片的商品
         cart_items_with_images = base_cart_items.filter(item__images__isnull=False).prefetch_related(
@@ -1281,14 +1286,99 @@ class ShoppingCartView(LoginRequiredMixin, BaseFrontendMixin, TemplateView):
             {'name': 'Shopping Cart', 'url': reverse('frontend:shopping_cart')}
         ]
         
-        context.update({
-            'location_items': location_items,
-            'addresses': addresses,
-            'default_address': default_address,
-            'breadcrumbs': breadcrumbs,
-            'GOOGLE_MAPS_CLIENT_API_KEY': settings.GOOGLE_MAPS_CLIENT_API_KEY
-        })
-        
+            context.update({
+                'location_items': location_items,
+                'addresses': addresses,
+                'default_address': default_address,
+                'breadcrumbs': breadcrumbs,
+                'GOOGLE_MAPS_CLIENT_API_KEY': settings.GOOGLE_MAPS_CLIENT_API_KEY,
+                'is_guest': False,
+            })
+
+        else:
+            # 游客用户 - 使用session购物车
+            session_cart = get_session_cart(self.request)
+
+            # 构建面包屑导航
+            breadcrumbs = [
+                {'name': 'Home', 'url': reverse('frontend:home')},
+                {'name': 'Shopping Cart', 'url': reverse('frontend:shopping_cart')}
+            ]
+
+            if not session_cart:
+                context.update({
+                    'location_items': {},
+                    'breadcrumbs': breadcrumbs,
+                    'is_guest': True,
+                })
+                return context
+
+            # 获取session中的所有商品
+            item_ids = [int(item_id) for item_id in session_cart.keys()]
+            items = InventoryItem.objects.filter(
+                id__in=item_ids
+            ).select_related(
+                'model_number',
+                'model_number__brand',
+                'location',
+                'location__address'
+            ).prefetch_related(
+                'images',
+                'model_number__images'
+            )
+
+            # 构建临时购物车对象
+            class SessionCartItem:
+                """临时类，模拟ShoppingCart对象"""
+                def __init__(self, item, price, cart_item_id):
+                    self.id = cart_item_id
+                    self.item = item
+                    self.price_at_add = Decimal(price)
+                    self.popularity_count = 0
+
+            # 按location分组
+            location_items = {}
+            for item in items:
+                cart_data = session_cart[str(item.id)]
+                location = item.location
+
+                if location:
+                    if location not in location_items:
+                        location_items[location] = {
+                            'items': [],
+                            'total_price': Decimal('0.00'),
+                            'sales_tax': Decimal('0.00')
+                        }
+
+                    # 创建临时购物车项
+                    cart_item = SessionCartItem(
+                        item=item,
+                        price=cart_data['price'],
+                        cart_item_id=item.id
+                    )
+
+                    # 为购物车项设置图片
+                    if item.images.exists():
+                        cart_item.item.item_images = [item.images.first()]
+                    else:
+                        if item.model_number and item.model_number.images.exists():
+                            cart_item.item.model_number.model_images = [item.model_number.images.first()]
+                        else:
+                            if item.model_number:
+                                cart_item.item.model_number.model_images = []
+
+                    location_items[location]['items'].append(cart_item)
+                    location_items[location]['total_price'] += cart_item.price_at_add
+                    location_items[location]['sales_tax'] = (
+                        location_items[location]['total_price'] * location.sales_tax_rate
+                    )
+
+            context.update({
+                'location_items': location_items,
+                'breadcrumbs': breadcrumbs,
+                'is_guest': True,
+            })
+
         return context
 
 @login_required
@@ -1332,9 +1422,10 @@ def calculate_distances(request):
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
 
-@login_required
-def add_to_cart(request, item_hash):
-    """添加商品到购物车"""
+def add_to_cart(request, item_hash):  # 移除@login_required以支持游客
+    """添加商品到购物车（支持游客和已登录用户）"""
+    from .cart_utils import add_to_session_cart
+
     if request.method != 'POST':
         return JsonResponse({
             'success': False,
@@ -1349,41 +1440,52 @@ def add_to_cart(request, item_hash):
                 'success': False,
                 'error': 'Item not found'
             }, status=404)
-        
-        customer = request.user.customer
 
-        # 检查商品是否可购买（状态检查和是否已售出）
+        # 检查商品是否可购买
         if item.current_state_id not in [4, 5, 8] or item.order is not None:
             return JsonResponse({
                 'success': False,
                 'error': 'This item is no longer available for purchase'
             }, status=400)
 
-        # 检查商品是否已在购物车中
-        existing_cart_items = ShoppingCart.objects.filter(
-            customer=customer,
-            item=item
-        )
+        # 判断用户是否登录
+        if request.user.is_authenticated and hasattr(request.user, 'customer'):
+            # 已登录用户 - 数据库购物车
+            customer = request.user.customer
 
-        cart_item = existing_cart_items.first()
+            # 检查商品是否已在购物车中
+            if ShoppingCart.objects.filter(customer=customer, item=item).exists():
+                return JsonResponse({
+                    'success': False,
+                    'error': 'This item is already in your cart'
+                }, status=400)
 
-        if cart_item:
+            # 创建新的购物车项
+            ShoppingCart.objects.create(
+                customer=customer,
+                item=item,
+                price_at_add=item.retail_price
+            )
+
             return JsonResponse({
-                'success': False,
-                'error': 'This item is already in your cart'
-            }, status=400)
-        
-        # 创建新的购物车项
-        new_cart_item = ShoppingCart.objects.create(
-            customer=customer,
-            item=item,
-            price_at_add=item.retail_price
-        )
-        
-        return JsonResponse({
-            'success': True,
-            'message': 'Item added to cart successfully'
-        })
+                'success': True,
+                'message': 'Item added to cart successfully'
+            })
+
+        else:
+            # 游客用户 - session购物车
+            success, error_msg = add_to_session_cart(request, item)
+
+            if success:
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Item added to cart successfully'
+                })
+            else:
+                return JsonResponse({
+                    'success': False,
+                    'error': error_msg
+                }, status=400)
         
     except Exception as e:
         return JsonResponse({
@@ -1391,9 +1493,10 @@ def add_to_cart(request, item_hash):
             'error': str(e)
         }, status=500)
 
-@login_required
-def remove_from_cart(request, cart_item_id):
-    """从购物车中移除商品"""
+def remove_from_cart(request, cart_item_id):  # 移除@login_required以支持游客
+    """从购物车中移除商品（支持游客和已登录用户）"""
+    from .cart_utils import remove_from_session_cart, get_session_cart
+
     if request.method != 'POST':
         return JsonResponse({
             'success': False,
@@ -1401,54 +1504,70 @@ def remove_from_cart(request, cart_item_id):
         }, status=405)
 
     try:
-        # 检查用户是否有customer对象
-        if not hasattr(request.user, 'customer'):
-            return JsonResponse({
-                'success': False,
-                'error': 'User does not have a customer profile'
-            }, status=400)
-        
-        with transaction.atomic():
-            # 获取要删除的购物车项
-            try:
-                cart_item = ShoppingCart.objects.select_related('item__location').get(
-                    id=cart_item_id,
+        # 判断用户是否登录
+        if request.user.is_authenticated and hasattr(request.user, 'customer'):
+            # 已登录用户 - 数据库购物车
+            with transaction.atomic():
+                # 获取要删除的购物车项
+                try:
+                    cart_item = ShoppingCart.objects.select_related('item__location').get(
+                        id=cart_item_id,
+                        customer=request.user.customer
+                    )
+                except ShoppingCart.DoesNotExist:
+                    return JsonResponse({
+                        'success': False,
+                        'error': 'Cart item not found or does not belong to you'
+                    }, status=404)
+
+                # 保存位置ID
+                location_id = cart_item.item.location.id
+
+                # 删除购物车项
+                cart_item.delete()
+
+                # 获取更新后的购物车信息
+                cart_items = ShoppingCart.objects.filter(
                     customer=request.user.customer
                 )
-            except ShoppingCart.DoesNotExist:
+
+                # 计算该位置的总价
+                location_items = cart_items.filter(item__location_id=location_id)
+                location_total = sum(item.price_at_add for item in location_items)
+
+                # 获取该位置的销售税率
+                try:
+                    location = Location.objects.get(id=location_id)
+                    sales_tax = location_total * location.sales_tax_rate
+                except Location.DoesNotExist:
+                    sales_tax = 0
+
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Item removed from cart successfully',
+                    'cart_count': cart_items.count(),
+                    'location_total': float(location_total),
+                    'sales_tax': float(sales_tax)
+                })
+
+        else:
+            # 游客用户 - session购物车
+            # 对于游客，cart_item_id实际上是item_id
+            success = remove_from_session_cart(request, cart_item_id)
+
+            if not success:
                 return JsonResponse({
                     'success': False,
-                    'error': 'Cart item not found or does not belong to you'
+                    'error': 'Cart item not found'
                 }, status=404)
-            
-            # 保存位置ID，因为删除后无法再获取
-            location_id = cart_item.item.location.id
-            
-            # 删除购物车项
-            cart_item.delete()
-            
-            # 获取更新后的购物车信息
-            cart_items = ShoppingCart.objects.filter(
-                customer=request.user.customer
-            )
-            
-            # 计算该位置的总价
-            location_items = cart_items.filter(item__location_id=location_id)
-            location_total = sum(item.price_at_add for item in location_items)
-            
-            # 获取该位置的销售税率
-            try:
-                location = Location.objects.get(id=location_id)
-                sales_tax = location_total * location.sales_tax_rate
-            except Location.DoesNotExist:
-                sales_tax = 0
-            
+
+            session_cart = get_session_cart(request)
+            cart_count = len(session_cart)
+
             return JsonResponse({
                 'success': True,
                 'message': 'Item removed from cart successfully',
-                'cart_count': cart_items.count(),
-                'location_total': float(location_total),
-                'sales_tax': float(sales_tax)
+                'cart_count': cart_count
             })
             
     except Exception as e:
@@ -2970,3 +3089,162 @@ class AppleVerificationView(BaseFrontendMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         return context
+
+
+class FacebookCheckoutView(View):
+    """
+    Facebook Commerce Manager Checkout Endpoint
+
+    接收格式: /checkout/?products=1234:1,5678:1&coupon=SUMMER20
+
+    参数说明:
+    - products: item_id:quantity格式（使用item.id，不是control_number）
+    - coupon: 可选优惠券
+    - cart_origin: facebook/instagram/meta_shops
+    """
+
+    def get(self, request):
+        from .cart_utils import clear_session_cart, add_to_session_cart
+        from .models_proxy import InventoryItem, ShoppingCart
+        import logging
+
+        logger = logging.getLogger(__name__)
+
+        # 1. 获取参数
+        products_param = request.GET.get('products', '')
+        coupon = request.GET.get('coupon', None)
+        cart_origin = request.GET.get('cart_origin', 'unknown')
+
+        # 记录来源
+        request.session['cart_origin'] = cart_origin
+        if coupon:
+            request.session['fb_coupon'] = coupon
+            logger.info(f"Facebook coupon received: {coupon}")
+
+        # 2. 解析products（格式：item_id:quantity）
+        if not products_param:
+            messages.warning(request, 'No products specified.')
+            return redirect('frontend:home')
+
+        product_quantities = self._parse_products(products_param)
+
+        if not product_quantities:
+            messages.error(request, 'Invalid product format.')
+            return redirect('frontend:home')
+
+        # 3. 清空当前购物车（Facebook最佳实践）
+        if request.user.is_authenticated and hasattr(request.user, 'customer'):
+            ShoppingCart.objects.filter(customer=request.user.customer).delete()
+        else:
+            clear_session_cart(request)
+
+        # 4. 添加商品到购物车
+        added_count = 0
+        failed_items = []
+
+        for item_id_str, quantity in product_quantities.items():
+            try:
+                item_id = int(item_id_str)
+            except (ValueError, TypeError):
+                logger.warning(f"Invalid item_id: {item_id_str}")
+                continue
+
+            success, error_msg = self._add_product_to_cart(request, item_id, quantity, logger)
+
+            if success:
+                added_count += 1  # 注意：系统不支持数量，每次只添加1个
+            else:
+                failed_items.append({'id': item_id, 'error': error_msg})
+
+        # 5. 显示结果
+        if added_count > 0:
+            messages.success(request, f'{added_count} item(s) added to cart from Facebook!')
+
+        if failed_items:
+            for item in failed_items[:3]:  # 只显示前3个错误
+                messages.warning(request, f"Item {item['id']}: {item['error']}")
+
+        # 6. 跳转到购物车
+        return redirect('frontend:shopping_cart')
+
+    def _parse_products(self, products_param):
+        """
+        解析products参数
+
+        输入: "1234:1,5678:1"
+        输出: {'1234': 1, '5678': 1}
+        """
+        import logging
+        logger = logging.getLogger(__name__)
+
+        product_quantities = {}
+
+        try:
+            for entry in products_param.split(','):
+                if ':' not in entry:
+                    continue
+
+                parts = entry.split(':')
+                if len(parts) != 2:
+                    continue
+
+                item_id = parts[0].strip()
+                try:
+                    quantity = int(parts[1].strip())
+                    if quantity > 0:
+                        product_quantities[item_id] = quantity
+                except (ValueError, TypeError):
+                    continue
+
+        except Exception as e:
+            logger.error(f"Error parsing products: {e}")
+
+        return product_quantities
+
+    def _add_product_to_cart(self, request, item_id, quantity, logger):
+        """
+        添加商品到购物车
+
+        注意：quantity参数会被记录但忽略，因为系统不支持数量
+        返回: (success: bool, error_msg: str)
+        """
+        from .cart_utils import add_to_session_cart
+        from .models_proxy import InventoryItem, ShoppingCart
+
+        try:
+            # 根据item_id查找商品
+            item = InventoryItem.objects.select_related(
+                'model_number',
+                'model_number__brand',
+                'location'
+            ).get(id=item_id)
+
+            # 检查可购买性
+            if item.current_state_id not in [4, 5, 8] or item.order is not None:
+                return False, 'No longer available'
+
+            # 记录数量请求（但不实际使用）
+            if quantity > 1:
+                logger.info(f"Facebook requested quantity {quantity} for item {item_id}, but system only supports 1")
+
+            # 添加到购物车
+            if request.user.is_authenticated and hasattr(request.user, 'customer'):
+                # 数据库购物车
+                ShoppingCart.objects.create(
+                    customer=request.user.customer,
+                    item=item,
+                    price_at_add=item.retail_price
+                )
+            else:
+                # Session购物车
+                success, error_msg = add_to_session_cart(request, item)
+                if not success:
+                    return False, error_msg
+
+            return True, None
+
+        except InventoryItem.DoesNotExist:
+            return False, 'Product not found'
+        except Exception as e:
+            logger.error(f"Error adding item {item_id}: {e}")
+            return False, str(e)

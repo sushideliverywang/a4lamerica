@@ -149,31 +149,42 @@
                         <div class="mt-6 pt-6 border-t border-gray-200">
                             <div class="space-y-4">
                                 <!-- Shipping Address Selection -->
-                                <div class="flex flex-col space-y-2">
-                                    <label class="text-text-secondary">Shipping Address (Optional)</label>
-                                    <select class="location-address-select mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-secondary focus:border-secondary sm:text-sm rounded-md"
-                                            data-location-id="{{ location.id }}">
-                                        <option value="">No Address (Pick up at store)</option>
-                                        {% if addresses %}
-                                            {% for address in addresses %}
-                                                <option value="{{ address.id }}" {% if address.id == default_address.id %}selected{% endif %}>
-                                                    {{ address.get_full_address }}
-                                                </option>
-                                            {% endfor %}
-                                        {% endif %}
-                                        <option value="profile">+ Add New Address</option>
-                                    </select>
-                                    <!-- Show on Map Link -->
-                                    <a href="#" 
-                                       class="show-map-link text-secondary hover:text-orange-600 text-sm flex items-center"
-                                       data-address-id="{{ default_address.id }}">
-                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                        </svg>
-                                        Show on Map
-                                    </a>
-                                </div>
+                                {% if not is_guest %}
+                                    <div class="flex flex-col space-y-2">
+                                        <label class="text-text-secondary">Shipping Address (Optional)</label>
+                                        <select class="location-address-select mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-secondary focus:border-secondary sm:text-sm rounded-md"
+                                                data-location-id="{{ location.id }}">
+                                            <option value="">No Address (Pick up at store)</option>
+                                            {% if addresses %}
+                                                {% for address in addresses %}
+                                                    <option value="{{ address.id }}" {% if address.id == default_address.id %}selected{% endif %}>
+                                                        {{ address.get_full_address }}
+                                                    </option>
+                                                {% endfor %}
+                                            {% endif %}
+                                            <option value="profile">+ Add New Address</option>
+                                        </select>
+                                        <!-- Show on Map Link -->
+                                        <a href="#"
+                                           class="show-map-link text-secondary hover:text-orange-600 text-sm flex items-center"
+                                           data-address-id="{{ default_address.id }}">
+                                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                            </svg>
+                                            Show on Map
+                                        </a>
+                                    </div>
+                                {% else %}
+                                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                                        <p class="text-sm text-blue-800">
+                                            <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                            </svg>
+                                            Please <a href="{% url 'accounts:login' %}?next={{ request.path }}" class="underline font-medium">login</a> to view delivery options and place orders.
+                                        </p>
+                                    </div>
+                                {% endif %}
 
                                 <!-- Subtotal -->
                                 <div class="flex justify-between items-center">

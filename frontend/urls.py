@@ -25,6 +25,7 @@ urlpatterns = [
     path('api/search-suggestions/', views.search_suggestions, name='search_suggestions'),
     
     # 购物车相关URL
+    path('checkout/', views.FacebookCheckoutView.as_view(), name='facebook_checkout'),  # Facebook Commerce Manager
     path('cart/', views.ShoppingCartView.as_view(), name='shopping_cart'),
     path('cart/add/<str:item_hash>/', views.add_to_cart, name='add_to_cart'),
     path('cart/remove/<int:cart_item_id>/', views.remove_from_cart, name='remove_from_cart'),

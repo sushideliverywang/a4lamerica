@@ -7,3 +7,4 @@ class FrontendConfig(AppConfig):
     
     def ready(self):
         import frontend.templatetags.frontend_filters
+        import frontend.signals  # 导入信号以注册购物车合并处理

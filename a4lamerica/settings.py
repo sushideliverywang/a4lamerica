@@ -117,7 +117,7 @@ else:
         ALLOWED_HOSTS.extend(os.getenv('EXTRA_ALLOWED_HOSTS').split(','))
     
     # Session settings（仅生产环境）
-    SESSION_COOKIE_AGE = 86400  # 24小时，以秒为单位
+    SESSION_COOKIE_AGE = 259200  # 3天（72小时），以秒为单位 - 支持游客购物车
     SESSION_SAVE_EVERY_REQUEST = True  # 每次请求都更新session
     SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # 浏览器关闭时session不过期
     SESSION_COOKIE_NAME = 'a4lamerica_sessionid'  # 自定义session cookie名称
