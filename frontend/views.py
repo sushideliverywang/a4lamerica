@@ -2918,11 +2918,20 @@ class ImageResizeView(View):
 
             # 检查原图是否存在
             if not os.path.exists(original_path):
+                logger.error(f"Original image not found: {original_path}")
                 raise Http404("Original image not found")
 
             # 构建缓存路径
             cache_dir = os.path.join(settings.MEDIA_ROOT, 'cache', f'{width}x{height}')
-            os.makedirs(cache_dir, exist_ok=True)
+
+            # 尝试创建缓存目录
+            try:
+                os.makedirs(cache_dir, exist_ok=True)
+            except OSError as e:
+                logger.error(f"Failed to create cache directory {cache_dir}: {e}")
+                # 缓存目录创建失败，降级返回原图
+                logger.warning(f"Serving original image due to cache dir creation failure: {image_path}")
+                return self._serve_original_image(original_path)
 
             # 生成缓存文件名（WebP格式）
             cache_filename = self._get_cache_filename(image_path, width, height)
@@ -2933,12 +2942,19 @@ class ImageResizeView(View):
                 return self._serve_image(cache_path)
 
             # 缓存不存在或过期，生成新的缩略图
-            resized_path = self._create_resized_image(original_path, cache_path, width, height)
+            try:
+                resized_path = self._create_resized_image(original_path, cache_path, width, height)
+                return self._serve_image(resized_path)
+            except Exception as e:
+                # 缓存生成失败，记录详细错误并降级返回原图
+                logger.error(f"Failed to create resized image for {image_path}: {e}", exc_info=True)
+                logger.warning(f"Serving original image due to resize failure: {image_path}")
+                return self._serve_original_image(original_path)
 
-            return self._serve_image(resized_path)
-
+        except Http404:
+            raise
         except (ValueError, OSError) as e:
-            logger.error(f"Error processing image resize request: {e}")
+            logger.error(f"Error processing image resize request for {image_path}: {e}", exc_info=True)
             raise Http404("Invalid request")
 
     def _get_cache_filename(self, image_path, width, height):
@@ -2950,6 +2966,8 @@ class ImageResizeView(View):
     def _create_resized_image(self, original_path, cache_path, width, height):
         """创建缩放后的图片"""
         try:
+            logger.debug(f"Creating resized image: {original_path} -> {cache_path} ({width}x{height})")
+
             # 打开原图
             with Image.open(original_path) as img:
                 # 处理EXIF方向信息（修正手机拍照旋转问题）
@@ -3011,11 +3029,11 @@ class ImageResizeView(View):
                     method=6  # 最佳压缩
                 )
 
-                logger.info(f"Created resized image: {cache_path}")
+                logger.info(f"Successfully created resized image: {cache_path}")
                 return cache_path
 
         except Exception as e:
-            logger.error(f"Error creating resized image: {e}")
+            logger.error(f"Error creating resized image from {original_path} to {cache_path}: {e}", exc_info=True)
             raise
 
     def _serve_image(self, image_path):
@@ -3034,6 +3052,30 @@ class ImageResizeView(View):
 
         except Exception as e:
             logger.error(f"Error serving image: {e}")
+            raise Http404("Image not available")
+
+    def _serve_original_image(self, image_path):
+        """提供原图文件响应（降级方案）"""
+        try:
+            import mimetypes
+
+            # 检测文件MIME类型
+            content_type, _ = mimetypes.guess_type(image_path)
+            if not content_type:
+                content_type = 'image/jpeg'  # 默认类型
+
+            response = FileResponse(
+                open(image_path, 'rb'),
+                content_type=content_type
+            )
+
+            # 设置较短的缓存时间，因为这是降级方案
+            response['Cache-Control'] = 'public, max-age=3600'  # 1小时缓存
+
+            return response
+
+        except Exception as e:
+            logger.error(f"Error serving original image {image_path}: {e}")
             raise Http404("Image not available")
 
 
