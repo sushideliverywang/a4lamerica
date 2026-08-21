@@ -169,6 +169,12 @@ class Location(models.Model):
         verbose_name="URL Slug",
         help_text="URL-friendly identifier for this location"
     )
+    phone = models.CharField(
+        max_length=20,
+        null=True,
+        blank=True,
+        verbose_name="Phone Number"
+    )
 
     class Meta:
         managed = False

@@ -162,9 +162,9 @@ class HomeView(BaseFrontendMixin, TemplateView):
         stores = self.get_company_filtered_locations().filter(
             location_type='STORE'
         ).select_related('company', 'address').prefetch_related('business_hours').only(
-            'name', 'address__street_number', 'address__street_name', 'address__city', 
+            'name', 'address__street_number', 'address__street_name', 'address__city',
             'address__state', 'address__zip_code', 'address__latitude', 'address__longitude',
-            'image', 'company__company_name', 'timezone'
+            'image', 'company__company_name', 'timezone', 'slug', 'phone'
         )
         
         
