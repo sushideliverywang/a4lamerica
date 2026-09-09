@@ -92,6 +92,8 @@ class BaseFrontendMixin(BaseCompanyMixin, TemplateView):
         # 添加购物车数量（支持游客和已登录用户）
         if self.request.user.is_authenticated and hasattr(self.request.user, 'customer'):
             context['cart_count'] = ShoppingCart.objects.filter(customer=self.request.user.customer).count()
+            # 检查用户是否需要添加地址
+            context['user_needs_address'] = not self.request.user.customer.addresses.exists()
         else:
             # 游客用户 - 从session获取购物车数量
             session_cart = get_session_cart(self.request)
@@ -113,6 +115,8 @@ class DetailViewMixin(BaseCompanyMixin):
         # 添加购物车数量（支持游客和已登录用户）
         if self.request.user.is_authenticated and hasattr(self.request.user, 'customer'):
             context['cart_count'] = ShoppingCart.objects.filter(customer=self.request.user.customer).count()
+            # 检查用户是否需要添加地址
+            context['user_needs_address'] = not self.request.user.customer.addresses.exists()
         else:
             # 游客用户 - 从session获取购物车数量
             session_cart = get_session_cart(self.request)
