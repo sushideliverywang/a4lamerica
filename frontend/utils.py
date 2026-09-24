@@ -305,3 +305,131 @@ def get_seo_data(city_key, service_key):
         'service_info': service_info,
         'services': generator.services  # 添加所有服务信息供模板使用
     }
+
+
+def send_warranty_agreement_email(customer, location, warranty_policy, agreement_record):
+    """
+    发送保修政策同意确认邮件
+
+    Args:
+        customer: Customer对象
+        location: Location对象
+        warranty_policy: LocationWarrantyPolicy对象
+        agreement_record: CustomerWarrantyPolicy对象（刚创建的同意记录）
+    """
+    import pytz
+    from django.utils import timezone
+    from django.core.mail import send_mail
+    from django.template.loader import render_to_string
+    from django.utils.html import strip_tags
+
+    # 读取政策内容
+    policy_content = ""
+    if warranty_policy and warranty_policy.content_file:
+        try:
+            with warranty_policy.content_file.open('r') as f:
+                policy_content = f.read()
+        except Exception as e:
+            logger.error(f"Failed to read warranty policy content: {str(e)}")
+            policy_content = "<p>Policy content not available.</p>"
+
+    # 将UTC时间转换为location的时区
+    location_tz = pytz.timezone(location.timezone)
+    agreed_time_local = agreement_record.agreed_at.astimezone(location_tz)
+
+    # 准备邮件上下文
+    context = {
+        'user_name': customer.user.get_full_name() or customer.user.email,
+        'company_name': location.company.name,
+        'location_name': location.name,
+        'warranty_version': agreement_record.warranty_version,
+        'agreed_time': agreed_time_local.strftime('%B %d, %Y at %I:%M %p %Z'),
+        'ip_address': agreement_record.ip_address,
+        'policy_content': policy_content,
+        'current_year': timezone.now().year,
+    }
+
+    # 渲染邮件模板
+    html_message = render_to_string(
+        'frontend/email/warranty_agreement_confirmation.html',
+        context
+    )
+    plain_message = strip_tags(html_message)
+
+    # 发送邮件
+    subject = f'Warranty Policy Agreement Confirmation - {location.company.name}'
+
+    send_mail(
+        subject,
+        plain_message,
+        settings.DEFAULT_FROM_EMAIL,
+        [customer.user.email],
+        html_message=html_message,
+        fail_silently=True,  # 不因为邮件失败而阻止业务流程
+    )
+
+    logger.info(f"Warranty agreement confirmation email sent to {customer.user.email} for location {location.name}")
+
+
+def send_terms_agreement_email(customer, location, terms_conditions, agreement_record):
+    """
+    发送条款条件同意确认邮件
+
+    Args:
+        customer: Customer对象
+        location: Location对象
+        terms_conditions: LocationTermsAndConditions对象
+        agreement_record: CustomerTermsAgreement对象（刚创建的同意记录）
+    """
+    import pytz
+    from django.utils import timezone
+    from django.core.mail import send_mail
+    from django.template.loader import render_to_string
+    from django.utils.html import strip_tags
+
+    # 读取条款内容
+    terms_content = ""
+    if terms_conditions and terms_conditions.content_file:
+        try:
+            with terms_conditions.content_file.open('r') as f:
+                terms_content = f.read()
+        except Exception as e:
+            logger.error(f"Failed to read terms and conditions content: {str(e)}")
+            terms_content = "<p>Terms content not available.</p>"
+
+    # 将UTC时间转换为location的时区
+    location_tz = pytz.timezone(location.timezone)
+    agreed_time_local = agreement_record.agreed_at.astimezone(location_tz)
+
+    # 准备邮件上下文
+    context = {
+        'user_name': customer.user.get_full_name() or customer.user.email,
+        'company_name': location.company.name,
+        'location_name': location.name,
+        'terms_version': agreement_record.terms_version,
+        'agreed_time': agreed_time_local.strftime('%B %d, %Y at %I:%M %p %Z'),
+        'ip_address': agreement_record.ip_address,
+        'terms_content': terms_content,
+        'current_year': timezone.now().year,
+    }
+
+    # 渲染邮件模板
+    html_message = render_to_string(
+        'frontend/email/terms_agreement_confirmation.html',
+        context
+    )
+    plain_message = strip_tags(html_message)
+
+    # 发送邮件
+    subject = f'Terms & Conditions Agreement Confirmation - {location.company.name}'
+
+    send_mail(
+        subject,
+        plain_message,
+        settings.DEFAULT_FROM_EMAIL,
+        [customer.user.email],
+        html_message=html_message,
+        fail_silently=True,  # 不因为邮件失败而阻止业务流程
+    )
+
+    logger.info(f"Terms agreement confirmation email sent to {customer.user.email} for location {location.name}")

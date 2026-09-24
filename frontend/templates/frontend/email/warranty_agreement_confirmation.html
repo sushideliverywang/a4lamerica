@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .email-container {
+            max-width: 800px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border: 1px solid #ddd;
+        }
+        .header {
+            background-color: #0A2647;
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0 0 10px 0;
+            font-size: 24px;
+        }
+        .header p {
+            margin: 0;
+            font-size: 18px;
+            opacity: 0.9;
+        }
+        .content {
+            padding: 30px 20px;
+        }
+        .content p {
+            margin: 0 0 15px 0;
+        }
+        .info-box {
+            background-color: #f8f9fa;
+            border-left: 4px solid #0A2647;
+            padding: 20px;
+            margin: 25px 0;
+        }
+        .info-box h3 {
+            margin: 0 0 15px 0;
+            color: #0A2647;
+            font-size: 18px;
+        }
+        .info-box ul {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+        .info-box li {
+            padding: 8px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .info-box li:last-child {
+            border-bottom: none;
+        }
+        .info-box strong {
+            color: #0A2647;
+            display: inline-block;
+            min-width: 120px;
+        }
+        .policy-section {
+            margin: 30px 0;
+        }
+        .policy-section h3 {
+            color: #0A2647;
+            font-size: 18px;
+            margin: 0 0 15px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #0A2647;
+        }
+        .policy-content {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin: 15px 0;
+            background-color: #fafafa;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        .policy-content h1,
+        .policy-content h2,
+        .policy-content h3,
+        .policy-content h4 {
+            color: #0A2647;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        .policy-content p {
+            margin-bottom: 10px;
+        }
+        .policy-content ul,
+        .policy-content ol {
+            margin: 10px 0;
+            padding-left: 30px;
+        }
+        .policy-content li {
+            margin-bottom: 5px;
+        }
+        .notice {
+            background-color: #fff3cd;
+            border: 1px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .notice p {
+            margin: 0;
+            color: #856404;
+        }
+        .footer {
+            background-color: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            border-top: 1px solid #ddd;
+        }
+        .footer p {
+            margin: 5px 0;
+            font-size: 12px;
+            color: #666;
+        }
+        .signature {
+            margin: 25px 0;
+            padding: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <h1>Warranty Policy Agreement Confirmation</h1>
+            <p>{{ company_name }}</p>
+        </div>
+
+        <div class="content">
+            <p>Dear {{ user_name }},</p>
+
+            <p>Thank you for reading and agreeing to our Warranty Policy.</p>
+
+            <div class="info-box">
+                <h3>Agreement Details:</h3>
+                <ul>
+                    <li><strong>Policy Version:</strong> {{ warranty_version }}</li>
+                    <li><strong>Agreed At:</strong> {{ agreed_time }}</li>
+                    <li><strong>IP Address:</strong> {{ ip_address }}</li>
+                    <li><strong>Location:</strong> {{ location_name }}</li>
+                </ul>
+            </div>
+
+            <div class="policy-section">
+                <h3>Warranty Policy Content (Version {{ warranty_version }}):</h3>
+                <div class="policy-content">
+                    {{ policy_content|safe }}
+                </div>
+            </div>
+
+            <div class="notice">
+                <p><strong>Important:</strong> This email serves as a confirmation record of your agreement. Please keep it for your records.</p>
+            </div>
+
+            <p>If you have any questions regarding this warranty policy, please contact us at {{ location_name }}.</p>
+
+            <div class="signature">
+                <p>Best regards,<br>
+                <strong>{{ company_name }}</strong></p>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>This is an automated confirmation email. Please do not reply to this email.</p>
+            <p>&copy; {{ current_year }} {{ company_name }}. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

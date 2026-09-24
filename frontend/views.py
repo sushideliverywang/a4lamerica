@@ -41,6 +41,7 @@ from .config.product_seo_pages import (
 from .services.google_reviews import GoogleReviewsService
 from django.views.decorators.csrf import csrf_exempt
 import logging
+from accounts.utils import get_client_ip
 
 # 在文件开头添加 Google Maps 客户端初始化
 # 只有在有 API 密钥时才初始化客户端
@@ -2333,14 +2334,23 @@ def agree_warranty_policy(request, location_slug):
         return JsonResponse({'success': False, 'error': 'No active warranty policy found'})
     
     # 创建同意记录
-    CustomerWarrantyPolicy.objects.create(
+    agreement = CustomerWarrantyPolicy.objects.create(
         customer=customer,
         location=location,
         warranty_version=warranty_policy.version,
-        ip_address=request.META.get('REMOTE_ADDR'),
+        ip_address=get_client_ip(request),
         user_agent=request.META.get('HTTP_USER_AGENT', '')
     )
-    
+
+    # 发送确认邮件
+    from .utils import send_warranty_agreement_email
+    try:
+        send_warranty_agreement_email(customer, location, warranty_policy, agreement)
+    except Exception as e:
+        # 记录错误但不影响业务流程
+        logger = logging.getLogger(__name__)
+        logger.error(f"Failed to send warranty agreement email: {str(e)}")
+
     return JsonResponse({'success': True, 'message': 'Warranty policy agreed successfully'})
 
 
@@ -2459,14 +2469,23 @@ def agree_terms_conditions(request, location_slug):
         return JsonResponse({'success': False, 'error': 'No active terms and conditions found'})
     
     # 创建同意记录
-    CustomerTermsAgreement.objects.create(
+    agreement = CustomerTermsAgreement.objects.create(
         customer=customer,
         location=location,
         terms_version=terms_conditions.version,
-        ip_address=request.META.get('REMOTE_ADDR'),
+        ip_address=get_client_ip(request),
         user_agent=request.META.get('HTTP_USER_AGENT', '')
     )
-    
+
+    # 发送确认邮件
+    from .utils import send_terms_agreement_email
+    try:
+        send_terms_agreement_email(customer, location, terms_conditions, agreement)
+    except Exception as e:
+        # 记录错误但不影响业务流程
+        logger = logging.getLogger(__name__)
+        logger.error(f"Failed to send terms agreement email: {str(e)}")
+
     return JsonResponse({'success': True, 'message': 'Terms and conditions agreed successfully'})
 
 
