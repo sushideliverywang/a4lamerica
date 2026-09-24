@@ -2345,14 +2345,10 @@ def agree_warranty_policy(request, location_slug):
     # 发送确认邮件
     try:
         from .utils import send_warranty_agreement_email
-        logger.info(f"Attempting to send warranty agreement email to {customer.user.email}")
         send_warranty_agreement_email(customer, location, warranty_policy, agreement)
-        logger.info(f"Warranty agreement email sent successfully to {customer.user.email}")
-    except ImportError as e:
-        logger.error(f"Failed to import send_warranty_agreement_email: {str(e)}")
     except Exception as e:
-        # 记录错误但不影响业务流程
-        logger.error(f"Failed to send warranty agreement email to {customer.user.email}: {str(e)}", exc_info=True)
+        # 邮件发送失败不影响业务流程，静默处理
+        pass
 
     return JsonResponse({'success': True, 'message': 'Warranty policy agreed successfully'})
 
@@ -2483,14 +2479,10 @@ def agree_terms_conditions(request, location_slug):
     # 发送确认邮件
     try:
         from .utils import send_terms_agreement_email
-        logger.info(f"Attempting to send terms agreement email to {customer.user.email}")
         send_terms_agreement_email(customer, location, terms_conditions, agreement)
-        logger.info(f"Terms agreement email sent successfully to {customer.user.email}")
-    except ImportError as e:
-        logger.error(f"Failed to import send_terms_agreement_email: {str(e)}")
     except Exception as e:
-        # 记录错误但不影响业务流程
-        logger.error(f"Failed to send terms agreement email to {customer.user.email}: {str(e)}", exc_info=True)
+        # 邮件发送失败不影响业务流程，静默处理
+        pass
 
     return JsonResponse({'success': True, 'message': 'Terms and conditions agreed successfully'})
 
