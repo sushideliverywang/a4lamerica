@@ -2343,14 +2343,21 @@ def agree_warranty_policy(request, location_slug):
     )
 
     # 发送确认邮件
+    email_error = None
     try:
         from .utils import send_warranty_agreement_email
         send_warranty_agreement_email(customer, location, warranty_policy, agreement)
     except Exception as e:
-        # 邮件发送失败不影响业务流程，静默处理
-        pass
+        # 临时：显示错误信息以便调试
+        import traceback
+        email_error = f"Email error: {str(e)}\n{traceback.format_exc()}"
+        print(email_error)  # 打印到console
 
-    return JsonResponse({'success': True, 'message': 'Warranty policy agreed successfully'})
+    return JsonResponse({
+        'success': True,
+        'message': 'Warranty policy agreed successfully',
+        'email_debug': email_error  # 临时返回错误信息
+    })
 
 
 class TermsAndConditionsView(BaseFrontendMixin, TemplateView):
@@ -2477,14 +2484,21 @@ def agree_terms_conditions(request, location_slug):
     )
 
     # 发送确认邮件
+    email_error = None
     try:
         from .utils import send_terms_agreement_email
         send_terms_agreement_email(customer, location, terms_conditions, agreement)
     except Exception as e:
-        # 邮件发送失败不影响业务流程，静默处理
-        pass
+        # 临时：显示错误信息以便调试
+        import traceback
+        email_error = f"Email error: {str(e)}\n{traceback.format_exc()}"
+        print(email_error)  # 打印到console
 
-    return JsonResponse({'success': True, 'message': 'Terms and conditions agreed successfully'})
+    return JsonResponse({
+        'success': True,
+        'message': 'Terms and conditions agreed successfully',
+        'email_debug': email_error  # 临时返回错误信息
+    })
 
 
 def robots_txt(request):

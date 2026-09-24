@@ -104,6 +104,11 @@ document.getElementById('agreeBtn').addEventListener('click', function() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
+            // 临时：显示邮件调试信息
+            if (data.email_debug) {
+                console.error('Email sending failed:', data.email_debug);
+                alert('Agreement saved, but email failed. Check console for details.');
+            }
             location.reload();
         } else {
             alert('Error: ' + data.error);

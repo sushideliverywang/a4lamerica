@@ -340,7 +340,7 @@ def send_warranty_agreement_email(customer, location, warranty_policy, agreement
     # 准备邮件上下文
     context = {
         'user_name': customer.user.get_full_name() or customer.user.email,
-        'company_name': location.company.name,
+        'company_name': location.company.company_name,
         'location_name': location.name,
         'warranty_version': agreement_record.warranty_version,
         'agreed_time': agreed_time_local.strftime('%B %d, %Y at %I:%M %p %Z'),
@@ -357,7 +357,7 @@ def send_warranty_agreement_email(customer, location, warranty_policy, agreement
     plain_message = strip_tags(html_message)
 
     # 发送邮件
-    subject = f'Warranty Policy Agreement Confirmation - {location.company.name}'
+    subject = f'Warranty Policy Agreement Confirmation - {location.company.company_name}'
 
     send_mail(
         subject,
@@ -404,7 +404,7 @@ def send_terms_agreement_email(customer, location, terms_conditions, agreement_r
     # 准备邮件上下文
     context = {
         'user_name': customer.user.get_full_name() or customer.user.email,
-        'company_name': location.company.name,
+        'company_name': location.company.company_name,
         'location_name': location.name,
         'terms_version': agreement_record.terms_version,
         'agreed_time': agreed_time_local.strftime('%B %d, %Y at %I:%M %p %Z'),
@@ -421,7 +421,7 @@ def send_terms_agreement_email(customer, location, terms_conditions, agreement_r
     plain_message = strip_tags(html_message)
 
     # 发送邮件
-    subject = f'Terms & Conditions Agreement Confirmation - {location.company.name}'
+    subject = f'Terms & Conditions Agreement Confirmation - {location.company.company_name}'
 
     send_mail(
         subject,
