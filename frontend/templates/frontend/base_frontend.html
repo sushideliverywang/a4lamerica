@@ -257,8 +257,11 @@
                                         <p class="text-sm text-text-secondary mt-1 px-4 py-2">Member since {{ user.customer.created_at|date:"M Y" }}</p>
                                         <div class="border-t border-gray-200 my-1"></div>
                                         <a href="{% url 'frontend:customer_profile' %}" class="block px-4 py-2 text-sm text-text-primary hover:bg-background-light hover:text-secondary relative">
-                                            <span class="flex items-center justify-between">
-                                                Profile
+                                            Profile
+                                        </a>
+                                        <a href="{% url 'frontend:customer_addresses' %}" class="block px-4 py-2 text-sm text-text-primary hover:bg-background-light hover:text-secondary relative">
+                                            <span class="flex items-center">
+                                                Addresses
                                                 {% if user_needs_address %}
                                                 <span class="w-2.5 h-2.5 bg-red-500 rounded-full ml-2"></span>
                                                 {% endif %}
@@ -578,8 +581,11 @@
                     </a>
                 {% else %}
                     <a href="{% url 'frontend:customer_profile' %}" class="block px-4 py-3 text-text-primary hover:bg-background-light hover:text-secondary">
-                        <span class="flex items-center justify-between">
-                            Profile
+                        Profile
+                    </a>
+                    <a href="{% url 'frontend:customer_addresses' %}" class="block px-4 py-3 text-text-primary hover:bg-background-light hover:text-secondary">
+                        <span class="flex items-center">
+                            Addresses
                             {% if user_needs_address %}
                             <span class="w-2.5 h-2.5 bg-red-500 rounded-full ml-2"></span>
                             {% endif %}
@@ -1055,7 +1061,8 @@
                 formData.append('place_id', placeId);
                 formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
                 try {
-                    const response = await fetch('{% url "frontend:customer_profile" %}', {
+                    const url = window.ADDRESS_MANAGEMENT_URL || '{% url "frontend:customer_addresses" %}';
+                    const response = await fetch(url, {
                         method: 'POST',
                         body: formData,
                         headers: {
@@ -1101,7 +1108,8 @@
                     formData.append('action', 'delete_address');
                     formData.append('address_id', addressId);
                     formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
-                    const response = await fetch('{% url "frontend:customer_profile" %}', {
+                    const url = window.ADDRESS_MANAGEMENT_URL || '{% url "frontend:customer_addresses" %}';
+                    const response = await fetch(url, {
                         method: 'POST',
                         body: formData,
                         headers: {
@@ -1182,9 +1190,9 @@
         e.preventDefault();
         const formData = new FormData(this);
         formData.set('is_default', this.querySelector('[name="is_default"]').checked);
-        
+
         try {
-            const url = '{% url "frontend:customer_profile" %}';
+            const url = window.ADDRESS_MANAGEMENT_URL || '{% url "frontend:customer_addresses" %}';
             const response = await fetch(url, {
                 method: 'POST',
                 body: formData,
@@ -1406,7 +1414,8 @@
             formData.append('action', 'get_address_suggestions');
             formData.append('address', value);
             formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
-            fetch('{% url "frontend:customer_profile" %}', {
+            const url = window.ADDRESS_MANAGEMENT_URL || '{% url "frontend:customer_addresses" %}';
+            fetch(url, {
                 method: 'POST',
                 body: formData,
                 headers: {

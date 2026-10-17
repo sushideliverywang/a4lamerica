@@ -16,6 +16,7 @@ urlpatterns = [
     path('item/<str:item_hash>/', views.ItemDetailView.as_view(), name='item_detail'),
     path('customer/dashboard/', views.CustomerDashboardView.as_view(), name='customer_dashboard'),
     path('customer/profile/', views.CustomerProfileView.as_view(), name='customer_profile'),
+    path('customer/addresses/', views.CustomerAddressView.as_view(), name='customer_addresses'),
     path('item/<str:item_hash>/favorite/', views.toggle_favorite, name='toggle_favorite'),
     path('customer/favorites/', views.CustomerFavoriteView.as_view(), name='customer_favorites'),
     path('customer/favorites/toggle/<str:item_hash>/', views.toggle_favorite, name='toggle_favorite'),

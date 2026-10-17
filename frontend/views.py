@@ -786,17 +786,10 @@ class CustomerProfileView(LoginRequiredMixin, BaseFrontendMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        customer = self.request.user.customer
-        context.update({
-            'addresses': customer.addresses.all(),
-            'GOOGLE_MAPS_CLIENT_API_KEY': settings.GOOGLE_MAPS_CLIENT_API_KEY
-        })
         return context
 
     def post(self, request, *args, **kwargs):
         action = request.POST.get('action')
-        customer = request.user.customer
-        address_validator = AddressValidator(settings.GOOGLE_MAPS_API_KEY)
 
         if action == 'update_profile':
             try:
@@ -818,6 +811,7 @@ class CustomerProfileView(LoginRequiredMixin, BaseFrontendMixin, TemplateView):
                 user.save(update_fields=['first_name', 'last_name'])
 
                 # 更新客户信息
+                customer = request.user.customer
                 customer.phone = phone
                 customer.save(update_fields=['phone'])
 
@@ -836,7 +830,28 @@ class CustomerProfileView(LoginRequiredMixin, BaseFrontendMixin, TemplateView):
                     'message': f'Failed to update profile: {str(e)}'
                 })
 
-        elif action == 'add_address':
+        return JsonResponse({'status': 'error', 'message': 'Invalid action.'})
+
+
+class CustomerAddressView(LoginRequiredMixin, BaseFrontendMixin, TemplateView):
+    """客户地址管理页面"""
+    template_name = 'frontend/customer_address.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        customer = self.request.user.customer
+        context.update({
+            'addresses': customer.addresses.all(),
+            'GOOGLE_MAPS_CLIENT_API_KEY': settings.GOOGLE_MAPS_CLIENT_API_KEY
+        })
+        return context
+
+    def post(self, request, *args, **kwargs):
+        action = request.POST.get('action')
+        customer = request.user.customer
+        address_validator = AddressValidator(settings.GOOGLE_MAPS_API_KEY)
+
+        if action == 'add_address':
             try:
                 # 验证必填字段
                 required_fields = ['street_address', 'city', 'state', 'zip_code']
@@ -988,7 +1003,7 @@ class CustomerProfileView(LoginRequiredMixin, BaseFrontendMixin, TemplateView):
                     components={'country': 'us'},
                     types=['address']
                 )
-                
+
                 suggestions = []
                 # 只返回 autocomplete 的基本信息，不对每个建议调用 Place Details
                 # 用户选择后再调用 get_address_details 获取完整信息，避免不必要的 API 费用
@@ -1016,11 +1031,11 @@ class CustomerProfileView(LoginRequiredMixin, BaseFrontendMixin, TemplateView):
 
                 # 使用 Google Places API 获取地址详情（只请求必要字段以避免 Atmosphere Data 等额外费用）
                 place_details = gmaps.place(place_id, fields=['address_component', 'formatted_address', 'geometry'])
-                
+
                 if place_details['status'] == 'OK':
                     result = place_details['result']
                     address_components = result['address_components']
-                    
+
                     # 初始化地址组件
                     address = {
                         'street_address': '',
@@ -1029,7 +1044,7 @@ class CustomerProfileView(LoginRequiredMixin, BaseFrontendMixin, TemplateView):
                         'zip_code': '',
                         'country': 'US'
                     }
-                    
+
                     # 解析地址组件
                     for component in address_components:
                         types = component['types']
@@ -1043,7 +1058,7 @@ class CustomerProfileView(LoginRequiredMixin, BaseFrontendMixin, TemplateView):
                             address['state'] = component['short_name']
                         elif 'postal_code' in types:
                             address['zip_code'] = component['long_name']
-                    
+
                     return JsonResponse({
                         'status': 'success',
                         'address': address
@@ -1066,7 +1081,7 @@ class CustomerProfileView(LoginRequiredMixin, BaseFrontendMixin, TemplateView):
                     id=address_id,
                     customer=customer
                 )
-                
+
                 # 如果删除的是默认地址，且还有其他地址，则将第一个地址设为默认
                 if address.is_default:
                     other_addresses = CustomerAddress.objects.filter(customer=customer).exclude(id=address_id)
@@ -1085,6 +1100,7 @@ class CustomerProfileView(LoginRequiredMixin, BaseFrontendMixin, TemplateView):
                 return JsonResponse({'status': 'error', 'message': str(e)})
 
         return JsonResponse({'status': 'error', 'message': 'Invalid action.'})
+
 
 class CustomerFavoriteView(LoginRequiredMixin, BaseFrontendMixin, TemplateView):
     template_name = 'frontend/customer_favorite.html'
