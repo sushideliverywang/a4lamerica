@@ -861,10 +861,11 @@ class Order(models.Model):
             Decimal: 税前总额
         """
         from decimal import Decimal
-        
-        # 注意：这里需要访问inventory_items，但在代理模型中可能没有这个关系
-        # 暂时返回0，实际使用时需要根据具体情况调整
-        items_total = Decimal('0.00')
+
+        # 计算所有订单商品的价格总和
+        items_total = sum((item.unit_price + item.service_price) for item in self.inventory_items.all())
+
+        # 计算税前总额
         pre_tax_total = items_total + self.shipping_amount + self.other_fee_amount
         return pre_tax_total
     
