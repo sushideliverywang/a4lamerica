@@ -186,7 +186,12 @@ body {
     right: 0;
     background-color: white;
     border-top: 1px solid var(--border-color);
-    z-index: 40;
+    z-index: 45;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    will-change: transform;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
 }
 
 /* 页脚 */
@@ -214,7 +219,12 @@ body {
         right: 0;
         background-color: white;
         border-top: 1px solid var(--border-color);
-        z-index: 40;
+        z-index: 45;
+        transform: translateZ(0);
+        -webkit-transform: translateZ(0);
+        will-change: transform;
+        -webkit-backface-visibility: hidden;
+        backface-visibility: hidden;
     }
 
     /* 确保内容区域不会被底部导航栏遮挡 */
@@ -1021,8 +1031,12 @@ body {
         right: 0;
         background-color: white;
         border-top: 1px solid var(--border-color);
-        z-index: 40;
-        transform: none; /* 移除任何可能的transform */
+        z-index: 45;
+        transform: translateZ(0);
+        -webkit-transform: translateZ(0);
+        will-change: transform;
+        -webkit-backface-visibility: hidden;
+        backface-visibility: hidden;
     }
 }
 

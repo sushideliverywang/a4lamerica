@@ -455,7 +455,7 @@
     </footer>
 
     <!-- 移动端底部导航栏 -->
-    <div class="fixed bottom-0 left-0 right-0 md:hidden" style="background-color: rgba(17, 15, 26, 0.85) !important; border-top: 1px solid #4a5568; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);">
+    <div class="fixed bottom-0 left-0 right-0 md:hidden" style="background-color: rgba(17, 15, 26, 0.85) !important; border-top: 1px solid #4a5568; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 45 !important; transform: translateZ(0); -webkit-transform: translateZ(0); will-change: transform;">
         <div class="grid grid-cols-4 gap-0 py-4">
             <a href="{% url 'frontend:home' %}" class="flex flex-col items-center justify-center transition-colors" style="color: white !important;">
                 <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5" style="stroke: white !important;">
