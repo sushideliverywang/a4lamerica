@@ -95,6 +95,11 @@ class BaseFrontendMixin(BaseCompanyMixin, TemplateView):
             context['cart_count'] = ShoppingCart.objects.filter(customer=self.request.user.customer).count()
             # 检查用户是否需要添加地址
             context['user_needs_address'] = not self.request.user.customer.addresses.exists()
+            # 检查用户是否有状态为 UPDATED 的订单
+            context['user_has_updated_orders'] = Order.objects.filter(
+                customer=self.request.user.customer,
+                order_status='UPDATED'
+            ).exists()
         else:
             # 游客用户 - 从session获取购物车数量
             session_cart = get_session_cart(self.request)
@@ -118,6 +123,11 @@ class DetailViewMixin(BaseCompanyMixin):
             context['cart_count'] = ShoppingCart.objects.filter(customer=self.request.user.customer).count()
             # 检查用户是否需要添加地址
             context['user_needs_address'] = not self.request.user.customer.addresses.exists()
+            # 检查用户是否有状态为 UPDATED 的订单
+            context['user_has_updated_orders'] = Order.objects.filter(
+                customer=self.request.user.customer,
+                order_status='UPDATED'
+            ).exists()
         else:
             # 游客用户 - 从session获取购物车数量
             session_cart = get_session_cart(self.request)
